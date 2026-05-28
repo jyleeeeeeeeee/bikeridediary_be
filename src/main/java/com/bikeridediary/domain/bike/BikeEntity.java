@@ -1,6 +1,6 @@
 package com.bikeridediary.domain.bike;
 
-import com.bikeridediary.domain.user.User;
+import com.bikeridediary.domain.user.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -21,7 +21,7 @@ import java.util.UUID;
 @EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Bike {
+public class BikeEntity {
 
     // 바이크 ID (UUID)
     @Id
@@ -31,7 +31,7 @@ public class Bike {
     // 소유 사용자 (FK)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private UserEntity userEntity;
 
     // 제조사명 (MVP: 텍스트 직접 입력, 2차: bike_trims FK 연동 예정)
     @Column(name = "manufacturer_name", nullable = false, length = 100)
@@ -79,22 +79,22 @@ public class Bike {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
-    public static Bike create(
-            User user,
+    public static BikeEntity create(
+            UserEntity userEntity,
             String manufacturerName,
             String modelName,
             Integer year,
             BikeCategory category,
             Integer totalMileageKm
     ) {
-        Bike bike = new Bike();
-        bike.user = user;
-        bike.manufacturerName = manufacturerName;
-        bike.modelName = modelName;
-        bike.year = year;
-        bike.category = category;
-        bike.totalMileageKm = totalMileageKm;
-        return bike;
+        BikeEntity bikeEntity = new BikeEntity();
+        bikeEntity.userEntity = userEntity;
+        bikeEntity.manufacturerName = manufacturerName;
+        bikeEntity.modelName = modelName;
+        bikeEntity.year = year;
+        bikeEntity.category = category;
+        bikeEntity.totalMileageKm = totalMileageKm;
+        return bikeEntity;
     }
 
     public void update(
@@ -136,6 +136,6 @@ public class Bike {
     }
 
     public boolean isOwner(UUID userId) {
-        return this.user.getId().equals(userId);
+        return this.userEntity.getId().equals(userId);
     }
 }

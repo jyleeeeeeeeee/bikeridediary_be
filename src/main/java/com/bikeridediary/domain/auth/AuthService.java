@@ -1,6 +1,6 @@
 package com.bikeridediary.domain.auth;
 
-import com.bikeridediary.domain.user.User;
+import com.bikeridediary.domain.user.UserEntity;
 import com.bikeridediary.domain.user.UserRepository;
 import com.bikeridediary.domain.user.UserResponse;
 import com.bikeridediary.global.auth.jwt.JwtTokenProvider;
@@ -56,10 +56,10 @@ public class AuthService {
         // Step 4: 비밀번호 암호화
         String hashedPassword = passwordEncoder.encode(password);
 
-        User newUser = User.createWithEmail(email, hashedPassword, request.nickname());
-        User savedUser = userRepository.save(newUser);
+        UserEntity newUserEntity = UserEntity.createWithEmail(email, hashedPassword, request.nickname());
+        UserEntity savedUserEntity = userRepository.save(newUserEntity);
 
-        UUID id = savedUser.getId();
+        UUID id = savedUserEntity.getId();
         String accessToken = jwtTokenProvider.generateAccessToken(id);
         String refreshToken = jwtTokenProvider.generateRefreshToken(id);
 
@@ -67,7 +67,7 @@ public class AuthService {
 
         log.info("User registered - email: {}", email);
 
-        return new AuthResponse(accessToken, refreshToken, UserResponse.from(savedUser));
+        return new AuthResponse(accessToken, refreshToken, UserResponse.from(savedUserEntity));
     }
 
     private static void validateEmail(String email) {
@@ -119,51 +119,51 @@ public class AuthService {
         OAuth2UserInfo userInfo = getUserInfoByProvider(provider, credential);
 
         // Step 2: 기존 사용자 조회 또는 신규 가입
-        User user = findOrCreateUser(provider, userInfo);
+        UserEntity userEntity = findOrCreateUser(provider, userInfo);
 
         // Step 3: JWT 토큰 발급
-        String accessToken = jwtTokenProvider.generateAccessToken(user.getId());
-        String refreshToken = jwtTokenProvider.generateRefreshToken(user.getId());
+        String accessToken = jwtTokenProvider.generateAccessToken(userEntity.getId());
+        String refreshToken = jwtTokenProvider.generateRefreshToken(userEntity.getId());
 
         // Step 4: Refresh Token 저장 (Redis)
-        refreshTokenRepository.save(user.getId(), refreshToken);
+        refreshTokenRepository.save(userEntity.getId(), refreshToken);
 
-        log.info("Login successful - userId: {}, provider: {}", user.getId(), provider);
+        log.info("Login successful - userId: {}, provider: {}", userEntity.getId(), provider);
 
         // Step 5: 응답 생성
         return new AuthResponse(
                 accessToken,
                 refreshToken,
-                UserResponse.from(user)
+                UserResponse.from(userEntity)
         );
     }
 
     @Transactional
     public AuthResponse loginWithEmail(LoginRequest request) {
         // Step 1: 이메일로 사용자 조회
-        User user = userRepository.findByEmailAndDeletedAtIsNull(request.email())
+        UserEntity userEntity = userRepository.findByEmailAndDeletedAtIsNull(request.email())
                 .orElseThrow(() -> new BusinessException(ErrorCode.AUTH_INVALID_CREDENTIALS));
 
         // Step 2: 비밀번호 검증
-        if(!passwordEncoder.matches(request.password(), user.getPassword())) {
+        if(!passwordEncoder.matches(request.password(), userEntity.getPassword())) {
             throw new BusinessException(ErrorCode.AUTH_INVALID_CREDENTIALS);
         }
 
         // Step 3: JWT 토큰 발급
-        UUID id = user.getId();
+        UUID id = userEntity.getId();
         String accessToken = jwtTokenProvider.generateAccessToken(id);
         String refreshToken = jwtTokenProvider.generateRefreshToken(id);
 
         // Step 4: RefreshToken Redis 저장
         refreshTokenRepository.save(id, refreshToken);
 
-        log.info("Login successful - userId: {}, email: {}", id, user.getEmail());
+        log.info("Login successful - userId: {}, email: {}", id, userEntity.getEmail());
 
         // Step 5: 응답 생성
         return new AuthResponse(
                 accessToken,
                 refreshToken,
-                UserResponse.from(user)
+                UserResponse.from(userEntity)
         );
     }
 
@@ -183,8 +183,8 @@ public class AuthService {
      * 기존 사용자 조회 또는 신규 가입.
      * provider + providerId 조합이 고유 키.
      */
-    private User findOrCreateUser(String provider, OAuth2UserInfo userInfo) {
-        Optional<User> existing = userRepository.findByProviderAndProviderId(
+    private UserEntity findOrCreateUser(String provider, OAuth2UserInfo userInfo) {
+        Optional<UserEntity> existing = userRepository.findByProviderAndProviderId(
                 provider,
                 userInfo.getId()
         );
@@ -194,7 +194,7 @@ public class AuthService {
         }
 
         // 신규 가입: User 엔티티 생성
-        User newUser = User.create(
+        UserEntity newUserEntity = UserEntity.create(
                 provider,
                 userInfo.getId(),
                 userInfo.getEmail(),
@@ -203,10 +203,10 @@ public class AuthService {
 
         // 프로필 이미지 설정 (있는 경우)
         if (userInfo.getPicture() != null) {
-            newUser.updateProfile(newUser.getNickname(), userInfo.getPicture());
+            newUserEntity.updateProfile(newUserEntity.getNickname(), userInfo.getPicture());
         }
 
-        User saved = userRepository.save(newUser);
+        UserEntity saved = userRepository.save(newUserEntity);
         log.info("New user registered - provider: {}, providerId: {}", provider, userInfo.getId());
 
         return saved;

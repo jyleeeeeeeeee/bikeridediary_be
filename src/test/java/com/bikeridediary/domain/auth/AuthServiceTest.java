@@ -1,6 +1,6 @@
 package com.bikeridediary.domain.auth;
 
-import com.bikeridediary.domain.user.User;
+import com.bikeridediary.domain.user.UserEntity;
 import com.bikeridediary.domain.user.UserRepository;
 import com.bikeridediary.global.auth.jwt.JwtTokenProvider;
 import com.bikeridediary.global.auth.oauth2.*;
@@ -57,7 +57,7 @@ class AuthServiceTest {
     private UUID userId;
     private String accessToken;
     private String refreshToken;
-    private User testUser;
+    private UserEntity testUserEntity;
 
     private String hashedPassword;
     private PasswordEncoder passwordEncoder;
@@ -67,8 +67,8 @@ class AuthServiceTest {
         userId = UUID.randomUUID();
         accessToken = "test_access_token";
         refreshToken = "test_refresh_token";
-        testUser = User.create("kakao", "123456", "test@example.com", "테스트");
-        setUserIdReflection(testUser, userId);
+        testUserEntity = UserEntity.create("kakao", "123456", "test@example.com", "테스트");
+        setUserIdReflection(testUserEntity, userId);
 
         // 실제 BCryptPasswordEncoder 생성 및 주입
         passwordEncoder = new BCryptPasswordEncoder();
@@ -79,11 +79,11 @@ class AuthServiceTest {
 
     }
 
-    private void setUserIdReflection(User user, UUID id) {
+    private void setUserIdReflection(UserEntity userEntity, UUID id) {
         try {
-            var field = user.getClass().getDeclaredField("id");
+            var field = userEntity.getClass().getDeclaredField("id");
             field.setAccessible(true);
-            field.set(user, id);
+            field.set(userEntity, id);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -100,11 +100,11 @@ class AuthServiceTest {
                 .thenReturn(userInfo);
         when(userRepository.findByProviderAndProviderId("kakao", "123456"))
                 .thenReturn(Optional.empty());
-        when(userRepository.save(any(User.class)))
+        when(userRepository.save(any(UserEntity.class)))
                 .thenAnswer(invocation -> {
-                    User user = invocation.getArgument(0);
-                    setUserIdReflection(user, newUserId);
-                    return user;
+                    UserEntity userEntity = invocation.getArgument(0);
+                    setUserIdReflection(userEntity, newUserId);
+                    return userEntity;
                 });
         when(jwtTokenProvider.generateAccessToken(newUserId))
                 .thenReturn(accessToken);
@@ -118,7 +118,7 @@ class AuthServiceTest {
         assertThat(response.refreshToken()).isEqualTo(refreshToken);
         assertThat(response.user()).isNotNull();
 
-        verify(userRepository).save(any(User.class));
+        verify(userRepository).save(any(UserEntity.class));
         verify(refreshTokenRepository).save(newUserId, refreshToken);
     }
 
@@ -131,10 +131,10 @@ class AuthServiceTest {
         when(kakaoProvider.getUserInfo(code))
                 .thenReturn(userInfo);
         when(userRepository.findByProviderAndProviderId("kakao", "123456"))
-                .thenReturn(Optional.of(testUser));
-        when(jwtTokenProvider.generateAccessToken(testUser.getId()))
+                .thenReturn(Optional.of(testUserEntity));
+        when(jwtTokenProvider.generateAccessToken(testUserEntity.getId()))
                 .thenReturn(accessToken);
-        when(jwtTokenProvider.generateRefreshToken(testUser.getId()))
+        when(jwtTokenProvider.generateRefreshToken(testUserEntity.getId()))
                 .thenReturn(refreshToken);
 
         AuthResponse response = authService.login("kakao", code);
@@ -143,8 +143,8 @@ class AuthServiceTest {
         assertThat(response.accessToken()).isEqualTo(accessToken);
         assertThat(response.refreshToken()).isEqualTo(refreshToken);
 
-        verify(userRepository, never()).save(any(User.class));
-        verify(refreshTokenRepository).save(testUser.getId(), refreshToken);
+        verify(userRepository, never()).save(any(UserEntity.class));
+        verify(refreshTokenRepository).save(testUserEntity.getId(), refreshToken);
     }
 
     @Test
@@ -158,11 +158,11 @@ class AuthServiceTest {
                 .thenReturn(userInfo);
         when(userRepository.findByProviderAndProviderId("kakao", "123456"))
                 .thenReturn(Optional.empty());
-        when(userRepository.save(any(User.class)))
+        when(userRepository.save(any(UserEntity.class)))
                 .thenAnswer(invocation -> {
-                    User user = invocation.getArgument(0);
-                    setUserIdReflection(user, newUserId);
-                    return user;
+                    UserEntity userEntity = invocation.getArgument(0);
+                    setUserIdReflection(userEntity, newUserId);
+                    return userEntity;
                 });
         when(jwtTokenProvider.generateAccessToken(newUserId))
                 .thenReturn(accessToken);
@@ -171,7 +171,7 @@ class AuthServiceTest {
 
         authService.login("kakao", code);
 
-        ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
+        ArgumentCaptor<UserEntity> captor = ArgumentCaptor.forClass(UserEntity.class);
         verify(userRepository).save(captor.capture());
         assertThat(captor.getValue().getProfileImageUrl()).isEqualTo("https://example.com/image.jpg");
     }
@@ -187,11 +187,11 @@ class AuthServiceTest {
                 .thenReturn(userInfo);
         when(userRepository.findByProviderAndProviderId("kakao", "123456"))
                 .thenReturn(Optional.empty());
-        when(userRepository.save(any(User.class)))
+        when(userRepository.save(any(UserEntity.class)))
                 .thenAnswer(invocation -> {
-                    User user = invocation.getArgument(0);
-                    setUserIdReflection(user, newUserId);
-                    return user;
+                    UserEntity userEntity = invocation.getArgument(0);
+                    setUserIdReflection(userEntity, newUserId);
+                    return userEntity;
                 });
         when(jwtTokenProvider.generateAccessToken(newUserId))
                 .thenReturn(accessToken);
@@ -200,7 +200,7 @@ class AuthServiceTest {
 
         authService.login("kakao", code);
 
-        ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
+        ArgumentCaptor<UserEntity> captor = ArgumentCaptor.forClass(UserEntity.class);
         verify(userRepository).save(captor.capture());
         assertThat(captor.getValue().getNickname()).isEqualTo("카카오사용자");
     }
@@ -216,11 +216,11 @@ class AuthServiceTest {
                 .thenReturn(userInfo);
         when(userRepository.findByProviderAndProviderId("kakao", "123456"))
                 .thenReturn(Optional.empty());
-        when(userRepository.save(any(User.class)))
+        when(userRepository.save(any(UserEntity.class)))
                 .thenAnswer(invocation -> {
-                    User user = invocation.getArgument(0);
-                    setUserIdReflection(user, newUserId);
-                    return user;
+                    UserEntity userEntity = invocation.getArgument(0);
+                    setUserIdReflection(userEntity, newUserId);
+                    return userEntity;
                 });
         when(jwtTokenProvider.generateAccessToken(newUserId))
                 .thenReturn(accessToken);
@@ -229,7 +229,7 @@ class AuthServiceTest {
 
         authService.login("kakao", code);
 
-        ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
+        ArgumentCaptor<UserEntity> captor = ArgumentCaptor.forClass(UserEntity.class);
         verify(userRepository).save(captor.capture());
         assertThat(captor.getValue().getNickname()).isEqualTo("testuser");
     }
@@ -245,11 +245,11 @@ class AuthServiceTest {
                 .thenReturn(userInfo);
         when(userRepository.findByProviderAndProviderId("kakao", "12345678901234567890"))
                 .thenReturn(Optional.empty());
-        when(userRepository.save(any(User.class)))
+        when(userRepository.save(any(UserEntity.class)))
                 .thenAnswer(invocation -> {
-                    User user = invocation.getArgument(0);
-                    setUserIdReflection(user, newUserId);
-                    return user;
+                    UserEntity userEntity = invocation.getArgument(0);
+                    setUserIdReflection(userEntity, newUserId);
+                    return userEntity;
                 });
         when(jwtTokenProvider.generateAccessToken(newUserId))
                 .thenReturn(accessToken);
@@ -258,7 +258,7 @@ class AuthServiceTest {
 
         authService.login("kakao", code);
 
-        ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
+        ArgumentCaptor<UserEntity> captor = ArgumentCaptor.forClass(UserEntity.class);
         verify(userRepository).save(captor.capture());
         assertThat(captor.getValue().getNickname()).startsWith("사용자_");
     }
@@ -341,11 +341,11 @@ class AuthServiceTest {
 
         when(userRepository.existsByEmailAndDeletedAtIsNull("newuser@example.com"))
                 .thenReturn(false);  // 이메일 중복 아님
-        when(userRepository.save(any(User.class)))
+        when(userRepository.save(any(UserEntity.class)))
                 .thenAnswer(invocation -> {
-                    User user = invocation.getArgument(0);
-                    setUserIdReflection(user, newUserId);
-                    return user;
+                    UserEntity userEntity = invocation.getArgument(0);
+                    setUserIdReflection(userEntity, newUserId);
+                    return userEntity;
                 });
         when(jwtTokenProvider.generateAccessToken(newUserId))
                 .thenReturn(accessToken);
@@ -359,7 +359,7 @@ class AuthServiceTest {
         assertThat(response.refreshToken()).isEqualTo(refreshToken);
         assertThat(response.user()).isNotNull();
 
-        verify(userRepository).save(any(User.class));
+        verify(userRepository).save(any(UserEntity.class));
         verify(refreshTokenRepository).save(newUserId, refreshToken);
     }
 
@@ -380,7 +380,7 @@ class AuthServiceTest {
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.AUTH_USER_ALREADY_EXISTS);
 
-        verify(userRepository, never()).save(any(User.class));
+        verify(userRepository, never()).save(any(UserEntity.class));
     }
 
 
@@ -400,7 +400,7 @@ class AuthServiceTest {
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.AUTH_EMAIL_INVALID_FORMAT);
 
-        verify(userRepository, never()).save(any(User.class));
+        verify(userRepository, never()).save(any(UserEntity.class));
     }
 
 
@@ -420,7 +420,7 @@ class AuthServiceTest {
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.AUTH_PASSWORD_TOO_WEAK);
 
-        verify(userRepository, never()).save(any(User.class));
+        verify(userRepository, never()).save(any(UserEntity.class));
     }
 
     @Test
@@ -439,7 +439,7 @@ class AuthServiceTest {
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.AUTH_PASSWORD_TOO_WEAK);
 
-        verify(userRepository, never()).save(any(User.class));
+        verify(userRepository, never()).save(any(UserEntity.class));
     }
 
     @Test
@@ -458,7 +458,7 @@ class AuthServiceTest {
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.AUTH_PASSWORD_TOO_WEAK);
 
-        verify(userRepository, never()).save(any(User.class));
+        verify(userRepository, never()).save(any(UserEntity.class));
     }
 
 
@@ -469,11 +469,11 @@ class AuthServiceTest {
                 "test@example.com",
                 "SecurePass123!"
         );
-        User emailUser = User.createWithEmail("test@example.com", hashedPassword, "테스트");
-        setUserIdReflection(emailUser, userId);
+        UserEntity emailUserEntity = UserEntity.createWithEmail("test@example.com", hashedPassword, "테스트");
+        setUserIdReflection(emailUserEntity, userId);
 
         when(userRepository.findByEmailAndDeletedAtIsNull("test@example.com"))
-                .thenReturn(Optional.of(emailUser));
+                .thenReturn(Optional.of(emailUserEntity));
         when(jwtTokenProvider.generateAccessToken(userId))
                 .thenReturn(accessToken);
         when(jwtTokenProvider.generateRefreshToken(userId))
@@ -513,11 +513,11 @@ class AuthServiceTest {
                 "test@example.com",
                 "WrongPassword123!"
         );
-        User emailUser = User.createWithEmail("test@example.com", hashedPassword, "테스트");
-        setUserIdReflection(emailUser, userId);
+        UserEntity emailUserEntity = UserEntity.createWithEmail("test@example.com", hashedPassword, "테스트");
+        setUserIdReflection(emailUserEntity, userId);
 
         when(userRepository.findByEmailAndDeletedAtIsNull("test@example.com"))
-                .thenReturn(Optional.of(emailUser));
+                .thenReturn(Optional.of(emailUserEntity));
 
         assertThatThrownBy(() -> authService.loginWithEmail(request))
                 .isInstanceOf(BusinessException.class)

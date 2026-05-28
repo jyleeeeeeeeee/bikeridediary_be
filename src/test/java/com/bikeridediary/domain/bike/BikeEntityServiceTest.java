@@ -1,6 +1,6 @@
 package com.bikeridediary.domain.bike;
 
-import com.bikeridediary.domain.user.User;
+import com.bikeridediary.domain.user.UserEntity;
 import com.bikeridediary.domain.user.UserRepository;
 import com.bikeridediary.global.exception.BusinessException;
 import com.bikeridediary.global.exception.ErrorCode;
@@ -24,7 +24,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("BikeService 단위 테스트")
-class BikeServiceTest {
+class BikeEntityServiceTest {
 
     @Mock
     private BikeRepository bikeRepository;
@@ -37,13 +37,13 @@ class BikeServiceTest {
 
     private UUID userId;
     private UUID bikeId;
-    private User testUser;
+    private UserEntity testUserEntity;
 
     @BeforeEach
     void setUp() {
         userId = UUID.randomUUID();
         bikeId = UUID.randomUUID();
-        testUser = User.create("kakao", "123456", "test@example.com", "테스트");
+        testUserEntity = UserEntity.create("kakao", "123456", "test@example.com", "테스트");
     }
 
     @Test
@@ -61,7 +61,7 @@ class BikeServiceTest {
     @DisplayName("getMyBikes - 성공")
     void getMyBikes_Success() {
         when(userRepository.findByIdAndDeletedAtIsNull(userId))
-                .thenReturn(Optional.of(testUser));
+                .thenReturn(Optional.of(testUserEntity));
         when(bikeRepository.findByUserIdAndDeletedAtIsNullOrderByIsRepresentativeDescCreatedAtDesc(userId))
                 .thenReturn(List.of());
 
@@ -104,10 +104,10 @@ class BikeServiceTest {
         );
 
         when(userRepository.findByIdAndDeletedAtIsNull(userId))
-                .thenReturn(Optional.of(testUser));
+                .thenReturn(Optional.of(testUserEntity));
         when(bikeRepository.findByUserIdAndDeletedAtIsNullOrderByIsRepresentativeDescCreatedAtDesc(userId))
                 .thenReturn(List.of());
-        when(bikeRepository.save(any(Bike.class)))
+        when(bikeRepository.save(any(BikeEntity.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         try {
@@ -116,7 +116,7 @@ class BikeServiceTest {
             // BikeResponse.from() 실패 무시
         }
 
-        ArgumentCaptor<Bike> captor = ArgumentCaptor.forClass(Bike.class);
+        ArgumentCaptor<BikeEntity> captor = ArgumentCaptor.forClass(BikeEntity.class);
         verify(bikeRepository).save(captor.capture());
         assertThat(captor.getValue().isRepresentative()).isTrue();
     }
@@ -124,18 +124,18 @@ class BikeServiceTest {
     @Test
     @DisplayName("createBike - 두 번째 바이크는 대표 아님")
     void createBike_SecondBikeNotRepresentative() {
-        Bike firstBike = Bike.create(testUser, "Honda", "CB500F", 2023, BikeCategory.SPORT, 10000);
-        firstBike.setRepresentative(true);
+        BikeEntity firstBikeEntity = BikeEntity.create(testUserEntity, "Honda", "CB500F", 2023, BikeCategory.SPORT, 10000);
+        firstBikeEntity.setRepresentative(true);
 
         BikeCreateRequest request = new BikeCreateRequest(
                 "Yamaha", "MT-07", 2022, BikeCategory.NAKED, 5000
         );
 
         when(userRepository.findByIdAndDeletedAtIsNull(userId))
-                .thenReturn(Optional.of(testUser));
+                .thenReturn(Optional.of(testUserEntity));
         when(bikeRepository.findByUserIdAndDeletedAtIsNullOrderByIsRepresentativeDescCreatedAtDesc(userId))
-                .thenReturn(List.of(firstBike));
-        when(bikeRepository.save(any(Bike.class)))
+                .thenReturn(List.of(firstBikeEntity));
+        when(bikeRepository.save(any(BikeEntity.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         try {
@@ -144,7 +144,7 @@ class BikeServiceTest {
             // BikeResponse.from() 실패 무시
         }
 
-        ArgumentCaptor<Bike> captor = ArgumentCaptor.forClass(Bike.class);
+        ArgumentCaptor<BikeEntity> captor = ArgumentCaptor.forClass(BikeEntity.class);
         verify(bikeRepository).save(captor.capture());
         assertThat(captor.getValue().isRepresentative()).isFalse();
     }

@@ -29,14 +29,14 @@ public record UserResponse(
     /**
      * User 엔티티로부터 응답 DTO 생성.
      */
-    public static UserResponse from(User user) {
+    public static UserResponse from(UserEntity userEntity) {
         return new UserResponse(
-                user.getId(),
-                user.getProvider(),
-                user.getNickname(),
-                user.getEmail(),
-                user.getProfileImageUrl(),
-                user.getCreatedAt()
+                userEntity.getId(),
+                userEntity.getProvider(),
+                userEntity.getNickname(),
+                userEntity.getEmail(),
+                userEntity.getProfileImageUrl(),
+                userEntity.getCreatedAt()
         );
     }
 }

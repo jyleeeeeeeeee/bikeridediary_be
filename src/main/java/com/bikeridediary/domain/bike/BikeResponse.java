@@ -21,19 +21,19 @@ public record BikeResponse(
         LocalDateTime createdAt
 ) {
 
-    public static BikeResponse from(Bike bike) {
+    public static BikeResponse from(BikeEntity bikeEntity) {
         return new BikeResponse(
-                bike.getId(),
-                bike.getManufacturerName(),
-                bike.getModelName(),
-                bike.getYear(),
-                bike.getCategory(),
-                bike.getTotalMileageKm(),
-                bike.isRepresentative(),
-                bike.getPurchasedAt(),
-                bike.getPhotoUrl(),
-                bike.getMemo(),
-                bike.getCreatedAt()
+                bikeEntity.getId(),
+                bikeEntity.getManufacturerName(),
+                bikeEntity.getModelName(),
+                bikeEntity.getYear(),
+                bikeEntity.getCategory(),
+                bikeEntity.getTotalMileageKm(),
+                bikeEntity.isRepresentative(),
+                bikeEntity.getPurchasedAt(),
+                bikeEntity.getPhotoUrl(),
+                bikeEntity.getMemo(),
+                bikeEntity.getCreatedAt()
         );
     }
 }

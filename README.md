@@ -40,8 +40,8 @@ http://localhost:8080/swagger-ui.html
 ```
 com.bikeridediary
 ├── domain
-│   ├── user          - 사용자
-│   ├── bike          - 바이크
+│   ├── userEntity          - 사용자
+│   ├── bikeEntity          - 바이크
 │   ├── bikemodel     - 제조사/모델 마스터 (2차)
 │   ├── maintenance   - 정비 이력
 │   ├── fueling       - 연비/주유

@@ -1,6 +1,6 @@
 package com.bikeridediary.domain.bike;
 
-import com.bikeridediary.domain.user.User;
+import com.bikeridediary.domain.user.UserEntity;
 import com.bikeridediary.domain.user.UserRepository;
 import com.bikeridediary.global.exception.BusinessException;
 import com.bikeridediary.global.exception.ErrorCode;
@@ -34,11 +34,11 @@ public class BikeService {
      * Get a specific bike by ID (must be owned by the user).
      */
     public BikeResponse getBike(UUID bikeId, UUID userId) {
-        Bike bike = bikeRepository.findByIdAndDeletedAtIsNull(bikeId)
+        BikeEntity bikeEntity = bikeRepository.findByIdAndDeletedAtIsNull(bikeId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.BIKE_NOT_FOUND));
 
-        verifyBikeOwnership(bike, userId);
-        return BikeResponse.from(bike);
+        verifyBikeOwnership(bikeEntity, userId);
+        return BikeResponse.from(bikeEntity);
     }
 
     /**
@@ -47,11 +47,11 @@ public class BikeService {
      */
     @Transactional
     public BikeResponse createBike(BikeCreateRequest request, UUID userId) {
-        User user = userRepository.findByIdAndDeletedAtIsNull(userId)
+        UserEntity userEntity = userRepository.findByIdAndDeletedAtIsNull(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        Bike bike = Bike.create(
-                user,
+        BikeEntity bikeEntity = BikeEntity.create(
+                userEntity,
                 request.manufacturerName(),
                 request.modelName(),
                 request.year(),
@@ -63,10 +63,10 @@ public class BikeService {
         long bikeCount = bikeRepository.findByUserIdAndDeletedAtIsNullOrderByIsRepresentativeDescCreatedAtDesc(userId)
                 .size();
         if (bikeCount == 0) {
-            bike.setRepresentative(true);
+            bikeEntity.setRepresentative(true);
         }
 
-        Bike saved = bikeRepository.save(bike);
+        BikeEntity saved = bikeRepository.save(bikeEntity);
         return BikeResponse.from(saved);
     }
 
@@ -75,12 +75,12 @@ public class BikeService {
      */
     @Transactional
     public BikeResponse updateBike(UUID bikeId, BikeUpdateRequest request, UUID userId) {
-        Bike bike = bikeRepository.findByIdAndDeletedAtIsNull(bikeId)
+        BikeEntity bikeEntity = bikeRepository.findByIdAndDeletedAtIsNull(bikeId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.BIKE_NOT_FOUND));
 
-        verifyBikeOwnership(bike, userId);
+        verifyBikeOwnership(bikeEntity, userId);
 
-        bike.update(
+        bikeEntity.update(
                 request.manufacturerName(),
                 request.modelName(),
                 request.year(),
@@ -90,7 +90,7 @@ public class BikeService {
                 request.memo()
         );
 
-        return BikeResponse.from(bikeRepository.save(bike));
+        return BikeResponse.from(bikeRepository.save(bikeEntity));
     }
 
     /**
@@ -98,18 +98,18 @@ public class BikeService {
      */
     @Transactional
     public void deleteBike(UUID bikeId, UUID userId) {
-        Bike bike = bikeRepository.findByIdAndDeletedAtIsNull(bikeId)
+        BikeEntity bikeEntity = bikeRepository.findByIdAndDeletedAtIsNull(bikeId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.BIKE_NOT_FOUND));
 
-        verifyBikeOwnership(bike, userId);
+        verifyBikeOwnership(bikeEntity, userId);
 
         // 대표 바이크면 플래그 해제
-        if (bike.isRepresentative()) {
-            bike.setRepresentative(false);
+        if (bikeEntity.isRepresentative()) {
+            bikeEntity.setRepresentative(false);
         }
 
-        bike.delete();
-        bikeRepository.save(bike);
+        bikeEntity.delete();
+        bikeRepository.save(bikeEntity);
     }
 
     /**
@@ -118,15 +118,15 @@ public class BikeService {
      */
     @Transactional
     public BikeResponse setRepresentative(UUID bikeId, UUID userId) {
-        Bike bike = bikeRepository.findByIdAndDeletedAtIsNull(bikeId)
+        BikeEntity bikeEntity = bikeRepository.findByIdAndDeletedAtIsNull(bikeId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.BIKE_NOT_FOUND));
 
-        verifyBikeOwnership(bike, userId);
+        verifyBikeOwnership(bikeEntity, userId);
 
         bikeRepository.clearRepresentative(userId);
-        bike.setRepresentative(true);
+        bikeEntity.setRepresentative(true);
 
-        return BikeResponse.from(bikeRepository.save(bike));
+        return BikeResponse.from(bikeRepository.save(bikeEntity));
     }
 
     // ============ Helper methods ============
@@ -136,8 +136,8 @@ public class BikeService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
     }
 
-    private void verifyBikeOwnership(Bike bike, UUID userId) {
-        if (!bike.isOwner(userId)) {
+    private void verifyBikeOwnership(BikeEntity bikeEntity, UUID userId) {
+        if (!bikeEntity.isOwner(userId)) {
             throw new BusinessException(ErrorCode.BIKE_ACCESS_DENIED);
         }
     }

@@ -25,7 +25,7 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @ToString(of = {"id", "nickname", "provider"})
-public class User {
+public class UserEntity {
 
     // 사용자 ID (UUID)
     @Id
@@ -70,24 +70,24 @@ public class User {
     private LocalDateTime deletedAt;
 
     // Factory method
-    public static User create(String provider, String providerId, String email, String nickname) {
-        User user = new User();
-        user.provider = provider;
-        user.providerId = providerId;
-        user.email = email;
-        user.nickname = nickname;
-        return user;
+    public static UserEntity create(String provider, String providerId, String email, String nickname) {
+        UserEntity userEntity = new UserEntity();
+        userEntity.provider = provider;
+        userEntity.providerId = providerId;
+        userEntity.email = email;
+        userEntity.nickname = nickname;
+        return userEntity;
     }
 
     // 일반 이메일 회원가입용 메서드
-    public static User createWithEmail(String email, String hashedPassword, String nickname) {
-        User user = new User();
-        user.provider = "email";    // 일반 회원 provider : "email"
-        user.providerId = null;     // OAuth2가 아니므로 null 
-        user.email = email;
-        user.password = hashedPassword;     // BCrypt로 암호화된 비밀번호
-        user.nickname = nickname;
-        return user;
+    public static UserEntity createWithEmail(String email, String hashedPassword, String nickname) {
+        UserEntity userEntity = new UserEntity();
+        userEntity.provider = "email";    // 일반 회원 provider : "email"
+        userEntity.providerId = null;     // OAuth2가 아니므로 null
+        userEntity.email = email;
+        userEntity.password = hashedPassword;     // BCrypt로 암호화된 비밀번호
+        userEntity.nickname = nickname;
+        return userEntity;
     }
 
     public void updateProfile(String nickname, String profileImageUrl) {

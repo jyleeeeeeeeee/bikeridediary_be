@@ -30,11 +30,11 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
-        User user = userRepository.findByIdAndDeletedAtIsNull(UUID.fromString(userId))
+        UserEntity userEntity = userRepository.findByIdAndDeletedAtIsNull(UUID.fromString(userId))
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         return new org.springframework.security.core.userdetails.User(
-                user.getId().toString(),
+                userEntity.getId().toString(),
                 "",  // No password (social login only)
                 List.of(new SimpleGrantedAuthority("ROLE_USER"))
         );
