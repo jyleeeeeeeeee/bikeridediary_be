@@ -131,6 +131,10 @@ public class Bike {
         this.deletedAt = LocalDateTime.now();
     }
 
+    public boolean isDeleted() {
+        return deletedAt != null;
+    }
+
     public boolean isOwner(UUID userId) {
         return this.user.getId().equals(userId);
     }

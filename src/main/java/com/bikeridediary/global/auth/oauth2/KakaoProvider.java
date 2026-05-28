@@ -11,31 +11,34 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+/**
+ * Kakao OAuth2 제공자 구현.
+ * 1. Authorization Code로 Access Token 요청
+ * 2. Access Token으로 사용자 정보 조회
+ */
 
 @Slf4j
 @Component
-
 @RequiredArgsConstructor
-public class NaverProvider implements OAuth2Provider{
+public class KakaoProvider implements OAuth2Provider {
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
-    @Value("${spring.security.oauth2.client.registration.naver.client-id}")
+    @Value("${spring.security.oauth2.client.registration.kakao.client-id}")
     private String clientId;
 
-    @Value("${spring.security.oauth2.client.registration.naver.client-secret}")
+    @Value("${spring.security.oauth2.client.registration.kakao.client-secret}")
     private String clientSecret;
 
-    // Naver OAuth2 API 엔드포인트
-    private static final String TOKEN_URI = "https://nid.naver.com/oauth2.0/token";
-    private static final String USER_INFO_URI = "https://openapi.naver.com/v1/nid/me";
+    private static final String TOKEN_URI = "https://kauth.kakao.com/oauth/token";
+    private static final String USER_INFO_URI = "https://kapi.kakao.com/v2/user/me";
     private static final String GRANT_TYPE = "authorization_code";
 
     @Override
-    public OAuth2UserInfo getUserInfo(String credential) {
+    public OAuth2UserInfo getUserInfo(String code) {
         // Step 1: Authorization Code로 Access Token 요청
-        String accessToken = getAccessToken(credential);
+        String accessToken = getAccessToken(code);
 
         // Step 2: Access Token으로 사용자 정보 조회
         return getUserInfoByAccessToken(accessToken);
@@ -52,7 +55,7 @@ public class NaverProvider implements OAuth2Provider{
                     clientId,
                     clientSecret,
                     code,
-                    "http://localhost:8080/api/v1/auth/naver/callback"
+                    "http://localhost:8080/api/v1/auth/kakao/callback"
             );
 
             HttpHeaders headers = new HttpHeaders();
@@ -65,26 +68,28 @@ public class NaverProvider implements OAuth2Provider{
             String accessToken = jsonNode.get("access_token").asText();
 
             if (accessToken == null || accessToken.isEmpty()) {
-                throw new RuntimeException("Naver access token not found");
+                throw new RuntimeException("Kakao access token not found");
             }
 
             return accessToken;
         } catch (Exception e) {
-            log.error("Naver access token request failed", e);
-            throw new RuntimeException("네이버 로그인 실패: 토큰 획득 오류", e);
+            log.error("Kakao access token request failed", e);
+            throw new RuntimeException("카카오 로그인 실패: 토큰 획득 오류", e);
         }
     }
 
+    /**
+     * Access Token으로 사용자 정보 조회.
+     */
     private OAuth2UserInfo getUserInfoByAccessToken(String accessToken) {
         /*{
-            "resultcode": "00",
-            "message": "success",
-            "response": {
-                "id": "naver_123456789",
-                "nickname": "...",
-                "name": "...",
+            "id": 123456789,
+            "kakao_account": {
                 "email": "...",
-                "profile_image": "..."
+                "profile": {
+                    "nickname": "...",
+                    "profile_image_url": "..."
+                }
             }
         }*/
         try {
@@ -95,36 +100,35 @@ public class NaverProvider implements OAuth2Provider{
             HttpEntity<Void> request = new HttpEntity<>(headers);
             String response = restTemplate.postForObject(USER_INFO_URI, request, String.class);
 
-            JsonNode naverAccount = objectMapper.readTree(response).get("response");
+            JsonNode jsonNode = objectMapper.readTree(response);
 
-            Long id = getProperty(naverAccount, Long.class, "id");
-            String email = getProperty(naverAccount, String.class, "email");
-            String nickname = getProperty(naverAccount, String.class, "nickname");
-            String profileImageUrl = getProperty(naverAccount, String.class, "profile_image");
+            // 사용자 ID
+            Long id = jsonNode.get("id").asLong();
 
-            return OAuth2UserInfo.fromNaver(id, email, nickname, profileImageUrl);
+            // 이메일 (kakao_account 안에 있음)
+            JsonNode kakaoAccount = jsonNode.get("kakao_account");
+            String email = kakaoAccount != null && kakaoAccount.has("email")
+                    ? kakaoAccount.get("email").asText()
+                    : null;
 
+            // 닉네임 & 프로필 이미지 (profile 안에 있음)
+            String nickname = null;
+            String profileImageUrl = null;
+            if (kakaoAccount != null && kakaoAccount.has("profile")) {
+                JsonNode profile = kakaoAccount.get("profile");
+                nickname = profile.has("nickname") ? profile.get("nickname").asText() : null;
+                profileImageUrl = profile.has("profile_image_url") ? profile.get("profile_image_url").asText() : null;
+            }
+
+            return OAuth2UserInfo.fromKakao(id, email, nickname, profileImageUrl);
         } catch (Exception e) {
-            log.error("Naver user info request failed", e);
-            throw new RuntimeException("네이버 실패: 사용자 정보 조회 오류", e);
+            log.error("Kakao user info request failed", e);
+            throw new RuntimeException("카카오 로그인 실패: 사용자 정보 조회 오류", e);
         }
     }
 
     @Override
     public String getProviderName() {
-        return "naver";
-    }
-
-    private <T> T getProperty(JsonNode jsonNode, Class<T> clazz, String property) {
-        if(jsonNode == null || !jsonNode.has(property)) return null;
-
-        JsonNode data = jsonNode.get(property);
-
-        if (clazz == String.class)  return clazz.cast(data.asText());
-        if (clazz == Long.class)    return clazz.cast(data.asLong());
-        if (clazz == Integer.class) return clazz.cast(data.asInt());
-        if (clazz == Boolean.class) return clazz.cast(data.asBoolean());
-
-        return null;
+        return "kakao";
     }
 }

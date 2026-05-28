@@ -11,7 +11,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: validate          # 운영: validate, 개발 초기: create
+      ddl-auto: update            # 개발: update, 운영: validate
     properties:
       hibernate:
         dialect: org.hibernate.spatial.dialect.postgis.PostgisPG10Dialect

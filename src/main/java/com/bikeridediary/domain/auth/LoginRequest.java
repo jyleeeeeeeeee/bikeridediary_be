@@ -1,2 +1,13 @@
-package com.bikeridediary.domain.auth;public record LoginRequest() {
-}
+package com.bikeridediary.domain.auth;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
+public record LoginRequest(
+        @NotBlank @Email
+        String email,
+
+        @NotBlank
+        String password
+
+) {}

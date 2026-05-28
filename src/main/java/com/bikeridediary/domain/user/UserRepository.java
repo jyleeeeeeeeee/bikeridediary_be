@@ -12,4 +12,11 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     // 활성 사용자 (삭제되지 않은) ID로 조회
     Optional<User> findByIdAndDeletedAtIsNull(UUID id);
+
+    // 활성 사용자 이메일로 조회 (일반 로그인)
+    Optional<User> findByEmailAndDeletedAtIsNull(String email);
+
+    // 활성 사용자 중 이메일 중복 확인
+    boolean existsByEmailAndDeletedAtIsNull(String email);
+
 }

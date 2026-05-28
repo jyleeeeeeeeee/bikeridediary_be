@@ -11,7 +11,7 @@ import java.util.UUID;
 /**
  * User entity.
  * Social login only - no password stored.
- * Supports Kakao, Google, Apple OAuth2 providers.
+ * Supports both OAuth2(Kakao, Google, Apple, Naver) and email/Password login.
  */
 @Entity
 @Table(
@@ -44,6 +44,10 @@ public class User {
     @Column(length = 255)
     private String email;
 
+    // 비밀번호 (일반 회원가입시만 사용, nullable)
+    @Column(length = 255)
+    private String password;
+    
     // 닉네임
     @Column(nullable = false, length = 50)
     private String nickname;
@@ -71,6 +75,17 @@ public class User {
         user.provider = provider;
         user.providerId = providerId;
         user.email = email;
+        user.nickname = nickname;
+        return user;
+    }
+
+    // 일반 이메일 회원가입용 메서드
+    public static User createWithEmail(String email, String hashedPassword, String nickname) {
+        User user = new User();
+        user.provider = "email";    // 일반 회원 provider : "email"
+        user.providerId = null;     // OAuth2가 아니므로 null 
+        user.email = email;
+        user.password = hashedPassword;     // BCrypt로 암호화된 비밀번호
         user.nickname = nickname;
         return user;
     }
