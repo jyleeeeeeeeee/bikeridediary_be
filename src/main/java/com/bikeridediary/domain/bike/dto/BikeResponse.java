@@ -1,4 +1,7 @@
-package com.bikeridediary.domain.bike;
+package com.bikeridediary.domain.bike.dto;
+
+import com.bikeridediary.domain.bike.entity.BikeCategory;
+import com.bikeridediary.domain.bike.entity.BikeEntity;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

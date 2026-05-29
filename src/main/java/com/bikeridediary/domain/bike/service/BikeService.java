@@ -1,7 +1,12 @@
-package com.bikeridediary.domain.bike;
+package com.bikeridediary.domain.bike.service;
 
-import com.bikeridediary.domain.user.UserEntity;
-import com.bikeridediary.domain.user.UserRepository;
+import com.bikeridediary.domain.bike.dto.BikeCreateRequest;
+import com.bikeridediary.domain.bike.dto.BikeResponse;
+import com.bikeridediary.domain.bike.dto.BikeUpdateRequest;
+import com.bikeridediary.domain.bike.entity.BikeEntity;
+import com.bikeridediary.domain.bike.repository.BikeRepository;
+import com.bikeridediary.domain.user.entity.UserEntity;
+import com.bikeridediary.domain.user.repository.UserRepository;
 import com.bikeridediary.global.exception.BusinessException;
 import com.bikeridediary.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;

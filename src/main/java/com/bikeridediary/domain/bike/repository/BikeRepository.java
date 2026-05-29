@@ -1,5 +1,6 @@
-package com.bikeridediary.domain.bike;
+package com.bikeridediary.domain.bike.repository;
 
+import com.bikeridediary.domain.bike.entity.BikeEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

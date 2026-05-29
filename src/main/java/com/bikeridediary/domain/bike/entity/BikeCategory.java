@@ -1,8 +1,6 @@
-package com.bikeridediary.domain.bike;
+package com.bikeridediary.domain.bike.entity;
 
-/**
- * Bike category types.
- */
+// 바이크 카테고리 정의
 public enum BikeCategory {
     SPORT,      // 스포츠
     NAKED,      // 네이킷

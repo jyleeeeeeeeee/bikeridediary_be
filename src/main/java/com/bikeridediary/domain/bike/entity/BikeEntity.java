@@ -1,8 +1,8 @@
-package com.bikeridediary.domain.bike;
+package com.bikeridediary.domain.bike.entity;
 
 import com.bikeridediary.domain.common.entity.BaseEntity;
-import com.bikeridediary.domain.maintenance.MaintenanceEntity;
-import com.bikeridediary.domain.user.UserEntity;
+import com.bikeridediary.domain.maintenance.entity.MaintenanceEntity;
+import com.bikeridediary.domain.user.entity.UserEntity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -14,12 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Bike entity.
- *
- * MVP: manufacturer_name, model_name, year stored as plain text (direct input)
- * Phase 2: bike_trim_id FK added when bike model DB is built
- */
+// 바이크 엔티티 - 사용자가 소유한 바이크 정보 및 정비 이력을 관리 (MVP: 제조사/모델명은 텍스트 직접 입력, 2차: 모델 DB 연동 예정)
 @Entity
 @Table(name = "bikes")
 @EntityListeners(AuditingEntityListener.class)
@@ -80,6 +75,7 @@ public class BikeEntity extends BaseEntity {
     @JsonManagedReference
     private List<MaintenanceEntity> maintenances = new ArrayList<>();
 
+    // 바이크 엔티티 생성
     public static BikeEntity create(
             UserEntity userEntity,
             String manufacturerName,
@@ -98,6 +94,7 @@ public class BikeEntity extends BaseEntity {
         return bikeEntity;
     }
 
+    // 바이크 정보 수정
     public void update(
             String manufacturerName,
             String modelName,
@@ -116,18 +113,22 @@ public class BikeEntity extends BaseEntity {
         this.memo = memo;
     }
 
+    // 대표 바이크 여부 설정 (사용자의 기본 바이크로 지정)
     public void setRepresentative(boolean isRepresentative) {
         this.isRepresentative = isRepresentative;
     }
 
+    // 바이크 사진 URL 업데이트
     public void updatePhotoUrl(String photoUrl) {
         this.photoUrl = photoUrl;
     }
 
+    // 총 주행거리 갱신
     public void updateMileage(int mileageKm) {
         this.totalMileageKm = mileageKm;
     }
 
+    // 이 바이크가 특정 사용자에게 속하는지 권한 검증
     public boolean isOwner(UUID userId) {
         return this.userEntity.getId().equals(userId);
     }

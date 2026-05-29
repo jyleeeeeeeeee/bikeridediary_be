@@ -13,9 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
-/**
- * OAuth2 소셜 로그인 및 일반 이메일 로그인, 토큰 관리 API 컨트롤러.
- */
+// OAuth2 소셜 로그인 및 이메일 로그인, 토큰 관리 API 컨트롤러
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
@@ -23,83 +21,27 @@ public class AuthController {
 
     private final AuthService authService;
 
-    /**
-     * 일반 이메일 회원가입 엔드포인트.
-     * <p>
-     * Request:
-     * POST /api/v1/auth/signup
-     * {
-     * "email": "test@example.com",
-     * "password": "SecurePass123!",
-     * "nickname": "테스트"
-     * }
-     * <p>
-     * Response:
-     * {
-     * "success": true,
-     * "data": {
-     * "accessToken": "eyJ...",
-     * "refreshToken": "eyJ...",
-     * "user": { "id": "...", "email": "...", "nickname": "..." }
-     * }
-     * }
-     */
+    // 이메일 회원가입 (이메일, 비밀번호, 닉네임으로 신규 계정 생성)
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse<AuthResponse>> signup(@Valid @RequestBody SignupRequest request) {
         AuthResponse response = authService.signup(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(response));
     }
 
-    /**
-     * 일반 이메일 로그인 엔드포인트.
-     *
-     * Request:
-     * POST /api/v1/auth/login
-     * {
-     *   "email": "test@example.com",
-     *   "password": "SecurePass123!"
-     * }
-     *
-     * Response:
-     * {
-     *   "success": true,
-     *   "data": {
-     *     "accessToken": "eyJ...",
-     *     "refreshToken": "eyJ...",
-     *     "user": { "id": "...", "email": "...", "nickname": "..." }
-     *   }
-     * }
-     */
+    // 이메일 로그인 (이메일과 비밀번호로 인증)
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> loginWithEmail(@Valid @RequestBody LoginRequest request) {
         AuthResponse response = authService.loginWithEmail(request);
         return ResponseEntity.ok(ApiResponse.ok(response));
     }
-    /**
-     * 소셜 로그인 엔드포인트.
-     *
-     * Request:
-     * - GET /api/v1/auth/login/{provider}?code=...  (Kakao)
-     * - GET /api/v1/auth/login/{provider}?identityToken=...  (Google, Apple)
-     *
-     * Response:
-     * {
-     *   "success": true,
-     *   "data": {
-     *     "accessToken": "eyJ...",
-     *     "refreshToken": "eyJ...",
-     *     "user": { "id": "...", "nickname": "...", ... }
-     *   }
-     * }
-     */
+    // OAuth2 소셜 로그인 (카카오: code, 구글/애플: identityToken)
     @PostMapping("/login/{provider}")
     public ResponseEntity<ApiResponse<AuthResponse>> login(
             @PathVariable String provider,
             @Valid @RequestBody AuthLoginRequest request
     ) {
 
-        // Authorization Code 또는 Identity Token 결정
-        // Kakao -> code / Google, Apple -> identityToken
+        // Authorization Code 또는 Identity Token 판정 (카카오 → code, 구글/애플 → identityToken)
         String credential = request.code() != null
                 ? request.code()
                 : request.identityToken();
@@ -109,24 +51,7 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.ok(response));
     }
 
-    /**
-     * 토큰 갱신 엔드포인트.
-     *
-     * Request:
-     * POST /api/v1/auth/refresh
-     * {
-     *   "refreshToken": "eyJ..."
-     * }
-     *
-     * Response:
-     * {
-     *   "success": true,
-     *   "data": {
-     *     "accessToken": "eyJ...",
-     *     "refreshToken": "eyJ..."
-     *   }
-     * }
-     */
+    // 리프레시 토큰으로 새 액세스 토큰 발급
     @PostMapping("/refresh")
     public ResponseEntity<ApiResponse<TokenResponse>> refresh(
             @Valid @RequestBody TokenRefreshRequest request
@@ -135,26 +60,15 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.ok(response));
     }
 
-    /**
-     * 로그아웃 엔드포인트.
-     *
-     * Request:
-     * POST /api/v1/auth/logout
-     * (Authorization 헤더에 Bearer token 필수)
-     *
-     * Response:
-     * {
-     *   "success": true
-     * }
-     */
+    // 로그아웃 (리프레시 토큰 삭제)
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(
             @AuthenticationPrincipal UserDetails userDetails
     ) {
-        // 인증된 사용자의 ID 추출
+        // 인증된 사용자 ID 추출
         UUID userId = UUID.fromString(userDetails.getUsername());
 
-        // 로그아웃 처리 (Refresh Token 삭제)
+        // 로그아웃 처리 (리프레시 토큰 삭제)
         authService.logout(userId);
 
         return ResponseEntity.ok(ApiResponse.ok());

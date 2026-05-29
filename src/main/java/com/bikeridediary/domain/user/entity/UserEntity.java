@@ -1,6 +1,6 @@
-package com.bikeridediary.domain.user;
+package com.bikeridediary.domain.user.entity;
 
-import com.bikeridediary.domain.bike.BikeEntity;
+import com.bikeridediary.domain.bike.entity.BikeEntity;
 import com.bikeridediary.domain.common.entity.BaseEntity;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -11,11 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * User entity.
- * Social login only - no password stored.
- * Supports both OAuth2(Kakao, Google, Apple, Naver) and email/Password login.
- */
+// 사용자 엔티티 - OAuth2(카카오, 구글, 애플, 네이버)와 이메일 로그인을 지원하며 프로필 및 알림 정보를 관리
 @Entity
 @Table(
     name = "users",
@@ -68,7 +64,7 @@ public class UserEntity extends BaseEntity {
     @JsonManagedReference
     private List<BikeEntity> bikes = new ArrayList<>();
 
-    // Factory method
+    // OAuth2를 통한 사용자 엔티티 생성
     public static UserEntity create(String provider, String providerId, String email, String nickname) {
         UserEntity userEntity = new UserEntity();
         userEntity.provider = provider;
@@ -78,7 +74,7 @@ public class UserEntity extends BaseEntity {
         return userEntity;
     }
 
-    // 일반 이메일 회원가입용 메서드
+    // 이메일 회원가입으로 사용자 엔티티 생성 (암호화된 비밀번호 사용)
     public static UserEntity createWithEmail(String email, String hashedPassword, String nickname) {
         UserEntity userEntity = new UserEntity();
         userEntity.provider = "email";    // 일반 회원 provider : "email"
@@ -89,11 +85,13 @@ public class UserEntity extends BaseEntity {
         return userEntity;
     }
 
+    // 프로필 정보 수정 (닉네임, 프로필 이미지)
     public void updateProfile(String nickname, String profileImageUrl) {
         this.nickname = nickname;
         this.profileImageUrl = profileImageUrl;
     }
 
+    // Firebase FCM 푸시 알림 토큰 갱신
     public void updateFcmToken(String fcmToken) {
         this.fcmToken = fcmToken;
     }

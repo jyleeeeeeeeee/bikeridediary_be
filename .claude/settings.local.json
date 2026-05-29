@@ -14,7 +14,10 @@
       "Bash(export JWT_SECRET=\"my-super-secret-key-for-development-at-least-32-chars-long!!!\")",
       "Bash(git add *)",
       "Bash(git commit *)",
-      "Bash(gradle clean *)"
+      "Bash(gradle clean *)",
+      "Bash(cat)",
+      "Bash(bash /tmp/fix_packages.sh)",
+      "Bash(./gradlew compileJava)"
     ]
   }
 }

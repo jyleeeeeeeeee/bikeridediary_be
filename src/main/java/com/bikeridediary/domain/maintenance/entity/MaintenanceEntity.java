@@ -1,6 +1,6 @@
-package com.bikeridediary.domain.maintenance;
+package com.bikeridediary.domain.maintenance.entity;
 
-import com.bikeridediary.domain.bike.BikeEntity;
+import com.bikeridediary.domain.bike.entity.BikeEntity;
 import com.bikeridediary.domain.common.entity.BaseEntity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
@@ -12,6 +12,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDate;
 import java.util.UUID;
 
+// 정비 기록 엔티티 - 실제 수행된 정비 내역을 기록하고 관리
 @Entity
 @Table(name = "maintenances")
 @EntityListeners(AuditingEntityListener.class)
@@ -59,6 +60,7 @@ public class MaintenanceEntity extends BaseEntity {
     @Column(name = "next_due_date")
     private LocalDate nextDueDate;
 
+    // 정비 기록 엔티티 생성
     public static MaintenanceEntity create(
             BikeEntity bikeEntity,
             MaintenanceType maintenanceType,
@@ -81,6 +83,7 @@ public class MaintenanceEntity extends BaseEntity {
         return maintenanceEntity;
     }
 
+    // 정비 기록 정보 수정
     public void update(
             MaintenanceType maintenanceType,
             LocalDate maintenanceDate,
@@ -99,11 +102,13 @@ public class MaintenanceEntity extends BaseEntity {
         this.nextDueDate = nextDueDate;
     }
 
+    // 다음 정비 예정 정보 설정 (km, 날짜)
     public void setNextMaintenanceDue(Integer nextDueKm, LocalDate nextDueDate) {
         this.nextDueKm = nextDueKm;
         this.nextDueDate = nextDueDate;
     }
 
+    // 이 정비 기록이 특정 사용자의 바이크에 속하는지 권한 검증
     public boolean isOwner(UUID userId) {
         return this.bikeEntity.isOwner(userId);
     }

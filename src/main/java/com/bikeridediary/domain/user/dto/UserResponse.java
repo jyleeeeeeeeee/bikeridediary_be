@@ -1,4 +1,6 @@
-package com.bikeridediary.domain.user;
+package com.bikeridediary.domain.user.dto;
+
+import com.bikeridediary.domain.user.entity.UserEntity;
 
 import java.time.LocalDateTime;
 import java.util.UUID;

@@ -1,6 +1,6 @@
 package com.bikeridediary.domain.auth.dto;
 
-import com.bikeridediary.domain.user.UserResponse;
+import com.bikeridediary.domain.user.dto.UserResponse;
 
 /**
  * 소셜 로그인 응답 DTO.

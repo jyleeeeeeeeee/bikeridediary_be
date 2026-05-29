@@ -1,5 +1,6 @@
-package com.bikeridediary.domain.bike;
+package com.bikeridediary.domain.bike.dto;
 
+import com.bikeridediary.domain.bike.entity.BikeCategory;
 import jakarta.validation.constraints.*;
 
 /**

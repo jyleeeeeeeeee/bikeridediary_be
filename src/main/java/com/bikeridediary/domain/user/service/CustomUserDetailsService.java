@@ -1,5 +1,7 @@
-package com.bikeridediary.domain.user;
+package com.bikeridediary.domain.user.service;
 
+import com.bikeridediary.domain.user.entity.UserEntity;
+import com.bikeridediary.domain.user.repository.UserRepository;
 import com.bikeridediary.global.exception.BusinessException;
 import com.bikeridediary.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;

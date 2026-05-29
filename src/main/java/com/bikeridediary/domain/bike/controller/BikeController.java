@@ -1,17 +1,22 @@
-package com.bikeridediary.domain.bike;
+package com.bikeridediary.domain.bike.controller;
 
+import com.bikeridediary.domain.bike.dto.BikeCreateRequest;
+import com.bikeridediary.domain.bike.dto.BikeResponse;
+import com.bikeridediary.domain.bike.dto.BikeUpdateRequest;
+import com.bikeridediary.domain.bike.service.BikeService;
 import com.bikeridediary.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
 
+// 바이크 관리 API 컨트롤러
 @RestController
 @RequestMapping("/api/v1/bikes")
 @RequiredArgsConstructor
@@ -19,10 +24,7 @@ public class BikeController {
 
     private final BikeService bikeService;
 
-    /**
-     * GET /api/v1/bikes
-     * Get all bikes for the authenticated user
-     */
+    // 인증된 사용자의 모든 바이크 조회
     @GetMapping
     public ResponseEntity<ApiResponse<List<BikeResponse>>> getMyBikes(
             @AuthenticationPrincipal UserDetails userDetails
@@ -32,10 +34,7 @@ public class BikeController {
         return ResponseEntity.ok(ApiResponse.ok(bikes));
     }
 
-    /**
-     * GET /api/v1/bikes/{bikeId}
-     * Get a specific bike by ID
-     */
+    // 특정 바이크 상세 조회
     @GetMapping("/{bikeId}")
     public ResponseEntity<ApiResponse<BikeResponse>> getBike(
             @PathVariable UUID bikeId,
@@ -46,10 +45,7 @@ public class BikeController {
         return ResponseEntity.ok(ApiResponse.ok(bike));
     }
 
-    /**
-     * POST /api/v1/bikes
-     * Create a new bike
-     */
+    // 새로운 바이크 등록
     @PostMapping
     public ResponseEntity<ApiResponse<BikeResponse>> createBike(
             @Valid @RequestBody BikeCreateRequest request,
@@ -60,10 +56,7 @@ public class BikeController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(bike));
     }
 
-    /**
-     * PUT /api/v1/bikes/{bikeId}
-     * Update an existing bike
-     */
+    // 바이크 정보 수정
     @PutMapping("/{bikeId}")
     public ResponseEntity<ApiResponse<BikeResponse>> updateBike(
             @PathVariable UUID bikeId,
@@ -75,10 +68,7 @@ public class BikeController {
         return ResponseEntity.ok(ApiResponse.ok(bike));
     }
 
-    /**
-     * DELETE /api/v1/bikes/{bikeId}
-     * Soft delete a bike
-     */
+    // 바이크 삭제 (소프트 삭제)
     @DeleteMapping("/{bikeId}")
     public ResponseEntity<ApiResponse<Void>> deleteBike(
             @PathVariable UUID bikeId,
@@ -89,10 +79,7 @@ public class BikeController {
         return ResponseEntity.ok(ApiResponse.ok());
     }
 
-    /**
-     * PATCH /api/v1/bikes/{bikeId}/representative
-     * Set a bike as the representative bike
-     */
+    // 특정 바이크를 대표 바이크로 설정
     @PatchMapping("/{bikeId}/representative")
     public ResponseEntity<ApiResponse<BikeResponse>> setRepresentative(
             @PathVariable UUID bikeId,

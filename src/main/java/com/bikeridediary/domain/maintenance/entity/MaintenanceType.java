@@ -1,8 +1,9 @@
-package com.bikeridediary.domain.maintenance;
+package com.bikeridediary.domain.maintenance.entity;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+// 정비 종류 정의 - 바이크 정비 및 소모품 교체 항목
 @Getter
 @RequiredArgsConstructor
 public enum MaintenanceType {
