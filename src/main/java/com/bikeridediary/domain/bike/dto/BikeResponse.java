@@ -7,9 +7,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-/**
- * Response DTO for bike information.
- */
+// 바이크 정보 응답 DTO
 public record BikeResponse(
         UUID id,
         String manufacturerName,

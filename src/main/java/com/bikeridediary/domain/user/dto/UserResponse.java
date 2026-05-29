@@ -5,9 +5,7 @@ import com.bikeridediary.domain.user.entity.UserEntity;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-/**
- * 사용자 정보 응답 DTO.
- */
+// 사용자 정보 응답 DTO
 public record UserResponse(
         // 사용자 ID
         UUID id,
@@ -28,9 +26,7 @@ public record UserResponse(
         LocalDateTime createdAt
 ) {
 
-    /**
-     * User 엔티티로부터 응답 DTO 생성.
-     */
+    // UserEntity로부터 응답 DTO 생성
     public static UserResponse from(UserEntity userEntity) {
         return new UserResponse(
                 userEntity.getId(),

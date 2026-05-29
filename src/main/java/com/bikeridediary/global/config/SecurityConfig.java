@@ -16,12 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-/**
- * Spring Security configuration.
- * - Stateless session (JWT-based)
- * - Public endpoints: auth, swagger, public courses
- * - Everything else requires authentication
- */
+// Spring Security 설정 (상태 비저장 JWT 기반, 공개 엔드포인트 제외 인증 필수)
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor

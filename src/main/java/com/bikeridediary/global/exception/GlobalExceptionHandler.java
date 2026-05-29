@@ -11,10 +11,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.stream.Collectors;
 
-/**
- * Centralized exception handling for all controllers.
- * Converts exceptions to ApiResponse format.
- */
+// 전역 예외 처리 (모든 예외를 ApiResponse 형식으로 변환)
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {

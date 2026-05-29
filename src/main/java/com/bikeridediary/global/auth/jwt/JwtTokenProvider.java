@@ -13,12 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.UUID;
 
-/**
- * JWT token generation and validation.
- *
- * Access Token  - short-lived (1 hour), used for API authentication
- * Refresh Token - long-lived (30 days), used to reissue access token
- */
+// JWT 토큰 생성 및 검증 (액세스 토큰: 1시간, 리프레시 토큰: 30일)
 @Slf4j
 @Component
 public class JwtTokenProvider {
@@ -33,7 +28,7 @@ public class JwtTokenProvider {
             @Value("${jwt.refresh-token-expiry}") long refreshTokenExpiry
     ) {
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-        this.accessTokenExpiry = accessTokenExpiry * 1000L;   // seconds to millis
+        this.accessTokenExpiry = accessTokenExpiry * 1000L;   // 초를 밀리초로 변환
         this.refreshTokenExpiry = refreshTokenExpiry * 1000L;
     }
 

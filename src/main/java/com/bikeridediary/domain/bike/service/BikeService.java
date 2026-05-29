@@ -24,9 +24,7 @@ public class BikeService {
     private final BikeRepository bikeRepository;
     private final UserRepository userRepository;
 
-    /**
-     * Get all active bikes for the user, ordered by representative desc, then created date desc.
-     */
+    // 사용자의 모든 활성 바이크 조회 (대표 순서 내림차순, 생성 날짜 내림차순)
     public List<BikeResponse> getMyBikes(UUID userId) {
         verifyUserExists(userId);
         return bikeRepository.findByUserIdAndDeletedAtIsNullOrderByIsRepresentativeDescCreatedAtDesc(userId)
@@ -35,9 +33,7 @@ public class BikeService {
                 .toList();
     }
 
-    /**
-     * Get a specific bike by ID (must be owned by the user).
-     */
+    // 특정 바이크 조회 (사용자 소유 확인 필수)
     public BikeResponse getBike(UUID bikeId, UUID userId) {
         BikeEntity bikeEntity = bikeRepository.findByIdAndDeletedAtIsNull(bikeId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.BIKE_NOT_FOUND));
@@ -46,10 +42,7 @@ public class BikeService {
         return BikeResponse.from(bikeEntity);
     }
 
-    /**
-     * Create a new bike for the user.
-     * If it's the first bike, automatically set it as representative.
-     */
+    // 새 바이크 생성 (첫 번째 바이크면 자동으로 대표 설정)
     @Transactional
     public BikeResponse createBike(BikeCreateRequest request, UUID userId) {
         UserEntity userEntity = userRepository.findByIdAndDeletedAtIsNull(userId)
@@ -75,9 +68,7 @@ public class BikeService {
         return BikeResponse.from(saved);
     }
 
-    /**
-     * Update an existing bike.
-     */
+    // 바이크 정보 수정
     @Transactional
     public BikeResponse updateBike(UUID bikeId, BikeUpdateRequest request, UUID userId) {
         BikeEntity bikeEntity = bikeRepository.findByIdAndDeletedAtIsNull(bikeId)
@@ -98,9 +89,7 @@ public class BikeService {
         return BikeResponse.from(bikeRepository.save(bikeEntity));
     }
 
-    /**
-     * Soft delete a bike (set deleted_at).
-     */
+    // 바이크 삭제 (소프트 삭제)
     @Transactional
     public void deleteBike(UUID bikeId, UUID userId) {
         BikeEntity bikeEntity = bikeRepository.findByIdAndDeletedAtIsNull(bikeId)
