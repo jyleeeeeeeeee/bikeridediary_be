@@ -2,10 +2,7 @@ package com.bikeridediary.domain.auth.dto;
 
 import com.bikeridediary.domain.user.dto.UserResponse;
 
-/**
- * 소셜 로그인 응답 DTO.
- */
-
+// 소셜 로그인 응답 DTO
 public record AuthResponse(
         // Access Token (1시간 만료)
         String accessToken,

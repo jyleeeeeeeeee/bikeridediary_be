@@ -21,9 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 import java.util.UUID;
 
-/**
- * OAuth2 소셜 로그인 및 토큰 관리 서비스.
- */
+// OAuth2 소셜 로그인 및 토큰 관리 서비스
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -101,20 +99,12 @@ public class AuthService {
     }
 
 
-    /**
-     * OAuth2 소셜 로그인 처리.
-     *
-     * Flow:
-     * 1. Authorization Code 또는 Identity Token으로 사용자 정보 조회
-     * 2. 기존 사용자 확인, 없으면 신규 가입
-     * 3. JWT 발급 (Access Token + Refresh Token)
-     * 4. Refresh Token을 Redis에 저장
-     * 5. 사용자 정보와 함께 응답
-     *
-     * @param provider OAuth2 제공자 (kakao, google, apple)
-     * @param credential Authorization Code 또는 Identity Token
-     * @return 토큰과 사용자 정보 포함 응답
-     */
+    // OAuth2 소셜 로그인 처리
+    // 흐름: 1. Authorization Code 또는 Identity Token으로 사용자 정보 조회
+    //       2. 기존 사용자 확인, 없으면 신규 가입
+    //       3. JWT 발급 (Access Token + Refresh Token)
+    //       4. Refresh Token을 Redis에 저장
+    //       5. 사용자 정보와 함께 응답
     @Transactional
     public AuthResponse login(String provider, String credential) {
         log.info("Social login attempt - provider: {}", provider);
@@ -171,9 +161,7 @@ public class AuthService {
         );
     }
 
-    /**
-     * 제공자별로 사용자 정보 조회.
-     */
+    // 제공자별로 사용자 정보 조회
     private OAuth2UserInfo getUserInfoByProvider(String provider, String credential) {
         return switch (provider.toLowerCase()) {
             case "kakao" -> kakaoProvider.getUserInfo(credential);
@@ -183,10 +171,8 @@ public class AuthService {
         };
     }
 
-    /**
-     * 기존 사용자 조회 또는 신규 가입.
-     * provider + providerId 조합이 고유 키.
-     */
+    // 기존 사용자 조회 또는 신규 가입
+    // provider + providerId 조합이 고유 키
     private UserEntity findOrCreateUser(String provider, OAuth2UserInfo userInfo) {
         Optional<UserEntity> existing = userRepository.findByProviderAndProviderId(
                 provider,
@@ -216,12 +202,10 @@ public class AuthService {
         return saved;
     }
 
-    /**
-     * 닉네임 생성 (제공자별로 다르게 처리).
-     * 1. userInfo에서 name이 있으면 사용
-     * 2. email이 있으면 @ 앞 부분 사용
-     * 3. 없으면 기본값으로 "사용자_providerId"
-     */
+    // 닉네임 생성 (제공자별로 다르게 처리)
+    // 1. userInfo에서 name이 있으면 사용
+    // 2. email이 있으면 @ 앞 부분 사용
+    // 3. 없으면 기본값으로 "사용자_providerId"
     private String generateNickname(OAuth2UserInfo userInfo, String provider) {
         if (userInfo.getName() != null && !userInfo.getName().isEmpty()) {
             return userInfo.getName();
@@ -234,13 +218,8 @@ public class AuthService {
         return "사용자_" + userInfo.getId().substring(0, Math.min(8, userInfo.getId().length()));
     }
 
-    /**
-     * 토큰 갱신.
-     * Refresh Token의 유효성을 검증하고 새 Access Token 발급.
-     *
-     * @param refreshToken 클라이언트에서 전달받은 Refresh Token
-     * @return 새로운 Access Token과 Refresh Token
-     */
+    // 토큰 갱신
+    // Refresh Token의 유효성을 검증하고 새 Access Token 발급
     @Transactional
     public TokenResponse refresh(String refreshToken) {
         try {
@@ -270,12 +249,8 @@ public class AuthService {
         }
     }
 
-    /**
-     * 로그아웃.
-     * Refresh Token을 Redis에서 삭제하여 더 이상 사용 불가능하게 만듦.
-     *
-     * @param userId 로그아웃할 사용자 ID
-     */
+    // 로그아웃
+    // Refresh Token을 Redis에서 삭제하여 더 이상 사용 불가능하게 만듦
     @Transactional
     public void logout(UUID userId) {
         refreshTokenRepository.delete(userId);

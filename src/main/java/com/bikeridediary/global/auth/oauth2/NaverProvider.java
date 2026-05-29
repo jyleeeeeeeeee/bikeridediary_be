@@ -27,23 +27,21 @@ public class NaverProvider implements OAuth2Provider{
     @Value("${spring.security.oauth2.client.registration.naver.client-secret}")
     private String clientSecret;
 
-    // Naver OAuth2 API 엔드포인트
+    // 네이버 OAuth2 API 엔드포인트
     private static final String TOKEN_URI = "https://nid.naver.com/oauth2.0/token";
     private static final String USER_INFO_URI = "https://openapi.naver.com/v1/nid/me";
     private static final String GRANT_TYPE = "authorization_code";
 
     @Override
     public OAuth2UserInfo getUserInfo(String credential) {
-        // Step 1: Authorization Code로 Access Token 요청
+        // 1단계: Authorization Code로 Access Token 요청
         String accessToken = getAccessToken(credential);
 
-        // Step 2: Access Token으로 사용자 정보 조회
+        // 2단계: Access Token으로 사용자 정보 조회
         return getUserInfoByAccessToken(accessToken);
     }
 
-    /**
-     * Authorization Code로 Access Token 요청.
-     */
+    // Authorization Code로 Access Token 요청
     private String getAccessToken(String code) {
         try {
             String body = String.format(
@@ -65,12 +63,12 @@ public class NaverProvider implements OAuth2Provider{
             String accessToken = jsonNode.get("access_token").asText();
 
             if (accessToken == null || accessToken.isEmpty()) {
-                throw new RuntimeException("Naver access token not found");
+                throw new RuntimeException("네이버 액세스 토큰을 찾을 수 없음");
             }
 
             return accessToken;
         } catch (Exception e) {
-            log.error("Naver access token request failed", e);
+            log.error("네이버 액세스 토큰 요청 실패", e);
             throw new RuntimeException("네이버 로그인 실패: 토큰 획득 오류", e);
         }
     }
@@ -105,7 +103,7 @@ public class NaverProvider implements OAuth2Provider{
             return OAuth2UserInfo.fromNaver(id, email, nickname, profileImageUrl);
 
         } catch (Exception e) {
-            log.error("Naver user info request failed", e);
+            log.error("네이버 사용자 정보 요청 실패", e);
             throw new RuntimeException("네이버 실패: 사용자 정보 조회 오류", e);
         }
     }

@@ -16,11 +16,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.UUID;
 
-/**
- * JWT authentication filter.
- * Runs once per request, extracts Bearer token from Authorization header,
- * validates it, and sets authentication in SecurityContext.
- */
+// JWT 인증 필터. 요청마다 한 번 실행되어 Authorization 헤더에서 Bearer 토큰을 추출하고,
+// 토큰을 검증한 후 SecurityContext에 인증 정보를 설정한다.
 @Slf4j
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {

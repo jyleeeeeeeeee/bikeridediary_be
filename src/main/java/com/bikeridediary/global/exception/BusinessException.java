@@ -3,10 +3,7 @@ package com.bikeridediary.global.exception;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
-/**
- * Base exception for all business logic errors.
- * Use ErrorCode enum to define error cases.
- */
+// 비즈니스 로직 오류를 위한 기본 예외 클래스. ErrorCode enum으로 오류 케이스를 정의한다.
 @Getter
 public class BusinessException extends RuntimeException {
 

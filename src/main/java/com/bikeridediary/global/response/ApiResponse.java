@@ -5,13 +5,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-/**
- * Common API response wrapper.
- * All API responses use this format for consistency.
- *
- * Success: { "success": true, "data": { ... } }
- * Error:   { "success": false, "error": { "code": "...", "message": "..." } }
- */
+// 공통 API 응답 래퍼. 모든 API 응답은 일관성을 위해 이 형식을 사용한다.
+// 성공: { "success": true, "data": { ... } }
+// 오류: { "success": false, "error": { "code": "...", "message": "..." } }
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @JsonInclude(JsonInclude.Include.NON_NULL)

@@ -5,10 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
 
-/**
- * RestTemplate 빈 설정.
- * OAuth2 제공자 API 호출 시 사용.
- */
+// RestTemplate 빈 설정. OAuth2 제공자 API 호출 시 사용.
 @Configuration
 public class RestTemplateConfig {
 

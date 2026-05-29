@@ -106,10 +106,7 @@ public class BikeService {
         bikeRepository.save(bikeEntity);
     }
 
-    /**
-     * Set a bike as the representative bike.
-     * Clears the representative flag from all other bikes of the user.
-     */
+    // 대표 바이크 설정 (기존 대표 바이크의 플래그를 해제 후 새로 설정)
     @Transactional
     public BikeResponse setRepresentative(UUID bikeId, UUID userId) {
         BikeEntity bikeEntity = bikeRepository.findByIdAndDeletedAtIsNull(bikeId)
@@ -123,7 +120,7 @@ public class BikeService {
         return BikeResponse.from(bikeRepository.save(bikeEntity));
     }
 
-    // ============ Helper methods ============
+    // ============ 헬퍼 메서드 ============
 
     private void verifyUserExists(UUID userId) {
         userRepository.findByIdAndDeletedAtIsNull(userId)

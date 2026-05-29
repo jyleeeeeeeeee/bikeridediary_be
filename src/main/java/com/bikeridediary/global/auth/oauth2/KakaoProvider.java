@@ -11,11 +11,9 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-/**
- * Kakao OAuth2 제공자 구현.
- * 1. Authorization Code로 Access Token 요청
- * 2. Access Token으로 사용자 정보 조회
- */
+// 카카오 OAuth2 제공자 구현.
+// 1. Authorization Code로 Access Token 요청
+// 2. Access Token으로 사용자 정보 조회
 
 @Slf4j
 @Component
@@ -37,16 +35,14 @@ public class KakaoProvider implements OAuth2Provider {
 
     @Override
     public OAuth2UserInfo getUserInfo(String code) {
-        // Step 1: Authorization Code로 Access Token 요청
+        // 1단계: Authorization Code로 Access Token 요청
         String accessToken = getAccessToken(code);
 
-        // Step 2: Access Token으로 사용자 정보 조회
+        // 2단계: Access Token으로 사용자 정보 조회
         return getUserInfoByAccessToken(accessToken);
     }
 
-    /**
-     * Authorization Code로 Access Token 요청.
-     */
+    // Authorization Code로 Access Token 요청
     private String getAccessToken(String code) {
         try {
             String body = String.format(
@@ -68,19 +64,17 @@ public class KakaoProvider implements OAuth2Provider {
             String accessToken = jsonNode.get("access_token").asText();
 
             if (accessToken == null || accessToken.isEmpty()) {
-                throw new RuntimeException("Kakao access token not found");
+                throw new RuntimeException("카카오 액세스 토큰을 찾을 수 없음");
             }
 
             return accessToken;
         } catch (Exception e) {
-            log.error("Kakao access token request failed", e);
+            log.error("카카오 액세스 토큰 요청 실패", e);
             throw new RuntimeException("카카오 로그인 실패: 토큰 획득 오류", e);
         }
     }
 
-    /**
-     * Access Token으로 사용자 정보 조회.
-     */
+    // Access Token으로 사용자 정보 조회
     private OAuth2UserInfo getUserInfoByAccessToken(String accessToken) {
         /*{
             "id": 123456789,
@@ -122,7 +116,7 @@ public class KakaoProvider implements OAuth2Provider {
 
             return OAuth2UserInfo.fromKakao(id, email, nickname, profileImageUrl);
         } catch (Exception e) {
-            log.error("Kakao user info request failed", e);
+            log.error("카카오 사용자 정보 요청 실패", e);
             throw new RuntimeException("카카오 로그인 실패: 사용자 정보 조회 오류", e);
         }
     }

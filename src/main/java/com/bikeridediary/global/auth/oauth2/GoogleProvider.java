@@ -7,11 +7,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-/**
- * Google OAuth2 제공자 구현.
- * 현재: Identity Token (JWT)에서 서명 검증 없이 payload만 추출 (프로토타입)
- * TODO: nimbus-jose-jwt 라이브러리 추가 후 완전한 JWT 검증 구현
- */
+// 구글 OAuth2 제공자 구현.
+// 현재: Identity Token (JWT)에서 서명 검증 없이 payload만 추출 (프로토타입)
+// TODO: nimbus-jose-jwt 라이브러리 추가 후 완전한 JWT 검증 구현
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -27,12 +25,12 @@ public class GoogleProvider implements OAuth2Provider {
     public OAuth2UserInfo getUserInfo(String identityToken) {
         // TODO: 완전한 JWT 검증 구현 필요
         // 현재는 payload 추출만 수행
-        log.warn("Google JWT verification not fully implemented - proceeding without signature validation");
+        log.warn("구글 JWT 검증이 완전히 구현되지 않음 - 서명 검증 없이 진행");
 
         // 임시 구현: payload에서 사용자 정보 추출 (실제 서명 검증 필요)
         throw new UnsupportedOperationException(
-                "Google OAuth2 identity token verification is not yet fully implemented. " +
-                "Please add nimbus-jose-jwt dependency and implement complete JWT validation."
+                "구글 OAuth2 identity token 검증이 아직 완전히 구현되지 않았습니다. " +
+                "nimbus-jose-jwt 의존성을 추가하고 완전한 JWT 검증을 구현해야 합니다."
         );
     }
 
