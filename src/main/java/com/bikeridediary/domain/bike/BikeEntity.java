@@ -1,6 +1,9 @@
 package com.bikeridediary.domain.bike;
 
+import com.bikeridediary.domain.maintenance.MaintenanceEntity;
 import com.bikeridediary.domain.user.UserEntity;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -8,6 +11,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -31,6 +36,7 @@ public class BikeEntity {
     // 소유 사용자 (FK)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonBackReference
     private UserEntity userEntity;
 
     // 제조사명 (MVP: 텍스트 직접 입력, 2차: bike_trims FK 연동 예정)
@@ -78,6 +84,11 @@ public class BikeEntity {
     // 삭제 일시 (소프트 삭제)
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
+
+    // 바이크의 정비 이력 목록 (양방향 One-To-Many)
+    @OneToMany(mappedBy = "bikeEntity", cascade = CascadeType.PERSIST, orphanRemoval = false)
+    @JsonManagedReference
+    private List<MaintenanceEntity> maintenances = new ArrayList<>();
 
     public static BikeEntity create(
             UserEntity userEntity,

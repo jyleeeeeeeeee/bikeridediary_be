@@ -1,6 +1,7 @@
 package com.bikeridediary.domain.maintenance;
 
 import com.bikeridediary.domain.bike.BikeEntity;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -28,6 +29,7 @@ public class MaintenanceEntity {
     // 소유 바이크 (FK)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bike_id", nullable = false)
+    @JsonBackReference
     private BikeEntity bikeEntity;
 
     // 정비 종류 (엔진오일, 체인, 타이어, 브레이크 등)

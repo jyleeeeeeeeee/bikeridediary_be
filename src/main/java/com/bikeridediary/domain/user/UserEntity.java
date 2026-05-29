@@ -1,11 +1,15 @@
 package com.bikeridediary.domain.user;
 
+import com.bikeridediary.domain.bike.BikeEntity;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -68,6 +72,11 @@ public class UserEntity {
     // 탈퇴 일시 (소프트 삭제)
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
+
+    // 사용자가 소유한 바이크 목록 (양방향 One-To-Many)
+    @OneToMany(mappedBy = "userEntity", cascade = CascadeType.PERSIST, orphanRemoval = false)
+    @JsonManagedReference
+    private List<BikeEntity> bikes = new ArrayList<>();
 
     // Factory method
     public static UserEntity create(String provider, String providerId, String email, String nickname) {
