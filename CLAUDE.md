@@ -210,6 +210,9 @@ com.bikeridediary
    - 12개 파일 코드 검토 완료 (2026-06-02)
 8. CustomUserDetails 도입 — Controller에서 `userDetails.getUserId()`로 UUID 직접 접근
 9. MaintenanceScheduleEntity.update()에서 maintenanceType 파라미터 제거 — 스케줄 정비 종류는 고정
+10. 정비 도메인 단위 테스트 작성 완료 (2026-06-04)
+    - MaintenanceServiceTest: 12개 테스트 (CRUD + 권한 검증)
+    - MaintenanceScheduleServiceTest: 16개 테스트 (CRUD + 권한 검증 + 중복 스케줄 방지)
 
 ### 보류된 사항
 
@@ -218,7 +221,6 @@ com.bikeridediary
 
 ### 다음 단계
 
-- 단위 테스트 작성 (JUnit5 + Mockito)
 - SQL 스키마 작성
 - API 명세서 (OpenAPI 3.0)
 - Flutter 앱 개발 (웹은 추후 결정)
