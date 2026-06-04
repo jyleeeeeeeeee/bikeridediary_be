@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
+import com.bikeridediary.global.auth.CustomUserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -63,10 +63,10 @@ public class AuthController {
     // 로그아웃 (리프레시 토큰 삭제)
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(
-            @AuthenticationPrincipal UserDetails userDetails
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         // 인증된 사용자 ID 추출
-        UUID userId = UUID.fromString(userDetails.getUsername());
+        UUID userId = userDetails.getUserId();
 
         // 로그아웃 처리 (리프레시 토큰 삭제)
         authService.logout(userId);

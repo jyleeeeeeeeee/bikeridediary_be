@@ -73,12 +73,10 @@ public class MaintenanceScheduleEntity extends BaseEntity {
 
     // 정비 주기 정보 수정
     public void update(
-            MaintenanceType maintenanceType,
             Integer intervalKm,
             Integer intervalMonths,
             Integer lastMaintenanceMileage,
             LocalDate lastMaintenanceDate) {
-        this.maintenanceType = maintenanceType;
         this.intervalKm = intervalKm;
         this.intervalMonths = intervalMonths;
         this.lastMaintenanceMileage = lastMaintenanceMileage;

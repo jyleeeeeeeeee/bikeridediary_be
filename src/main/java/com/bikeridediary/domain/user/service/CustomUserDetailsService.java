@@ -2,6 +2,7 @@ package com.bikeridediary.domain.user.service;
 
 import com.bikeridediary.domain.user.entity.UserEntity;
 import com.bikeridediary.domain.user.repository.UserRepository;
+import com.bikeridediary.global.auth.CustomUserDetails;
 import com.bikeridediary.global.exception.BusinessException;
 import com.bikeridediary.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -32,9 +33,8 @@ public class CustomUserDetailsService implements UserDetailsService {
         UserEntity userEntity = userRepository.findByIdAndDeletedAtIsNull(UUID.fromString(userId))
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        return new org.springframework.security.core.userdetails.User(
-                userEntity.getId().toString(),
-                "",  // 소셜 로그인 전용이므로 비밀번호 없음
+        return new CustomUserDetails(
+                userEntity.getId(),
                 List.of(new SimpleGrantedAuthority("ROLE_USER"))
         );
     }

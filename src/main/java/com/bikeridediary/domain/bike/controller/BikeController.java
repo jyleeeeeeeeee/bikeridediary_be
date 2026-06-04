@@ -10,7 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
+import com.bikeridediary.global.auth.CustomUserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,9 +27,9 @@ public class BikeController {
     // 인증된 사용자의 모든 바이크 조회
     @GetMapping
     public ResponseEntity<ApiResponse<List<BikeResponse>>> getMyBikes(
-            @AuthenticationPrincipal UserDetails userDetails
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        UUID userId = UUID.fromString(userDetails.getUsername());
+        UUID userId = userDetails.getUserId();
         List<BikeResponse> bikes = bikeService.getMyBikes(userId);
         return ResponseEntity.ok(ApiResponse.ok(bikes));
     }
@@ -38,9 +38,9 @@ public class BikeController {
     @GetMapping("/{bikeId}")
     public ResponseEntity<ApiResponse<BikeResponse>> getBike(
             @PathVariable UUID bikeId,
-            @AuthenticationPrincipal UserDetails userDetails
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        UUID userId = UUID.fromString(userDetails.getUsername());
+        UUID userId = userDetails.getUserId();
         BikeResponse bike = bikeService.getBike(bikeId, userId);
         return ResponseEntity.ok(ApiResponse.ok(bike));
     }
@@ -49,9 +49,9 @@ public class BikeController {
     @PostMapping
     public ResponseEntity<ApiResponse<BikeResponse>> createBike(
             @Valid @RequestBody BikeCreateRequest request,
-            @AuthenticationPrincipal UserDetails userDetails
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        UUID userId = UUID.fromString(userDetails.getUsername());
+        UUID userId = userDetails.getUserId();
         BikeResponse bike = bikeService.createBike(request, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(bike));
     }
@@ -61,9 +61,9 @@ public class BikeController {
     public ResponseEntity<ApiResponse<BikeResponse>> updateBike(
             @PathVariable UUID bikeId,
             @Valid @RequestBody BikeUpdateRequest request,
-            @AuthenticationPrincipal UserDetails userDetails
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        UUID userId = UUID.fromString(userDetails.getUsername());
+        UUID userId = userDetails.getUserId();
         BikeResponse bike = bikeService.updateBike(bikeId, request, userId);
         return ResponseEntity.ok(ApiResponse.ok(bike));
     }
@@ -72,9 +72,9 @@ public class BikeController {
     @DeleteMapping("/{bikeId}")
     public ResponseEntity<ApiResponse<Void>> deleteBike(
             @PathVariable UUID bikeId,
-            @AuthenticationPrincipal UserDetails userDetails
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        UUID userId = UUID.fromString(userDetails.getUsername());
+        UUID userId = userDetails.getUserId();
         bikeService.deleteBike(bikeId, userId);
         return ResponseEntity.ok(ApiResponse.ok());
     }
@@ -83,9 +83,9 @@ public class BikeController {
     @PatchMapping("/{bikeId}/representative")
     public ResponseEntity<ApiResponse<BikeResponse>> setRepresentative(
             @PathVariable UUID bikeId,
-            @AuthenticationPrincipal UserDetails userDetails
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        UUID userId = UUID.fromString(userDetails.getUsername());
+        UUID userId = userDetails.getUserId();
         BikeResponse bike = bikeService.setRepresentative(bikeId, userId);
         return ResponseEntity.ok(ApiResponse.ok(bike));
     }

@@ -80,7 +80,7 @@ public class MaintenanceService {
                 request.nextDueDate()
         );
 
-        return MaintenanceResponse.from(maintenanceRepository.save(entity));
+        return MaintenanceResponse.from(entity);
     }
 
     // 정비 기록 삭제 (소프트 삭제)
@@ -90,7 +90,6 @@ public class MaintenanceService {
         verifyMaintenanceOwnership(entity, userId);
 
         entity.delete();
-        maintenanceRepository.save(entity);
     }
 
     // ============ 헬퍼 메서드 ============

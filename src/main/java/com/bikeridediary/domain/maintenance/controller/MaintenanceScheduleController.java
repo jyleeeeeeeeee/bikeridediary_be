@@ -10,7 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
+import com.bikeridediary.global.auth.CustomUserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,9 +28,9 @@ public class MaintenanceScheduleController {
     @GetMapping
     public ResponseEntity<ApiResponse<List<MaintenanceScheduleResponse>>> getSchedules(
             @RequestParam UUID bikeId,
-            @AuthenticationPrincipal UserDetails userDetails
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        UUID userId = UUID.fromString(userDetails.getUsername());
+        UUID userId = userDetails.getUserId();
         List<MaintenanceScheduleResponse> schedules = scheduleService.getSchedules(bikeId, userId);
         return ResponseEntity.ok(ApiResponse.ok(schedules));
     }
@@ -39,9 +39,9 @@ public class MaintenanceScheduleController {
     @GetMapping("/{scheduleId}")
     public ResponseEntity<ApiResponse<MaintenanceScheduleResponse>> getSchedule(
             @PathVariable UUID scheduleId,
-            @AuthenticationPrincipal UserDetails userDetails
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        UUID userId = UUID.fromString(userDetails.getUsername());
+        UUID userId = userDetails.getUserId();
         MaintenanceScheduleResponse schedule = scheduleService.getSchedule(scheduleId, userId);
         return ResponseEntity.ok(ApiResponse.ok(schedule));
     }
@@ -50,9 +50,9 @@ public class MaintenanceScheduleController {
     @PostMapping
     public ResponseEntity<ApiResponse<MaintenanceScheduleResponse>> createSchedule(
             @Valid @RequestBody MaintenanceScheduleCreateRequest request,
-            @AuthenticationPrincipal UserDetails userDetails
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        UUID userId = UUID.fromString(userDetails.getUsername());
+        UUID userId = userDetails.getUserId();
         MaintenanceScheduleResponse schedule = scheduleService.createSchedule(request, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(schedule));
     }
@@ -62,9 +62,9 @@ public class MaintenanceScheduleController {
     public ResponseEntity<ApiResponse<MaintenanceScheduleResponse>> updateSchedule(
             @PathVariable UUID scheduleId,
             @Valid @RequestBody MaintenanceScheduleUpdateRequest request,
-            @AuthenticationPrincipal UserDetails userDetails
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        UUID userId = UUID.fromString(userDetails.getUsername());
+        UUID userId = userDetails.getUserId();
         MaintenanceScheduleResponse schedule = scheduleService.updateSchedule(scheduleId, request, userId);
         return ResponseEntity.ok(ApiResponse.ok(schedule));
     }
@@ -73,9 +73,9 @@ public class MaintenanceScheduleController {
     @DeleteMapping("/{scheduleId}")
     public ResponseEntity<ApiResponse<Void>> deleteSchedule(
             @PathVariable UUID scheduleId,
-            @AuthenticationPrincipal UserDetails userDetails
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        UUID userId = UUID.fromString(userDetails.getUsername());
+        UUID userId = userDetails.getUserId();
         scheduleService.deleteSchedule(scheduleId, userId);
         return ResponseEntity.ok(ApiResponse.ok());
     }

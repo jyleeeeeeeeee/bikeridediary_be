@@ -78,16 +78,14 @@ public class MaintenanceScheduleService {
         verifyScheduleOwnership(entity, userId);
 
         entity.update(
-                entity.getMaintenanceType(),
                 request.intervalKm(),
                 request.intervalMonths(),
                 request.lastMaintenanceMileage(),
                 request.lastMaintenanceDate()
         );
 
-        MaintenanceScheduleEntity saved = scheduleRepository.save(entity);
         Integer currentMileage = entity.getBikeEntity().getTotalMileageKm();
-        return MaintenanceScheduleResponse.from(saved, currentMileage);
+        return MaintenanceScheduleResponse.from(entity, currentMileage);
     }
 
     // 정비 주기 삭제 (소프트 삭제)
@@ -97,7 +95,6 @@ public class MaintenanceScheduleService {
         verifyScheduleOwnership(entity, userId);
 
         entity.delete();
-        scheduleRepository.save(entity);
     }
 
     // ============ 헬퍼 메서드 ============

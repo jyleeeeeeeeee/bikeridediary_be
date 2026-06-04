@@ -10,7 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
+import com.bikeridediary.global.auth.CustomUserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,9 +28,9 @@ public class MaintenanceController {
     @GetMapping
     public ResponseEntity<ApiResponse<List<MaintenanceResponse>>> getMaintenances(
             @RequestParam UUID bikeId,
-            @AuthenticationPrincipal UserDetails userDetails
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        UUID userId = UUID.fromString(userDetails.getUsername());
+        UUID userId = userDetails.getUserId();
         List<MaintenanceResponse> maintenances = maintenanceService.getMaintenances(bikeId, userId);
         return ResponseEntity.ok(ApiResponse.ok(maintenances));
     }
@@ -39,9 +39,9 @@ public class MaintenanceController {
     @GetMapping("/{maintenanceId}")
     public ResponseEntity<ApiResponse<MaintenanceResponse>> getMaintenance(
             @PathVariable UUID maintenanceId,
-            @AuthenticationPrincipal UserDetails userDetails
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        UUID userId = UUID.fromString(userDetails.getUsername());
+        UUID userId = userDetails.getUserId();
         MaintenanceResponse maintenance = maintenanceService.getMaintenance(maintenanceId, userId);
         return ResponseEntity.ok(ApiResponse.ok(maintenance));
     }
@@ -50,9 +50,9 @@ public class MaintenanceController {
     @PostMapping
     public ResponseEntity<ApiResponse<MaintenanceResponse>> createMaintenance(
             @Valid @RequestBody MaintenanceCreateRequest request,
-            @AuthenticationPrincipal UserDetails userDetails
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        UUID userId = UUID.fromString(userDetails.getUsername());
+        UUID userId = userDetails.getUserId();
         MaintenanceResponse maintenance = maintenanceService.createMaintenance(request, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(maintenance));
     }
@@ -62,9 +62,9 @@ public class MaintenanceController {
     public ResponseEntity<ApiResponse<MaintenanceResponse>> updateMaintenance(
             @PathVariable UUID maintenanceId,
             @Valid @RequestBody MaintenanceUpdateRequest request,
-            @AuthenticationPrincipal UserDetails userDetails
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        UUID userId = UUID.fromString(userDetails.getUsername());
+        UUID userId = userDetails.getUserId();
         MaintenanceResponse maintenance = maintenanceService.updateMaintenance(maintenanceId, request, userId);
         return ResponseEntity.ok(ApiResponse.ok(maintenance));
     }
@@ -73,9 +73,9 @@ public class MaintenanceController {
     @DeleteMapping("/{maintenanceId}")
     public ResponseEntity<ApiResponse<Void>> deleteMaintenance(
             @PathVariable UUID maintenanceId,
-            @AuthenticationPrincipal UserDetails userDetails
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        UUID userId = UUID.fromString(userDetails.getUsername());
+        UUID userId = userDetails.getUserId();
         maintenanceService.deleteMaintenance(maintenanceId, userId);
         return ResponseEntity.ok(ApiResponse.ok());
     }
