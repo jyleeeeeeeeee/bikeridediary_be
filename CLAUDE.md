@@ -221,15 +221,14 @@ com.bikeridediary
     - SwaggerConfig: JWT Bearer 인증 스키마 설정 (기존)
     - 4개 컨트롤러에 @Tag, @Operation 어노테이션 추가 (21개 엔드포인트)
     - 접근 경로: http://localhost:8080/swagger-ui.html
-
-### 보류된 사항
-
-- MaintenanceScheduleCreateRequest: intervalKm/intervalMonths 둘 다 null 방지 검증 로직
-- MaintenanceResponse에 updatedAt 추가 여부
+13. 보류 사항 해결 (2026-06-05)
+    - @ValidScheduleInterval 커스텀 검증: intervalKm/intervalMonths 둘 다 null 방지
+    - MaintenanceResponse, MaintenanceScheduleResponse에 updatedAt 필드 추가
 
 ### 다음 단계
 
-- Flutter 앱 개발 (웹은 추후 결정)
+- Docker 설정 확인/보완
+- CI/CD (GitHub Actions)
 - Flutter 앱 개발 (웹은 추후 결정)
 
 ---

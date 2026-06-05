@@ -1,10 +1,11 @@
 package com.bikeridediary.domain.maintenance.dto;
 
+import com.bikeridediary.global.validation.ValidScheduleInterval;
 import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
 
-// 정비 주기 수정 요청 DTO
+@ValidScheduleInterval
 public record MaintenanceScheduleUpdateRequest(
 
         @Min(value = 1, message = "km 기준 정비 주기는 1 이상이어야 합니다")
@@ -17,5 +18,5 @@ public record MaintenanceScheduleUpdateRequest(
         Integer lastMaintenanceMileage,
 
         LocalDate lastMaintenanceDate
-) {
+) implements ScheduleIntervalCheckable {
 }

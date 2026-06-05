@@ -26,10 +26,11 @@ public record MaintenanceScheduleResponse(
         // 정비 필요 여부
         boolean overdue,
         // 등록 일시
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        // 수정 일시
+        LocalDateTime updatedAt
 ) {
 
-    // MaintenanceScheduleEntity로부터 응답 DTO 생성 (정비 필요 여부 포함)
     public static MaintenanceScheduleResponse from(MaintenanceScheduleEntity entity, Integer currentMileage) {
         boolean isOverdue = entity.isOverdue(currentMileage, LocalDate.now());
         return new MaintenanceScheduleResponse(
@@ -41,7 +42,8 @@ public record MaintenanceScheduleResponse(
                 entity.getLastMaintenanceMileage(),
                 entity.getLastMaintenanceDate(),
                 isOverdue,
-                entity.getCreatedAt()
+                entity.getCreatedAt(),
+                entity.getUpdatedAt()
         );
     }
 }

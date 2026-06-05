@@ -28,10 +28,11 @@ public record MaintenanceResponse(
         // 다음 정비 예정 날짜
         LocalDate nextDueDate,
         // 등록 일시
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        // 수정 일시
+        LocalDateTime updatedAt
 ) {
 
-    // MaintenanceEntity로부터 응답 DTO 생성
     public static MaintenanceResponse from(MaintenanceEntity entity) {
         return new MaintenanceResponse(
                 entity.getId(),
@@ -43,7 +44,8 @@ public record MaintenanceResponse(
                 entity.getDescription(),
                 entity.getNextDueKm(),
                 entity.getNextDueDate(),
-                entity.getCreatedAt()
+                entity.getCreatedAt(),
+                entity.getUpdatedAt()
         );
     }
 }

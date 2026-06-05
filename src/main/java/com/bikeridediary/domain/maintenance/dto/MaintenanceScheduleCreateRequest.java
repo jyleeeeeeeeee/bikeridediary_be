@@ -1,12 +1,13 @@
 package com.bikeridediary.domain.maintenance.dto;
 
 import com.bikeridediary.domain.maintenance.entity.MaintenanceType;
+import com.bikeridediary.global.validation.ValidScheduleInterval;
 import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
 import java.util.UUID;
 
-// 정비 주기 생성 요청 DTO
+@ValidScheduleInterval
 public record MaintenanceScheduleCreateRequest(
 
         @NotNull(message = "바이크 ID는 필수입니다")
@@ -25,5 +26,5 @@ public record MaintenanceScheduleCreateRequest(
         Integer lastMaintenanceMileage,
 
         LocalDate lastMaintenanceDate
-) {
+) implements ScheduleIntervalCheckable {
 }
