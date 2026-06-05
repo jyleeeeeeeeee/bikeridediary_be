@@ -215,8 +215,12 @@ com.bikeridediary
     - MaintenanceScheduleServiceTest: 16개 테스트 (CRUD + 권한 검증 + 중복 스케줄 방지)
 11. SQL 스키마 작성 완료 (2026-06-05)
     - 4개 테이블: users, bikes, maintenances, maintenance_schedules
-    - 복합 인덱스 4개 (Repository 쿼리 메서드 기반)
+    - 복합 인덱스 6개 (Repository 쿼리 메서드 기반)
     - RefreshToken은 Redis — PostgreSQL 스키마 미포함
+12. OpenAPI 3.0 어노테이션 추가 완료 (2026-06-05)
+    - SwaggerConfig: JWT Bearer 인증 스키마 설정 (기존)
+    - 4개 컨트롤러에 @Tag, @Operation 어노테이션 추가 (21개 엔드포인트)
+    - 접근 경로: http://localhost:8080/swagger-ui.html
 
 ### 보류된 사항
 
@@ -225,7 +229,7 @@ com.bikeridediary
 
 ### 다음 단계
 
-- API 명세서 (OpenAPI 3.0)
+- Flutter 앱 개발 (웹은 추후 결정)
 - Flutter 앱 개발 (웹은 추후 결정)
 
 ---
