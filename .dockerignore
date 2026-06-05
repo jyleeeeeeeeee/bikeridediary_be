@@ -1,0 +1,10 @@
+.gradle
+.idea
+build/classes
+build/generated
+build/tmp
+src
+*.md
+.claude
+.git
+.gitignore
