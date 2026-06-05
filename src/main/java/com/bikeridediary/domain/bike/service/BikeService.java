@@ -27,7 +27,7 @@ public class BikeService {
     // 사용자의 모든 활성 바이크 조회 (대표 순서 내림차순, 생성 날짜 내림차순)
     public List<BikeResponse> getMyBikes(UUID userId) {
         verifyUserExists(userId);
-        return bikeRepository.findByUserIdAndDeletedAtIsNullOrderByIsRepresentativeDescCreatedAtDesc(userId)
+        return bikeRepository.findByUserEntityIdAndDeletedAtIsNullOrderByIsRepresentativeDescCreatedAtDesc(userId)
                 .stream()
                 .map(BikeResponse::from)
                 .toList();
@@ -58,7 +58,7 @@ public class BikeService {
         );
 
         // 첫 번째 바이크면 대표로 설정
-        long bikeCount = bikeRepository.findByUserIdAndDeletedAtIsNullOrderByIsRepresentativeDescCreatedAtDesc(userId)
+        long bikeCount = bikeRepository.findByUserEntityIdAndDeletedAtIsNullOrderByIsRepresentativeDescCreatedAtDesc(userId)
                 .size();
         if (bikeCount == 0) {
             bikeEntity.setRepresentative(true);

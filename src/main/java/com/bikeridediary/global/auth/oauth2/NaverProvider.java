@@ -21,10 +21,10 @@ public class NaverProvider implements OAuth2Provider{
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
-    @Value("${spring.security.oauth2.client.registration.naver.client-id}")
+    @Value("${naver.client-id}")
     private String clientId;
 
-    @Value("${spring.security.oauth2.client.registration.naver.client-secret}")
+    @Value("${naver.client-secret}")
     private String clientSecret;
 
     // 네이버 OAuth2 API 엔드포인트

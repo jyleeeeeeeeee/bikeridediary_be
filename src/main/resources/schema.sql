@@ -84,9 +84,9 @@ CREATE TABLE maintenance_schedules (
 -- 5. 인덱스
 -- ============================================================
 
--- bikes: findByUserIdAndDeletedAtIsNullOrderByIsRepresentativeDescCreatedAtDesc
+-- bikes: findByUserEntityIdAndDeletedAtIsNullOrderByIsRepresentativeDescCreatedAtDesc
 CREATE INDEX idx_bikes_user_id_deleted_at ON bikes (user_id, deleted_at);
--- bikes: findByUserIdAndIsRepresentativeTrueAndDeletedAtIsNull
+-- bikes: findByUserEntityIdAndIsRepresentativeTrueAndDeletedAtIsNull
 CREATE INDEX idx_bikes_user_id_representative_deleted_at ON bikes (user_id, is_representative, deleted_at);
 
 -- maintenances: findByBikeEntityIdAndDeletedAtIsNullOrderByMaintenanceDateDesc

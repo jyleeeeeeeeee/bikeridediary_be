@@ -70,6 +70,10 @@ dependencies {
     testImplementation 'org.mockito:mockito-core'
 }
 
+jar {
+    enabled = false
+}
+
 tasks.named('test') {
     useJUnitPlatform()
 }

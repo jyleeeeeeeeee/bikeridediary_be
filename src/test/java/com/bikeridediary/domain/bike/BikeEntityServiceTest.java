@@ -69,12 +69,12 @@ class BikeEntityServiceTest {
     void getMyBikes_Success() {
         when(userRepository.findByIdAndDeletedAtIsNull(userId))
                 .thenReturn(Optional.of(testUserEntity));
-        when(bikeRepository.findByUserIdAndDeletedAtIsNullOrderByIsRepresentativeDescCreatedAtDesc(userId))
+        when(bikeRepository.findByUserEntityIdAndDeletedAtIsNullOrderByIsRepresentativeDescCreatedAtDesc(userId))
                 .thenReturn(List.of());
 
         bikeService.getMyBikes(userId);
 
-        verify(bikeRepository).findByUserIdAndDeletedAtIsNullOrderByIsRepresentativeDescCreatedAtDesc(userId);
+        verify(bikeRepository).findByUserEntityIdAndDeletedAtIsNullOrderByIsRepresentativeDescCreatedAtDesc(userId);
     }
 
     @Test
@@ -112,7 +112,7 @@ class BikeEntityServiceTest {
 
         when(userRepository.findByIdAndDeletedAtIsNull(userId))
                 .thenReturn(Optional.of(testUserEntity));
-        when(bikeRepository.findByUserIdAndDeletedAtIsNullOrderByIsRepresentativeDescCreatedAtDesc(userId))
+        when(bikeRepository.findByUserEntityIdAndDeletedAtIsNullOrderByIsRepresentativeDescCreatedAtDesc(userId))
                 .thenReturn(List.of());
         when(bikeRepository.save(any(BikeEntity.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
@@ -140,7 +140,7 @@ class BikeEntityServiceTest {
 
         when(userRepository.findByIdAndDeletedAtIsNull(userId))
                 .thenReturn(Optional.of(testUserEntity));
-        when(bikeRepository.findByUserIdAndDeletedAtIsNullOrderByIsRepresentativeDescCreatedAtDesc(userId))
+        when(bikeRepository.findByUserEntityIdAndDeletedAtIsNullOrderByIsRepresentativeDescCreatedAtDesc(userId))
                 .thenReturn(List.of(firstBikeEntity));
         when(bikeRepository.save(any(BikeEntity.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
