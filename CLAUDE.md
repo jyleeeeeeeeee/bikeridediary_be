@@ -213,6 +213,10 @@ com.bikeridediary
 10. 정비 도메인 단위 테스트 작성 완료 (2026-06-04)
     - MaintenanceServiceTest: 12개 테스트 (CRUD + 권한 검증)
     - MaintenanceScheduleServiceTest: 16개 테스트 (CRUD + 권한 검증 + 중복 스케줄 방지)
+11. SQL 스키마 작성 완료 (2026-06-05)
+    - 4개 테이블: users, bikes, maintenances, maintenance_schedules
+    - 복합 인덱스 4개 (Repository 쿼리 메서드 기반)
+    - RefreshToken은 Redis — PostgreSQL 스키마 미포함
 
 ### 보류된 사항
 
@@ -221,7 +225,6 @@ com.bikeridediary
 
 ### 다음 단계
 
-- SQL 스키마 작성
 - API 명세서 (OpenAPI 3.0)
 - Flutter 앱 개발 (웹은 추후 결정)
 
