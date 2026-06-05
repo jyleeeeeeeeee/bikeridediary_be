@@ -224,11 +224,16 @@ com.bikeridediary
 13. 보류 사항 해결 (2026-06-05)
     - @ValidScheduleInterval 커스텀 검증: intervalKm/intervalMonths 둘 다 null 방지
     - MaintenanceResponse, MaintenanceScheduleResponse에 updatedAt 필드 추가
+14. Docker 설정 보완 (2026-06-05)
+    - Dockerfile (JRE Alpine 기반) + .dockerignore 추가
+    - docker-compose.yml에 app 서비스 추가 (postgres/redis 의존)
+    - 02_schema.sql init 스크립트로 테이블 자동 생성
+15. GitHub Actions CI 파이프라인 추가 (2026-06-05)
+    - push/PR 시 빌드 + 테스트 자동 실행
+    - Gradle 캐싱, 테스트 리포트 artifact 업로드
 
 ### 다음 단계
 
-- Docker 설정 확인/보완
-- CI/CD (GitHub Actions)
 - Flutter 앱 개발 (웹은 추후 결정)
 
 ---
