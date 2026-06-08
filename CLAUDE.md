@@ -231,6 +231,19 @@ com.bikeridediary
 15. GitHub Actions CI 파이프라인 추가 (2026-06-05)
     - push/PR 시 빌드 + 테스트 자동 실행
     - Gradle 캐싱, 테스트 리포트 artifact 업로드
+16. 버그 수정 및 안정화 (2026-06-08)
+    - BikeRepository JPA 쿼리 파생 수정: `findByUserId` → `findByUserEntityId` (엔티티 필드명 불일치)
+    - NaverProvider `@Value` 경로 변경: `spring.security.oauth2.client.registration.naver.*` → `naver.*` (OAuth2 자동 설정 충돌 방지)
+    - UserEntity.createWithEmail() providerId를 이메일 기반 UUID v3로 생성 (NOT NULL 제약조건 위반 수정)
+    - build.gradle `jar { enabled = false }` 추가 (plain JAR 생성 방지)
+17. 파일 로깅 추가 (2026-06-08)
+    - logback-spring.xml: app.log (전체) + error.log (ERROR만) + 일별 롤링
+    - Docker 볼륨 마운트로 호스트에서 로그 파일 접근 가능
+18. 멀티 프로필 구성 (2026-06-08)
+    - application.yml을 공통 설정만 남기고 5개 프로필로 분리
+    - local (IntelliJ 직접 실행), local-dev (로컬 Docker), dev/stg/prd (AWS)
+    - docker-compose.yml을 SPRING_PROFILES_ACTIVE=local-dev 한 줄로 간소화
+    - stg/prd에서 Swagger UI 비활성화
 
 ### 다음 단계
 
