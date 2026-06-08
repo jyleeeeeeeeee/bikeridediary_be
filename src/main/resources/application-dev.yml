@@ -1,0 +1,61 @@
+# AWS 개발 서버
+# 모든 민감 값은 환경변수로 주입
+
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+  security:
+    oauth2:
+      client:
+        registration:
+          kakao:
+            client-id: ${KAKAO_CLIENT_ID}
+            client-secret: ${KAKAO_CLIENT_SECRET}
+            redirect-uri: "{baseUrl}/api/v1/auth/oauth2/callback/{registrationId}"
+            authorization-grant-type: authorization_code
+            scope: profile_nickname, account_email
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            redirect-uri: "{baseUrl}/api/v1/auth/oauth2/callback/{registrationId}"
+            scope: profile, email
+
+jwt:
+  secret: ${JWT_SECRET}
+
+apple:
+  client-id: ${APPLE_CLIENT_ID}
+  team-id: ${APPLE_TEAM_ID}
+  key-id: ${APPLE_KEY_ID}
+  private-key: ${APPLE_PRIVATE_KEY}
+
+aws:
+  s3:
+    bucket: ${S3_BUCKET_NAME}
+  credentials:
+    access-key: ${AWS_ACCESS_KEY}
+    secret-key: ${AWS_SECRET_KEY}
+
+openweather:
+  api-key: ${OPENWEATHER_API_KEY}
+
+naver:
+  client-id: ${NAVER_CLIENT_ID}
+  client-secret: ${NAVER_CLIENT_SECRET}
+
+kakao:
+  api-key: ${KAKAO_API_KEY}
+
+opinet:
+  api-key: ${OPINET_API_KEY}

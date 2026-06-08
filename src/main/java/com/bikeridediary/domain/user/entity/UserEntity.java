@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -76,9 +77,27 @@ public class UserEntity extends BaseEntity {
 
     // 이메일 회원가입으로 사용자 엔티티 생성 (암호화된 비밀번호 사용)
     public static UserEntity createWithEmail(String email, String hashedPassword, String nickname) {
+
         UserEntity userEntity = new UserEntity();
         userEntity.provider = "email";    // 일반 회원 provider : "email"
-        userEntity.providerId = null;     // OAuth2가 아니므로 null
+
+        byte[] bytes = email.getBytes(StandardCharsets.UTF_8);
+        
+        /*
+        // SHA-256 해시 직접 구현 방식
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(bytes);
+            // 64자리 hex 문자열
+            userEntity.providerId = HexFormat.of().formatHex(hash);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+        */
+
+        // (UUID v3, MD5 기반)
+        userEntity.providerId = UUID.nameUUIDFromBytes(bytes).toString();
+
         userEntity.email = email;
         userEntity.password = hashedPassword;     // BCrypt로 암호화된 비밀번호
         userEntity.nickname = nickname;

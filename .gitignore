@@ -17,8 +17,6 @@ target/
 
 # Environment variables (NEVER commit these)
 .env
-application-local.yml
-application-prod.yml
 
 # Logs
 logs/

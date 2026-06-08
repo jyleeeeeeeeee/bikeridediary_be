@@ -1,0 +1,62 @@
+# 로컬 Docker 개발 (docker compose로 실행)
+# Docker 내부 서비스명으로 접속 (postgres, redis)
+# 실행: SPRING_PROFILES_ACTIVE=local-dev
+
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres:5432/bikeridediary
+    username: bikeridediary
+    password: bikeridediary123
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  data:
+    redis:
+      host: redis
+      port: 6379
+  security:
+    oauth2:
+      client:
+        registration:
+          kakao:
+            client-id: dummy
+            client-secret: dummy
+            redirect-uri: "{baseUrl}/api/v1/auth/oauth2/callback/{registrationId}"
+            authorization-grant-type: authorization_code
+            scope: profile_nickname, account_email
+          google:
+            client-id: dummy
+            client-secret: dummy
+            redirect-uri: "{baseUrl}/api/v1/auth/oauth2/callback/{registrationId}"
+            scope: profile, email
+
+jwt:
+  secret: brd-local-docker-test-secret-key-minimum-32-characters-long
+
+apple:
+  client-id: dummy
+  team-id: dummy
+  key-id: dummy
+  private-key: dummy
+
+aws:
+  s3:
+    bucket: bikeridediary-local-dev
+  credentials:
+    access-key: dummy
+    secret-key: dummy
+
+openweather:
+  api-key: dummy
+
+naver:
+  client-id: dummy
+  client-secret: dummy
+
+kakao:
+  api-key: dummy
+
+opinet:
+  api-key: dummy

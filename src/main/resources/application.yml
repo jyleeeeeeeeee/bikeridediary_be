@@ -2,45 +2,18 @@ spring:
   application:
     name: bikeridediary
 
-  # Database
-  datasource:
-    url: jdbc:postgresql://localhost:5432/bikeridediary
-    username: bikeridediary
-    password: bikeridediary123
-    driver-class-name: org.postgresql.Driver
-
+  # JPA 공통 설정
   jpa:
-    hibernate:
-      ddl-auto: update            # 개발: update, 운영: validate
     properties:
       hibernate:
         dialect: org.hibernate.spatial.dialect.postgis.PostgisPG10Dialect
         format_sql: true
         default_batch_fetch_size: 100
-    show-sql: false               # 개발 시 true로 변경
 
-  # Redis
-  data:
-    redis:
-      host: localhost
-      port: 6379
-
-  # OAuth2
+  # OAuth2 Provider 설정 (URL은 환경에 무관)
   security:
     oauth2:
       client:
-        registration:
-          kakao:
-            client-id: ${KAKAO_CLIENT_ID}
-            client-secret: ${KAKAO_CLIENT_SECRET}
-            redirect-uri: "{baseUrl}/api/v1/auth/oauth2/callback/{registrationId}"
-            authorization-grant-type: authorization_code
-            scope: profile_nickname, account_email
-          google:
-            client-id: ${GOOGLE_CLIENT_ID}
-            client-secret: ${GOOGLE_CLIENT_SECRET}
-            redirect-uri: "{baseUrl}/api/v1/auth/oauth2/callback/{registrationId}"
-            scope: profile, email
         provider:
           kakao:
             authorization-uri: https://kauth.kakao.com/oauth/authorize
@@ -48,51 +21,30 @@ spring:
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
 
-# JWT
+# JWT 만료 시간 (환경 공통)
 jwt:
-  secret: ${JWT_SECRET}          # 최소 256bit (32자 이상) 랜덤 문자열
-  access-token-expiry: 3600      # 1시간 (초)
-  refresh-token-expiry: 2592000  # 30일 (초)
+  access-token-expiry: 3600
+  refresh-token-expiry: 2592000
 
-# AWS S3
+# AWS 리전 (환경 공통)
 aws:
   region: ap-northeast-2
-  s3:
-    bucket: ${S3_BUCKET_NAME}
-  credentials:
-    access-key: ${AWS_ACCESS_KEY}
-    secret-key: ${AWS_SECRET_KEY}
 
-# Apple Sign In
-apple:
-  client-id: ${APPLE_CLIENT_ID}
-  team-id: ${APPLE_TEAM_ID}
-  key-id: ${APPLE_KEY_ID}
-  private-key: ${APPLE_PRIVATE_KEY}
-
-# OpenWeather API
+# 외부 API Base URL (환경 공통)
 openweather:
-  api-key: ${OPENWEATHER_API_KEY}
   base-url: https://api.openweathermap.org/data/2.5
 
-# Naver API
 naver:
-  client-id: ${NAVER_CLIENT_ID}
-  client-secret: ${NAVER_CLIENT_SECRET}
   directions-url: https://naveropenapi.apigw.ntruss.com/map-direction-15/v1/driving
   geocoding-url: https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode
 
-# Kakao Local API (주유소 검색)
 kakao:
-  api-key: ${KAKAO_API_KEY}
   local-url: https://dapi.kakao.com/v2/local
 
-# Opinet API (유가 정보)
 opinet:
-  api-key: ${OPINET_API_KEY}
   base-url: http://www.opinet.co.kr/api
 
-# Springdoc (Swagger UI)
+# Swagger UI
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
