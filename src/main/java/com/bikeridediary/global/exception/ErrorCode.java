@@ -53,6 +53,7 @@ public enum ErrorCode {
 
     // 주유
     FUELING_NOT_FOUND(HttpStatus.NOT_FOUND, "FUELING_NOT_FOUND", "주유 기록을 찾을 수 없습니다"),
+    FUELING_ACCESS_DENIED(HttpStatus.FORBIDDEN, "FUELING_ACCESS_DENIED", "해당 주유 기록에 대한 권한이 없습니다"),
 
     // 파일 업로드
     FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "FILE_UPLOAD_FAILED", "파일 업로드에 실패했습니다"),

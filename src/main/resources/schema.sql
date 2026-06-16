@@ -79,7 +79,28 @@ CREATE TABLE maintenance_schedules (
 );
 
 -- ============================================================
--- 5. 인덱스
+-- 5. fuelings (주유 기록)
+-- ============================================================
+CREATE TABLE fuelings (
+    id                UUID           DEFAULT gen_random_uuid() PRIMARY KEY,
+    bike_id           UUID           NOT NULL REFERENCES bikes(id),
+    fueling_date      DATE           NOT NULL,
+    mileage_at_fueling INTEGER       NOT NULL,
+    fuel_amount       NUMERIC(8,2)   NOT NULL,
+    price_per_liter   INTEGER,
+    total_cost        INTEGER,
+    fuel_type         VARCHAR(10)    NOT NULL,
+    is_full_tank      BOOLEAN        NOT NULL DEFAULT FALSE,
+    fuel_efficiency   NUMERIC(6,2),
+    memo              VARCHAR(500),
+    station_name      VARCHAR(100),
+    created_at        TIMESTAMP      NOT NULL DEFAULT now(),
+    updated_at        TIMESTAMP,
+    deleted_at        TIMESTAMP
+);
+
+-- ============================================================
+-- 6. 인덱스
 -- ============================================================
 
 -- bikes: findByUserEntityIdAndDeletedAtIsNullOrderByIsRepresentativeDescCreatedAtDesc
@@ -96,3 +117,8 @@ CREATE INDEX idx_maintenances_bike_id_type_deleted_at ON maintenances (bike_id, 
 CREATE INDEX idx_maintenance_schedules_bike_id_deleted_at ON maintenance_schedules (bike_id, deleted_at);
 -- maintenance_schedules: existsByBikeEntityIdAndMaintenanceTypeAndDeletedAtIsNull (중복 체크)
 CREATE INDEX idx_maintenance_schedules_bike_id_type_deleted_at ON maintenance_schedules (bike_id, maintenance_type, deleted_at);
+
+-- fuelings: findByBikeEntityIdAndDeletedAtIsNullOrderByFuelingDateDesc
+CREATE INDEX idx_fuelings_bike_id_deleted_at ON fuelings (bike_id, deleted_at);
+-- fuelings: 만탱크법 연비 계산용 (이전 만탱크 기록 조회)
+CREATE INDEX idx_fuelings_bike_id_full_tank_mileage ON fuelings (bike_id, is_full_tank, mileage_at_fueling, deleted_at);
