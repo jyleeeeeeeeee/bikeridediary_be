@@ -73,8 +73,6 @@ CREATE TABLE maintenance_schedules (
     maintenance_type         VARCHAR(20)  NOT NULL,
     interval_km              INTEGER,
     interval_months          INTEGER,
-    last_maintenance_mileage INTEGER,
-    last_maintenance_date    DATE,
     created_at               TIMESTAMP    NOT NULL DEFAULT now(),
     updated_at               TIMESTAMP,
     deleted_at               TIMESTAMP

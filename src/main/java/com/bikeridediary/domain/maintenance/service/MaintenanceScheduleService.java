@@ -5,7 +5,10 @@ import com.bikeridediary.domain.bike.repository.BikeRepository;
 import com.bikeridediary.domain.maintenance.dto.MaintenanceScheduleCreateRequest;
 import com.bikeridediary.domain.maintenance.dto.MaintenanceScheduleResponse;
 import com.bikeridediary.domain.maintenance.dto.MaintenanceScheduleUpdateRequest;
+import com.bikeridediary.domain.maintenance.entity.MaintenanceEntity;
 import com.bikeridediary.domain.maintenance.entity.MaintenanceScheduleEntity;
+import com.bikeridediary.domain.maintenance.entity.MaintenanceType;
+import com.bikeridediary.domain.maintenance.repository.MaintenanceRepository;
 import com.bikeridediary.domain.maintenance.repository.MaintenanceScheduleRepository;
 import com.bikeridediary.global.exception.BusinessException;
 import com.bikeridediary.global.exception.ErrorCode;
@@ -13,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -23,9 +27,10 @@ import java.util.UUID;
 public class MaintenanceScheduleService {
 
     private final MaintenanceScheduleRepository scheduleRepository;
+    private final MaintenanceRepository maintenanceRepository;
     private final BikeRepository bikeRepository;
 
-    // 특정 바이크의 모든 정비 주기 조회 (현재 주행거리 기준으로 정비 필요 여부 포함)
+    // 특정 바이크의 모든 정비 주기 조회 (정비 기록 기반으로 overdue 판단)
     public List<MaintenanceScheduleResponse> getSchedules(UUID bikeId, UUID userId) {
         BikeEntity bikeEntity = findBikeOrThrow(bikeId);
         verifyBikeOwnership(bikeEntity, userId);
@@ -33,7 +38,7 @@ public class MaintenanceScheduleService {
         Integer currentMileage = bikeEntity.getTotalMileageKm();
         return scheduleRepository.findByBikeEntityIdAndDeletedAtIsNull(bikeId)
                 .stream()
-                .map(schedule -> MaintenanceScheduleResponse.from(schedule, currentMileage))
+                .map(schedule -> buildResponse(schedule, bikeId, currentMileage))
                 .toList();
     }
 
@@ -42,8 +47,9 @@ public class MaintenanceScheduleService {
         MaintenanceScheduleEntity entity = findScheduleOrThrow(scheduleId);
         verifyScheduleOwnership(entity, userId);
 
+        UUID bikeId = entity.getBikeEntity().getId();
         Integer currentMileage = entity.getBikeEntity().getTotalMileageKm();
-        return MaintenanceScheduleResponse.from(entity, currentMileage);
+        return buildResponse(entity, bikeId, currentMileage);
     }
 
     // 정비 주기 생성 (동일 바이크에 동일 정비 종류 중복 불가)
@@ -52,7 +58,6 @@ public class MaintenanceScheduleService {
         BikeEntity bikeEntity = findBikeOrThrow(request.bikeId());
         verifyBikeOwnership(bikeEntity, userId);
 
-        // 동일 정비 종류 중복 확인
         if (scheduleRepository.existsByBikeEntityIdAndMaintenanceTypeAndDeletedAtIsNull(
                 request.bikeId(), request.maintenanceType())) {
             throw new BusinessException(ErrorCode.MAINTENANCE_SCHEDULE_DUPLICATE);
@@ -62,13 +67,11 @@ public class MaintenanceScheduleService {
                 bikeEntity,
                 request.maintenanceType(),
                 request.intervalKm(),
-                request.intervalMonths(),
-                request.lastMaintenanceMileage(),
-                request.lastMaintenanceDate()
+                request.intervalMonths()
         );
 
         MaintenanceScheduleEntity saved = scheduleRepository.save(entity);
-        return MaintenanceScheduleResponse.from(saved, bikeEntity.getTotalMileageKm());
+        return buildResponse(saved, request.bikeId(), bikeEntity.getTotalMileageKm());
     }
 
     // 정비 주기 수정
@@ -77,15 +80,11 @@ public class MaintenanceScheduleService {
         MaintenanceScheduleEntity entity = findScheduleOrThrow(scheduleId);
         verifyScheduleOwnership(entity, userId);
 
-        entity.update(
-                request.intervalKm(),
-                request.intervalMonths(),
-                request.lastMaintenanceMileage(),
-                request.lastMaintenanceDate()
-        );
+        entity.update(request.intervalKm(), request.intervalMonths());
 
+        UUID bikeId = entity.getBikeEntity().getId();
         Integer currentMileage = entity.getBikeEntity().getTotalMileageKm();
-        return MaintenanceScheduleResponse.from(entity, currentMileage);
+        return buildResponse(entity, bikeId, currentMileage);
     }
 
     // 정비 주기 삭제 (소프트 삭제)
@@ -98,6 +97,18 @@ public class MaintenanceScheduleService {
     }
 
     // ============ 헬퍼 메서드 ============
+
+    private MaintenanceScheduleResponse buildResponse(
+            MaintenanceScheduleEntity schedule, UUID bikeId, Integer currentMileage) {
+        MaintenanceType type = schedule.getMaintenanceType();
+        var latestRecord = maintenanceRepository
+                .findTopByBikeEntityIdAndMaintenanceTypeAndDeletedAtIsNullOrderByMaintenanceDateDesc(bikeId, type);
+
+        Integer lastMileage = latestRecord.map(MaintenanceEntity::getMileageAtMaintenance).orElse(null);
+        LocalDate lastDate = latestRecord.map(MaintenanceEntity::getMaintenanceDate).orElse(null);
+
+        return MaintenanceScheduleResponse.from(schedule, currentMileage, lastMileage, lastDate);
+    }
 
     private BikeEntity findBikeOrThrow(UUID bikeId) {
         return bikeRepository.findByIdAndDeletedAtIsNull(bikeId)

@@ -12,7 +12,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDate;
 import java.util.UUID;
 
-// 정비 주기 관리 엔티티 - km 또는 개월 기준 정비 주기를 관리하고 정비 필요 여부를 판단
+// 정비 주기 관리 엔티티 - km 또는 개월 기준 정비 주기를 관리
+// 마지막 정비 정보(주행거리/날짜)는 정비 기록(MaintenanceEntity)에서 조회
 @Entity
 @Table(name = "maintenance_schedules")
 @EntityListeners(AuditingEntityListener.class)
@@ -44,63 +45,37 @@ public class MaintenanceScheduleEntity extends BaseEntity {
     @Column(name = "interval_months")
     private Integer intervalMonths;
 
-    // 마지막 정비 시 주행거리 (km, nullable)
-    @Column(name = "last_maintenance_mileage")
-    private Integer lastMaintenanceMileage;
-
-    // 마지막 정비 날짜 (nullable)
-    @Column(name = "last_maintenance_date")
-    private LocalDate lastMaintenanceDate;
-
     // 정비 주기 엔티티 생성
     public static MaintenanceScheduleEntity create(
             BikeEntity bikeEntity,
             MaintenanceType maintenanceType,
             Integer intervalKm,
-            Integer intervalMonths,
-            Integer lastMaintenanceMileage,
-            LocalDate lastMaintenanceDate
+            Integer intervalMonths
     ) {
-        MaintenanceScheduleEntity maintenanceScheduleEntity = new MaintenanceScheduleEntity();
-        maintenanceScheduleEntity.bikeEntity = bikeEntity;
-        maintenanceScheduleEntity.maintenanceType = maintenanceType;
-        maintenanceScheduleEntity.intervalKm = intervalKm;
-        maintenanceScheduleEntity.intervalMonths = intervalMonths;
-        maintenanceScheduleEntity.lastMaintenanceMileage = lastMaintenanceMileage;
-        maintenanceScheduleEntity.lastMaintenanceDate = lastMaintenanceDate;
-        return maintenanceScheduleEntity;
+        MaintenanceScheduleEntity entity = new MaintenanceScheduleEntity();
+        entity.bikeEntity = bikeEntity;
+        entity.maintenanceType = maintenanceType;
+        entity.intervalKm = intervalKm;
+        entity.intervalMonths = intervalMonths;
+        return entity;
     }
 
     // 정비 주기 정보 수정
-    public void update(
-            Integer intervalKm,
-            Integer intervalMonths,
-            Integer lastMaintenanceMileage,
-            LocalDate lastMaintenanceDate) {
+    public void update(Integer intervalKm, Integer intervalMonths) {
         this.intervalKm = intervalKm;
         this.intervalMonths = intervalMonths;
-        this.lastMaintenanceMileage = lastMaintenanceMileage;
-        this.lastMaintenanceDate = lastMaintenanceDate;
     }
 
-    // 마지막 정비 정보 갱신 (주행거리와 날짜)
-    public void updateLastMaintenanceDate(
-            Integer lastMaintenanceMileage,
-            LocalDate lastMaintenanceDate) {
-        this.lastMaintenanceMileage = lastMaintenanceMileage;
-        this.lastMaintenanceDate = lastMaintenanceDate;
-    }
-
-    // km 기준으로 정비 필요 여부 확인
-    public boolean isOverdueByKm(Integer currentMileage) {
+    // km 기준으로 정비 필요 여부 확인 (마지막 정비 주행거리는 정비 기록에서 전달)
+    public boolean isOverdueByKm(Integer currentMileage, Integer lastMaintenanceMileage) {
         if (intervalKm == null || lastMaintenanceMileage == null) {
             return false;
         }
         return currentMileage >= (lastMaintenanceMileage + intervalKm);
     }
 
-    // 날짜 기준으로 정비 필요 여부 확인
-    public boolean isOverdueByDate(LocalDate currentDate) {
+    // 날짜 기준으로 정비 필요 여부 확인 (마지막 정비 날짜는 정비 기록에서 전달)
+    public boolean isOverdueByDate(LocalDate currentDate, LocalDate lastMaintenanceDate) {
         if (intervalMonths == null || lastMaintenanceDate == null) {
             return false;
         }
@@ -108,8 +83,10 @@ public class MaintenanceScheduleEntity extends BaseEntity {
     }
 
     // km 또는 날짜 중 하나라도 정비 주기를 초과했으면 true 반환
-    public boolean isOverdue(Integer currentMileage, LocalDate currentDate) {
-        return isOverdueByKm(currentMileage) || isOverdueByDate(currentDate);
+    public boolean isOverdue(Integer currentMileage, LocalDate currentDate,
+                             Integer lastMaintenanceMileage, LocalDate lastMaintenanceDate) {
+        return isOverdueByKm(currentMileage, lastMaintenanceMileage)
+                || isOverdueByDate(currentDate, lastMaintenanceDate);
     }
 
     // 이 정비 주기가 특정 사용자의 바이크에 속하는지 권한 검증

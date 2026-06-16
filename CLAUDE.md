@@ -245,9 +245,26 @@ com.bikeridediary
     - docker-compose.yml을 SPRING_PROFILES_ACTIVE=local-dev 한 줄로 간소화
     - stg/prd에서 Swagger UI 비활성화
 
+19. SecurityConfig에 CORS 설정 추가 (2026-06-11)
+    - Flutter 웹 앱에서 백엔드 API 호출 시 CORS preflight 404 해결
+    - `localhost:*` 패턴 허용, credentials 포함
+20. Flutter 앱 전체 구현 (2026-06-11)
+    - 프로젝트 위치: ../brd_app
+    - 기술 스택: Riverpod(상태관리), Dio(HTTP), GoRouter(라우팅), flutter_secure_storage(JWT)
+    - 아키텍처: Clean Architecture (data/domain/presentation 3계층)
+    - Auth: 이메일 로그인/회원가입, JWT 토큰 저장/갱신, 인증 가드
+    - Bike: 목록/상세/등록/수정/삭제, 대표 바이크 설정
+    - Maintenance: 정비 기록 CRUD, 정비 스케줄 CRUD, overdue 알림
+    - Home: 대시보드 (대표 바이크 요약, 정비 필요 알림, 빠른 메뉴)
+    - 화면 12개, Dart 파일 약 40개
+    - 웹(Chrome)에서 개발 중 (AVD 미해결)
+    - api_config.dart: kIsWeb으로 웹/에뮬레이터 baseUrl 자동 분기
+
 ### 다음 단계
 
-- Flutter 앱 개발 (웹은 추후 결정)
+- Flutter 앱 백엔드 연동 테스트 (로그인 → 바이크 → 정비 흐름)
+- 소셜 로그인 (카카오/네이버) — 네이티브 SDK 연동 (AVD 해결 후)
+- 연비 계산(Fueling) 도메인 (백엔드 + Flutter)
 
 ---
 

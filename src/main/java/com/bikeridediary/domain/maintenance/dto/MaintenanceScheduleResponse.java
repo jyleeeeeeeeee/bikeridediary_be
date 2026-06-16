@@ -31,16 +31,22 @@ public record MaintenanceScheduleResponse(
         LocalDateTime updatedAt
 ) {
 
-    public static MaintenanceScheduleResponse from(MaintenanceScheduleEntity entity, Integer currentMileage) {
-        boolean isOverdue = entity.isOverdue(currentMileage, LocalDate.now());
+    public static MaintenanceScheduleResponse from(
+            MaintenanceScheduleEntity entity,
+            Integer currentMileage,
+            Integer lastMaintenanceMileage,
+            LocalDate lastMaintenanceDate
+    ) {
+        boolean isOverdue = entity.isOverdue(
+                currentMileage, LocalDate.now(), lastMaintenanceMileage, lastMaintenanceDate);
         return new MaintenanceScheduleResponse(
                 entity.getId(),
                 entity.getBikeEntity().getId(),
                 entity.getMaintenanceType(),
                 entity.getIntervalKm(),
                 entity.getIntervalMonths(),
-                entity.getLastMaintenanceMileage(),
-                entity.getLastMaintenanceDate(),
+                lastMaintenanceMileage,
+                lastMaintenanceDate,
                 isOverdue,
                 entity.getCreatedAt(),
                 entity.getUpdatedAt()

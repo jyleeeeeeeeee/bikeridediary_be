@@ -8,6 +8,7 @@ import com.bikeridediary.domain.maintenance.dto.MaintenanceScheduleResponse;
 import com.bikeridediary.domain.maintenance.dto.MaintenanceScheduleUpdateRequest;
 import com.bikeridediary.domain.maintenance.entity.MaintenanceScheduleEntity;
 import com.bikeridediary.domain.maintenance.entity.MaintenanceType;
+import com.bikeridediary.domain.maintenance.repository.MaintenanceRepository;
 import com.bikeridediary.domain.maintenance.repository.MaintenanceScheduleRepository;
 import com.bikeridediary.domain.maintenance.service.MaintenanceScheduleService;
 import com.bikeridediary.domain.user.entity.UserEntity;
@@ -21,7 +22,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -36,6 +36,9 @@ class MaintenanceScheduleServiceTest {
 
     @Mock
     private MaintenanceScheduleRepository scheduleRepository;
+
+    @Mock
+    private MaintenanceRepository maintenanceRepository;
 
     @Mock
     private BikeRepository bikeRepository;
@@ -65,9 +68,7 @@ class MaintenanceScheduleServiceTest {
         setId(testBike, bikeId);
 
         testSchedule = MaintenanceScheduleEntity.create(
-                testBike, MaintenanceType.ENGINE_OIL,
-                5000, 6,
-                8000, LocalDate.of(2026, 1, 1)
+                testBike, MaintenanceType.ENGINE_OIL, 5000, 6
         );
         setId(testSchedule, scheduleId);
     }
@@ -91,12 +92,16 @@ class MaintenanceScheduleServiceTest {
                 .thenReturn(Optional.of(testBike));
         when(scheduleRepository.findByBikeEntityIdAndDeletedAtIsNull(bikeId))
                 .thenReturn(List.of(testSchedule));
+        when(maintenanceRepository.findTopByBikeEntityIdAndMaintenanceTypeAndDeletedAtIsNullOrderByMaintenanceDateDesc(
+                bikeId, MaintenanceType.ENGINE_OIL))
+                .thenReturn(Optional.empty());
 
         List<MaintenanceScheduleResponse> result = scheduleService.getSchedules(bikeId, userId);
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).maintenanceType()).isEqualTo(MaintenanceType.ENGINE_OIL);
         assertThat(result.get(0).intervalKm()).isEqualTo(5000);
+        assertThat(result.get(0).lastMaintenanceMileage()).isNull();
         verify(scheduleRepository).findByBikeEntityIdAndDeletedAtIsNull(bikeId);
     }
 
@@ -129,6 +134,9 @@ class MaintenanceScheduleServiceTest {
     void getSchedule_Success() {
         when(scheduleRepository.findByIdAndDeletedAtIsNull(scheduleId))
                 .thenReturn(Optional.of(testSchedule));
+        when(maintenanceRepository.findTopByBikeEntityIdAndMaintenanceTypeAndDeletedAtIsNullOrderByMaintenanceDateDesc(
+                bikeId, MaintenanceType.ENGINE_OIL))
+                .thenReturn(Optional.empty());
 
         MaintenanceScheduleResponse result = scheduleService.getSchedule(scheduleId, userId);
 
@@ -165,7 +173,7 @@ class MaintenanceScheduleServiceTest {
     @DisplayName("createSchedule - 성공")
     void createSchedule_Success() {
         MaintenanceScheduleCreateRequest request = new MaintenanceScheduleCreateRequest(
-                bikeId, MaintenanceType.ENGINE_OIL, 5000, 6, 8000, LocalDate.of(2026, 1, 1)
+                bikeId, MaintenanceType.ENGINE_OIL, 5000, 6
         );
 
         when(bikeRepository.findByIdAndDeletedAtIsNull(bikeId))
@@ -174,6 +182,9 @@ class MaintenanceScheduleServiceTest {
                 .thenReturn(false);
         when(scheduleRepository.save(any(MaintenanceScheduleEntity.class)))
                 .thenReturn(testSchedule);
+        when(maintenanceRepository.findTopByBikeEntityIdAndMaintenanceTypeAndDeletedAtIsNullOrderByMaintenanceDateDesc(
+                bikeId, MaintenanceType.ENGINE_OIL))
+                .thenReturn(Optional.empty());
 
         MaintenanceScheduleResponse result = scheduleService.createSchedule(request, userId);
 
@@ -186,7 +197,7 @@ class MaintenanceScheduleServiceTest {
     @DisplayName("createSchedule - 바이크 없음")
     void createSchedule_BikeNotFound() {
         MaintenanceScheduleCreateRequest request = new MaintenanceScheduleCreateRequest(
-                bikeId, MaintenanceType.ENGINE_OIL, 5000, 6, null, null
+                bikeId, MaintenanceType.ENGINE_OIL, 5000, 6
         );
 
         when(bikeRepository.findByIdAndDeletedAtIsNull(bikeId))
@@ -203,7 +214,7 @@ class MaintenanceScheduleServiceTest {
     @DisplayName("createSchedule - 다른 사용자의 바이크")
     void createSchedule_AccessDenied() {
         MaintenanceScheduleCreateRequest request = new MaintenanceScheduleCreateRequest(
-                bikeId, MaintenanceType.ENGINE_OIL, 5000, 6, null, null
+                bikeId, MaintenanceType.ENGINE_OIL, 5000, 6
         );
 
         when(bikeRepository.findByIdAndDeletedAtIsNull(bikeId))
@@ -220,7 +231,7 @@ class MaintenanceScheduleServiceTest {
     @DisplayName("createSchedule - 동일 정비 종류 중복")
     void createSchedule_Duplicate() {
         MaintenanceScheduleCreateRequest request = new MaintenanceScheduleCreateRequest(
-                bikeId, MaintenanceType.ENGINE_OIL, 5000, 6, 8000, LocalDate.of(2026, 1, 1)
+                bikeId, MaintenanceType.ENGINE_OIL, 5000, 6
         );
 
         when(bikeRepository.findByIdAndDeletedAtIsNull(bikeId))
@@ -240,26 +251,24 @@ class MaintenanceScheduleServiceTest {
     @Test
     @DisplayName("updateSchedule - 성공")
     void updateSchedule_Success() {
-        MaintenanceScheduleUpdateRequest request = new MaintenanceScheduleUpdateRequest(
-                10000, 12, 9500, LocalDate.of(2026, 6, 1)
-        );
+        MaintenanceScheduleUpdateRequest request = new MaintenanceScheduleUpdateRequest(10000, 12);
 
         when(scheduleRepository.findByIdAndDeletedAtIsNull(scheduleId))
                 .thenReturn(Optional.of(testSchedule));
+        when(maintenanceRepository.findTopByBikeEntityIdAndMaintenanceTypeAndDeletedAtIsNullOrderByMaintenanceDateDesc(
+                bikeId, MaintenanceType.ENGINE_OIL))
+                .thenReturn(Optional.empty());
 
         MaintenanceScheduleResponse result = scheduleService.updateSchedule(scheduleId, request, userId);
 
         assertThat(result.intervalKm()).isEqualTo(10000);
         assertThat(result.intervalMonths()).isEqualTo(12);
-        assertThat(result.lastMaintenanceMileage()).isEqualTo(9500);
     }
 
     @Test
     @DisplayName("updateSchedule - 정비 주기 없음")
     void updateSchedule_NotFound() {
-        MaintenanceScheduleUpdateRequest request = new MaintenanceScheduleUpdateRequest(
-                10000, 12, null, null
-        );
+        MaintenanceScheduleUpdateRequest request = new MaintenanceScheduleUpdateRequest(10000, 12);
 
         when(scheduleRepository.findByIdAndDeletedAtIsNull(scheduleId))
                 .thenReturn(Optional.empty());
@@ -272,9 +281,7 @@ class MaintenanceScheduleServiceTest {
     @Test
     @DisplayName("updateSchedule - 다른 사용자의 정비 주기")
     void updateSchedule_AccessDenied() {
-        MaintenanceScheduleUpdateRequest request = new MaintenanceScheduleUpdateRequest(
-                10000, 12, null, null
-        );
+        MaintenanceScheduleUpdateRequest request = new MaintenanceScheduleUpdateRequest(10000, 12);
 
         when(scheduleRepository.findByIdAndDeletedAtIsNull(scheduleId))
                 .thenReturn(Optional.of(testSchedule));

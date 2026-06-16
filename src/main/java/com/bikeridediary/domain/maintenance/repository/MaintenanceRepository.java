@@ -20,4 +20,8 @@ public interface MaintenanceRepository extends JpaRepository<MaintenanceEntity, 
     // 특정 바이크의 특정 정비 종류 기록 조회 (최신순)
     List<MaintenanceEntity> findByBikeEntityIdAndMaintenanceTypeAndDeletedAtIsNullOrderByMaintenanceDateDesc(
             UUID bikeId, MaintenanceType maintenanceType);
+
+    // 특정 바이크의 특정 정비 종류 최신 기록 1건 조회
+    Optional<MaintenanceEntity> findTopByBikeEntityIdAndMaintenanceTypeAndDeletedAtIsNullOrderByMaintenanceDateDesc(
+            UUID bikeId, MaintenanceType maintenanceType);
 }

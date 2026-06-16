@@ -15,6 +15,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 // Spring Security 설정 (상태 비저장 JWT 기반, 공개 엔드포인트 제외 인증 필수)
 @Configuration
@@ -33,6 +38,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+                // CORS 설정 — Flutter 웹 앱(다른 포트)에서의 API 호출 허용
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
                 // CSRF 비활성화 (Stateless REST API)
                 .csrf(AbstractHttpConfigurer::disable)
 
@@ -57,5 +65,20 @@ public class SecurityConfig {
                 );
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        // 개발 환경: Flutter 웹 앱의 origin 허용
+        config.setAllowedOriginPatterns(List.of("http://localhost:*"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+        config.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 }
