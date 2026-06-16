@@ -260,11 +260,29 @@ com.bikeridediary
     - 웹(Chrome)에서 개발 중 (AVD 미해결)
     - api_config.dart: kIsWeb으로 웹/에뮬레이터 baseUrl 자동 분기
 
+21. 연비/주유(Fueling) 도메인 구현 (2026-06-16)
+    - FuelingEntity: BigDecimal(8,2) 정밀 주유량, FuelType enum (REGULAR/PREMIUM/DIESEL)
+    - 만탱크법(Full-tank method) 연비 계산: 이전 만탱크 기록 ~ 현재 기록 사이 거리/누적주유량
+    - CRUD + 통계 엔드포인트 (6개): GET/POST/PUT/DELETE /fuelings, GET /fuelings/stats
+    - FuelingRepository: 이전 만탱크 조회, 구간 주유량 합계 @Query
+    - 단위 테스트 16개 (CRUD, 접근 권한, 연비 계산, 통계)
+    - ErrorCode에 FUELING_ACCESS_DENIED 추가
+    - schema.sql에 fuelings 테이블 + 인덱스 2개 추가
+22. Flutter 앱 주유 기능 + 전체 UI 현대화 (2026-06-16)
+    - 주유 데이터 레이어: model/repository/provider (FamilyAsyncNotifier)
+    - 주유 목록: SliverAppBar 통계 헤더 + 바이크 선택 드롭다운 + 카드 리스트
+    - 주유 폼: 주유량/단가 자동 계산, 연료 종류, 만탱크 스위치
+    - 디자인 시스템: deep blue #1B2838 + orange accent #FF6B35
+    - 전체 화면 그래디언트 헤더 + 카드 기반 레이아웃으로 통일
+    - StatefulShellRoute 4탭 하단 네비게이션 (홈/바이크/주유/설정)
+    - 로그인/회원가입: 그래디언트 + 흰색 카드 오버레이 디자인
+    - 설정 화면: 프로필 카드 + 앱 정보 + 로그아웃
+
 ### 다음 단계
 
-- Flutter 앱 백엔드 연동 테스트 (로그인 → 바이크 → 정비 흐름)
+- Flutter 앱 백엔드 연동 테스트 (로그인 → 바이크 → 정비 → 주유 흐름)
 - 소셜 로그인 (카카오/네이버) — 네이티브 SDK 연동 (AVD 해결 후)
-- 연비 계산(Fueling) 도메인 (백엔드 + Flutter)
+- 라이딩 코스(Course) 도메인 (GPX 기록/업로드)
 
 ---
 
