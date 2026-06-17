@@ -44,6 +44,10 @@ kakao:
 opinet:
   base-url: http://www.opinet.co.kr/api
 
+# API-Ninjas (모터사이클 제조사/모델 데이터)
+api-ninjas:
+  base-url: https://api.api-ninjas.com/v1/motorcycles
+
 # Swagger UI
 springdoc:
   swagger-ui:
@@ -55,4 +59,4 @@ springdoc:
 
 # Server
 server:
-  port: 8080
+  port: 8081
