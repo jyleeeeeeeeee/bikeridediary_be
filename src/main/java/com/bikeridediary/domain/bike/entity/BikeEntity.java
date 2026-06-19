@@ -45,10 +45,9 @@ public class BikeEntity extends BaseEntity {
     @Column(nullable = false)
     private Integer year;
 
-    // 바이크 카테고리 (도로, 산악, 투어링 등)
-    @Enumerated(EnumType.STRING)
-    @Column(length = 20)
-    private BikeCategory category;
+    // 바이크 카테고리 (bike_models.type 값 사용: Sport, Naked bike, Touring 등)
+    @Column(length = 50)
+    private String category;
 
     // 현재 총 주행거리 (km) - 사용자가 수동으로 업데이트
     @Column(name = "total_mileage_km", nullable = false)
@@ -81,7 +80,7 @@ public class BikeEntity extends BaseEntity {
             String manufacturerName,
             String modelName,
             Integer year,
-            BikeCategory category,
+            String category,
             Integer totalMileageKm
     ) {
         BikeEntity bikeEntity = new BikeEntity();
@@ -99,7 +98,7 @@ public class BikeEntity extends BaseEntity {
             String manufacturerName,
             String modelName,
             Integer year,
-            BikeCategory category,
+            String category,
             Integer totalMileageKm,
             LocalDate purchasedAt,
             String memo

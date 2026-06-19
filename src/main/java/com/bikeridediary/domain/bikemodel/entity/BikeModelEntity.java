@@ -4,16 +4,10 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import java.time.LocalDateTime;
-
 // 바이크 모델 마스터 데이터 — API-Ninjas로부터 동기화
 @Entity
 @Table(name = "bike_models",
-       uniqueConstraints = @UniqueConstraint(columnNames = {"manufacturer_id", "name", "year"}))
-@EntityListeners(AuditingEntityListener.class)
+       uniqueConstraints = @UniqueConstraint(columnNames = {"manufacturer_name", "name", "year"}))
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class BikeModelEntity {
@@ -23,9 +17,9 @@ public class BikeModelEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 제조사 (FK)
+    // 제조사 (FK → manufacturers.manufacturer_name)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "manufacturer_id", nullable = false)
+    @JoinColumn(name = "manufacturer_name", nullable = false)
     private ManufacturerEntity manufacturer;
 
     // 모델명 (예: "CBR650R", "Monster 821")
@@ -67,11 +61,6 @@ public class BikeModelEntity {
     // 연료 탱크 용량 (예: "15.40 litres (4.07 US gallons)")
     @Column(name = "fuel_capacity", length = 100)
     private String fuelCapacity;
-
-    // 등록 일시
-    @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
 
     public static BikeModelEntity create(
             ManufacturerEntity manufacturer,

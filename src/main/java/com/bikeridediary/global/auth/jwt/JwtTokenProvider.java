@@ -42,6 +42,11 @@ public class JwtTokenProvider {
         return buildToken(userId.toString(), refreshTokenExpiry);
     }
 
+    // 게스트용 리프레시 토큰 (1년)
+    public String generateGuestRefreshToken(UUID userId) {
+        return buildToken(userId.toString(), 365L * 24 * 60 * 60 * 1000);
+    }
+
     private String buildToken(String subject, long expiry) {
         Date now = new Date();
         return Jwts.builder()

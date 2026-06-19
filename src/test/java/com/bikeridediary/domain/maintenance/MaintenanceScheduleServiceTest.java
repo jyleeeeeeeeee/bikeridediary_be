@@ -1,6 +1,6 @@
 package com.bikeridediary.domain.maintenance;
 
-import com.bikeridediary.domain.bike.entity.BikeCategory;
+
 import com.bikeridediary.domain.bike.entity.BikeEntity;
 import com.bikeridediary.domain.bike.repository.BikeRepository;
 import com.bikeridediary.domain.maintenance.dto.MaintenanceScheduleCreateRequest;
@@ -64,7 +64,7 @@ class MaintenanceScheduleServiceTest {
         testUser = UserEntity.create("kakao", "123456", "test@example.com", "테스트");
         setId(testUser, userId);
 
-        testBike = BikeEntity.create(testUser, "Honda", "CB650R", 2024, BikeCategory.SPORT, 10000);
+        testBike = BikeEntity.create(testUser, "Honda", "CB650R", 2024, "Sport", 10000);
         setId(testBike, bikeId);
 
         testSchedule = MaintenanceScheduleEntity.create(

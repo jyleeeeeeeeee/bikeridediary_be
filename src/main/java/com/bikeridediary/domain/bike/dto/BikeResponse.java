@@ -1,6 +1,5 @@
 package com.bikeridediary.domain.bike.dto;
 
-import com.bikeridediary.domain.bike.entity.BikeCategory;
 import com.bikeridediary.domain.bike.entity.BikeEntity;
 
 import java.time.LocalDate;
@@ -13,7 +12,7 @@ public record BikeResponse(
         String manufacturerName,
         String modelName,
         Integer year,
-        BikeCategory category,
+        String category,
         Integer totalMileageKm,
         boolean isRepresentative,
         LocalDate purchasedAt,

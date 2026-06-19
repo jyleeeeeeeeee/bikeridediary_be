@@ -1,6 +1,6 @@
 package com.bikeridediary.domain.fueling;
 
-import com.bikeridediary.domain.bike.entity.BikeCategory;
+
 import com.bikeridediary.domain.bike.entity.BikeEntity;
 import com.bikeridediary.domain.bike.repository.BikeRepository;
 import com.bikeridediary.domain.fueling.dto.FuelingCreateRequest;
@@ -63,7 +63,7 @@ class FuelingServiceTest {
         testUser = UserEntity.create("kakao", "123456", "test@example.com", "테스트");
         setId(testUser, userId);
 
-        testBike = BikeEntity.create(testUser, "Honda", "CB650R", 2024, BikeCategory.SPORT, 10000);
+        testBike = BikeEntity.create(testUser, "Honda", "CB650R", 2024, "Sport", 10000);
         setId(testBike, bikeId);
 
         testFueling = FuelingEntity.create(

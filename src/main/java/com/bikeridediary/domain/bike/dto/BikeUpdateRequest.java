@@ -1,6 +1,5 @@
 package com.bikeridediary.domain.bike.dto;
 
-import com.bikeridediary.domain.bike.entity.BikeCategory;
 import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
@@ -20,8 +19,9 @@ public record BikeUpdateRequest(
         @Max(value = 2100, message = "연식은 2100 이하여야 합니다")
         Integer year,
 
-        @NotNull(message = "카테고리는 필수입니다")
-        BikeCategory category,
+        @NotBlank(message = "카테고리는 필수입니다")
+        @Size(max = 50, message = "카테고리는 50자 이하여야 합니다")
+        String category,
 
         @NotNull(message = "총 주행거리는 필수입니다")
         @Min(value = 0, message = "총 주행거리는 0 이상이어야 합니다")

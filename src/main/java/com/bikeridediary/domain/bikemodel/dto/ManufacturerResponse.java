@@ -3,22 +3,22 @@ package com.bikeridediary.domain.bikemodel.dto;
 import com.bikeridediary.domain.bikemodel.entity.ManufacturerEntity;
 
 public record ManufacturerResponse(
-        Long id,
-        String apiName,
+        String manufacturerName,
         String displayNameKo,
         String country,
         int displayOrder,
-        String logoUrl
+        String imageUrl
 ) {
     public static ManufacturerResponse from(ManufacturerEntity entity) {
-        String logoFilename = entity.getApiName().toLowerCase().replace(" ", "_") + ".png";
+        String imageUrl = entity.getImageFile() != null
+                ? "/logos/" + entity.getImageFile()
+                : null;
         return new ManufacturerResponse(
-                entity.getId(),
-                entity.getApiName(),
+                entity.getManufacturerName(),
                 entity.getDisplayNameKo(),
                 entity.getCountry(),
                 entity.getDisplayOrder(),
-                "/logos/" + logoFilename
+                imageUrl
         );
     }
 }

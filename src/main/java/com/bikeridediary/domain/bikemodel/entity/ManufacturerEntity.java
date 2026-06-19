@@ -4,28 +4,17 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import java.time.LocalDateTime;
-
-// 모터사이클 제조사 마스터 데이터 — API-Ninjas 연동 기반
+// 모터사이클 제조사 마스터 데이터
 @Entity
 @Table(name = "manufacturers")
-@EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ManufacturerEntity {
 
-    // 제조사 ID
+    // 제조사명 (PK, API-Ninjas make 파라미터와 동일)
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    // API 호출용 제조사명 (예: "Honda", "kymco")
-    @Column(name = "api_name", nullable = false, unique = true, length = 100)
-    private String apiName;
+    @Column(name = "manufacturer_name", length = 100)
+    private String manufacturerName;
 
     // 한글 표시명 (예: "혼다", "킴코")
     @Column(name = "display_name_ko", nullable = false, length = 100)
@@ -43,29 +32,25 @@ public class ManufacturerEntity {
     @Column(name = "display_order", nullable = false)
     private int displayOrder = 999;
 
-    // 등록 일시
-    @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    // 로고 이미지 파일명 (static/logos/ 내 파일)
+    @Column(name = "image_file", length = 200)
+    private String imageFile;
 
-    // 수정 일시
-    @LastModifiedDate
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
-    public static ManufacturerEntity create(String apiName, String displayNameKo, String country, int displayOrder) {
+    public static ManufacturerEntity create(String manufacturerName, String displayNameKo, String country, int displayOrder, String imageFile) {
         ManufacturerEntity entity = new ManufacturerEntity();
-        entity.apiName = apiName;
+        entity.manufacturerName = manufacturerName;
         entity.displayNameKo = displayNameKo;
         entity.country = country;
         entity.displayOrder = displayOrder;
+        entity.imageFile = imageFile;
         return entity;
     }
 
-    public void update(String displayNameKo, String country, int displayOrder, boolean isActive) {
+    public void update(String displayNameKo, String country, int displayOrder, boolean isActive, String imageFile) {
         this.displayNameKo = displayNameKo;
         this.country = country;
         this.displayOrder = displayOrder;
         this.isActive = isActive;
+        this.imageFile = imageFile;
     }
 }

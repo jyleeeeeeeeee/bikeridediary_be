@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 // OAuth2 소셜 로그인 및 토큰 관리 서비스
 @Slf4j
@@ -39,6 +40,25 @@ public class AuthService {
     private final NaverProvider naverProvider;
 
     private final PasswordEncoder passwordEncoder;
+
+    @Transactional
+    public AuthResponse guestSignup() {
+        String guestId = UUID.randomUUID().toString().substring(0, 8);
+        String email = "guest_" + guestId + "@guest.bikeridediary.com";
+        String nickname = "라이더_" + guestId;
+
+        UserEntity guest = UserEntity.create("guest", UUID.randomUUID().toString(), email, nickname);
+        UserEntity saved = userRepository.save(guest);
+
+        String accessToken = jwtTokenProvider.generateAccessToken(saved.getId());
+        String refreshToken = jwtTokenProvider.generateGuestRefreshToken(saved.getId());
+
+        refreshTokenRepository.save(saved.getId(), refreshToken, 365, TimeUnit.DAYS);
+
+        log.info("Guest user created - userId: {}, nickname: {}", saved.getId(), nickname);
+
+        return new AuthResponse(accessToken, refreshToken, UserResponse.from(saved));
+    }
 
     @Transactional
     public AuthResponse signup(SignupRequest request) {

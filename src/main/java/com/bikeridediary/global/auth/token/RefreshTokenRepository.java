@@ -20,13 +20,12 @@ public class RefreshTokenRepository {
 
     // Refresh Token을 Redis에 저장
     public void save(UUID userId, String refreshToken) {
+        save(userId, refreshToken, REFRESH_TOKEN_EXPIRY_DAYS, TimeUnit.DAYS);
+    }
+
+    public void save(UUID userId, String refreshToken, long duration, TimeUnit unit) {
         String key = PREFIX + userId;
-        redisTemplate.opsForValue().set(
-                key,
-                refreshToken,
-                REFRESH_TOKEN_EXPIRY_DAYS,
-                TimeUnit.DAYS
-        );
+        redisTemplate.opsForValue().set(key, refreshToken, duration, unit);
     }
 
     // userId로 저장된 Refresh Token 조회

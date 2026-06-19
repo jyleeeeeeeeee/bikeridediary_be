@@ -23,6 +23,13 @@ public class AuthController {
 
     private final AuthService authService;
 
+    @Operation(summary = "게스트 가입", description = "랜덤 데이터로 게스트 계정을 생성합니다. 리프레시 토큰 1년.")
+    @PostMapping("/guest")
+    public ResponseEntity<ApiResponse<AuthResponse>> guestSignup() {
+        AuthResponse response = authService.guestSignup();
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(response));
+    }
+
     @Operation(summary = "이메일 회원가입", description = "이메일, 비밀번호, 닉네임으로 신규 계정을 생성합니다.")
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse<AuthResponse>> signup(@Valid @RequestBody SignupRequest request) {
