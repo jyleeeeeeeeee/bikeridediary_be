@@ -17,7 +17,7 @@ public interface FuelingRepository extends JpaRepository<FuelingEntity, UUID> {
 
     // 특정 바이크의 특정 주행거리 이전의 가장 최근 만탱크 기록 조회 (연비 계산용)
     Optional<FuelingEntity> findTopByBikeEntityIdAndIsFullTankTrueAndMileageAtFuelingLessThanAndDeletedAtIsNullOrderByMileageAtFuelingDesc(
-            UUID bikeId, Integer mileageAtFueling);
+            UUID bikeId, Long mileageAtFueling);
 
     // 특정 바이크의 두 주행거리 사이 주유 기록들의 총 주유량 합산 (연비 계산용)
     @org.springframework.data.jpa.repository.Query(

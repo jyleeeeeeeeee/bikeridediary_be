@@ -13,7 +13,7 @@ public record BikeResponse(
         String modelName,
         Integer year,
         String category,
-        Integer totalMileageKm,
+        Long totalMileageKm,
         boolean isRepresentative,
         LocalDate purchasedAt,
         String photoUrl,

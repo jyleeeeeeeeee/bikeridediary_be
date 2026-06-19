@@ -16,11 +16,11 @@ public record MaintenanceScheduleResponse(
         // 정비 종류
         MaintenanceType maintenanceType,
         // km 기준 정비 주기
-        Integer intervalKm,
+        Long intervalKm,
         // 개월 기준 정비 주기
         Integer intervalMonths,
         // 마지막 정비 시 주행거리 (km)
-        Integer lastMaintenanceMileage,
+        Long lastMaintenanceMileage,
         // 마지막 정비 날짜
         LocalDate lastMaintenanceDate,
         // 정비 필요 여부
@@ -33,8 +33,8 @@ public record MaintenanceScheduleResponse(
 
     public static MaintenanceScheduleResponse from(
             MaintenanceScheduleEntity entity,
-            Integer currentMileage,
-            Integer lastMaintenanceMileage,
+            Long currentMileage,
+            Long lastMaintenanceMileage,
             LocalDate lastMaintenanceDate
     ) {
         boolean isOverdue = entity.isOverdue(

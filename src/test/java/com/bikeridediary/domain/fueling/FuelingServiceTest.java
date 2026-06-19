@@ -63,12 +63,12 @@ class FuelingServiceTest {
         testUser = UserEntity.create("kakao", "123456", "test@example.com", "테스트");
         setId(testUser, userId);
 
-        testBike = BikeEntity.create(testUser, "Honda", "CB650R", 2024, "Sport", 10000);
+        testBike = BikeEntity.create(testUser, "Honda", "CB650R", 2024, "Sport", 10000L);
         setId(testBike, bikeId);
 
         testFueling = FuelingEntity.create(
-                testBike, LocalDate.of(2026, 6, 15), 10000,
-                new BigDecimal("12.50"), 1800, 22500,
+                testBike, LocalDate.of(2026, 6, 15), 10000L,
+                new BigDecimal("12.50"), 1800L, 22500L,
                 FuelType.PREMIUM, true, "테스트 주유", "GS칼텍스"
         );
         setId(testFueling, fuelingId);
@@ -165,21 +165,21 @@ class FuelingServiceTest {
     @DisplayName("createFueling - 성공 (만탱크, 연비 계산)")
     void createFueling_FullTank_Success() {
         FuelingCreateRequest request = new FuelingCreateRequest(
-                bikeId, LocalDate.of(2026, 6, 15), 10500,
-                new BigDecimal("12.00"), 1800, 21600,
+                bikeId, LocalDate.of(2026, 6, 15), 10500L,
+                new BigDecimal("12.00"), 1800L, 21600L,
                 FuelType.PREMIUM, true, null, null
         );
 
         FuelingEntity prevFullTank = FuelingEntity.create(
-                testBike, LocalDate.of(2026, 5, 1), 10000,
-                new BigDecimal("10.00"), 1800, 18000,
+                testBike, LocalDate.of(2026, 5, 1), 10000L,
+                new BigDecimal("10.00"), 1800L, 18000L,
                 FuelType.PREMIUM, true, null, null
         );
 
         when(bikeRepository.findByIdAndDeletedAtIsNull(bikeId))
                 .thenReturn(Optional.of(testBike));
         when(fuelingRepository.findTopByBikeEntityIdAndIsFullTankTrueAndMileageAtFuelingLessThanAndDeletedAtIsNullOrderByMileageAtFuelingDesc(
-                bikeId, 10500))
+                bikeId, 10500L))
                 .thenReturn(Optional.of(prevFullTank));
         when(fuelingRepository.sumFuelAmountBetweenMileage(bikeId, 10000, 10500))
                 .thenReturn(new BigDecimal("12.00"));
@@ -196,8 +196,8 @@ class FuelingServiceTest {
     @DisplayName("createFueling - 성공 (만탱크 아님, 연비 미계산)")
     void createFueling_NotFullTank_Success() {
         FuelingCreateRequest request = new FuelingCreateRequest(
-                bikeId, LocalDate.of(2026, 6, 15), 10500,
-                new BigDecimal("5.00"), 1800, 9000,
+                bikeId, LocalDate.of(2026, 6, 15), 10500L,
+                new BigDecimal("5.00"), 1800L, 9000L,
                 FuelType.REGULAR, false, "부분 주유", null
         );
 
@@ -217,8 +217,8 @@ class FuelingServiceTest {
     @DisplayName("createFueling - 바이크 없음")
     void createFueling_BikeNotFound() {
         FuelingCreateRequest request = new FuelingCreateRequest(
-                bikeId, LocalDate.of(2026, 6, 15), 10500,
-                new BigDecimal("12.00"), 1800, 21600,
+                bikeId, LocalDate.of(2026, 6, 15), 10500L,
+                new BigDecimal("12.00"), 1800L, 21600L,
                 FuelType.PREMIUM, true, null, null
         );
 
@@ -235,8 +235,8 @@ class FuelingServiceTest {
     @DisplayName("createFueling - 다른 사용자의 바이크")
     void createFueling_AccessDenied() {
         FuelingCreateRequest request = new FuelingCreateRequest(
-                bikeId, LocalDate.of(2026, 6, 15), 10500,
-                new BigDecimal("12.00"), 1800, 21600,
+                bikeId, LocalDate.of(2026, 6, 15), 10500L,
+                new BigDecimal("12.00"), 1800L, 21600L,
                 FuelType.PREMIUM, true, null, null
         );
 
@@ -255,8 +255,8 @@ class FuelingServiceTest {
     @DisplayName("updateFueling - 성공")
     void updateFueling_Success() {
         FuelingUpdateRequest request = new FuelingUpdateRequest(
-                LocalDate.of(2026, 6, 20), 10600,
-                new BigDecimal("15.00"), 1750, 26250,
+                LocalDate.of(2026, 6, 20), 10600L,
+                new BigDecimal("15.00"), 1750L, 26250L,
                 FuelType.REGULAR, false, "수정", "SK에너지"
         );
 
@@ -273,8 +273,8 @@ class FuelingServiceTest {
     @DisplayName("updateFueling - 주유 기록 없음")
     void updateFueling_NotFound() {
         FuelingUpdateRequest request = new FuelingUpdateRequest(
-                LocalDate.of(2026, 6, 20), 10600,
-                new BigDecimal("15.00"), 1750, 26250,
+                LocalDate.of(2026, 6, 20), 10600L,
+                new BigDecimal("15.00"), 1750L, 26250L,
                 FuelType.REGULAR, false, null, null
         );
 
@@ -290,8 +290,8 @@ class FuelingServiceTest {
     @DisplayName("updateFueling - 다른 사용자의 주유 기록")
     void updateFueling_AccessDenied() {
         FuelingUpdateRequest request = new FuelingUpdateRequest(
-                LocalDate.of(2026, 6, 20), 10600,
-                new BigDecimal("15.00"), 1750, 26250,
+                LocalDate.of(2026, 6, 20), 10600L,
+                new BigDecimal("15.00"), 1750L, 26250L,
                 FuelType.REGULAR, false, null, null
         );
 

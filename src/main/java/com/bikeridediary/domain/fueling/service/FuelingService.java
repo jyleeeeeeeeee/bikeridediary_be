@@ -143,12 +143,12 @@ public class FuelingService {
 
         BigDecimal latestEfficiency = efficiencies.isEmpty() ? null : efficiencies.get(0);
 
-        List<Integer> prices = fuelings.stream()
+        List<Long> prices = fuelings.stream()
                 .filter(f -> f.getPricePerLiter() != null)
                 .map(FuelingEntity::getPricePerLiter)
                 .toList();
-        Integer avgPrice = prices.isEmpty() ? null :
-                (int) prices.stream().mapToInt(Integer::intValue).average().orElse(0);
+        Double avgPrice = prices.isEmpty() ? null :
+                prices.stream().mapToLong(Long::longValue).average().orElse(0);
 
         return new FuelingStatsResponse(
                 fuelings.size(), totalFuel, totalCost,
@@ -159,7 +159,7 @@ public class FuelingService {
     // ============ 만탱크법 연비 계산 ============
 
     // 이전 만탱크 시점부터 현재 만탱크까지의 주행거리 / 누적 주유량
-    private BigDecimal calculateFuelEfficiency(UUID bikeId, Integer currentMileage) {
+    private BigDecimal calculateFuelEfficiency(UUID bikeId, Long currentMileage) {
         var prevFullTank = fuelingRepository
                 .findTopByBikeEntityIdAndIsFullTankTrueAndMileageAtFuelingLessThanAndDeletedAtIsNullOrderByMileageAtFuelingDesc(
                         bikeId, currentMileage);

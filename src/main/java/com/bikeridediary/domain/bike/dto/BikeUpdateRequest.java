@@ -25,7 +25,7 @@ public record BikeUpdateRequest(
 
         @NotNull(message = "총 주행거리는 필수입니다")
         @Min(value = 0, message = "총 주행거리는 0 이상이어야 합니다")
-        Integer totalMileageKm,
+        Long totalMileageKm,
 
         LocalDate purchasedAt,
 

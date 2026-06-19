@@ -1,6 +1,6 @@
 package com.bikeridediary.domain.maintenance.dto;
 
 public interface ScheduleIntervalCheckable {
-    Integer intervalKm();
+    Long intervalKm();
     Integer intervalMonths();
 }

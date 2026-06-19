@@ -16,7 +16,7 @@ public record MaintenanceScheduleCreateRequest(
         MaintenanceType maintenanceType,
 
         @Min(value = 1, message = "km 기준 정비 주기는 1 이상이어야 합니다")
-        Integer intervalKm,
+        Long intervalKm,
 
         @Min(value = 1, message = "개월 기준 정비 주기는 1 이상이어야 합니다")
         Integer intervalMonths

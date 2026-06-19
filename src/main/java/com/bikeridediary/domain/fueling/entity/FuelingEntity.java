@@ -38,7 +38,7 @@ public class FuelingEntity extends BaseEntity {
 
     // 주유 시 주행거리 (km)
     @Column(name = "mileage_at_fueling", nullable = false)
-    private Integer mileageAtFueling;
+    private Long mileageAtFueling;
 
     // 주유량 (리터, 소수점 2자리)
     @Column(name = "fuel_amount", nullable = false, precision = 8, scale = 2)
@@ -46,11 +46,11 @@ public class FuelingEntity extends BaseEntity {
 
     // 리터당 가격 (원)
     @Column(name = "price_per_liter")
-    private Integer pricePerLiter;
+    private Long pricePerLiter;
 
     // 총 주유 비용 (원)
     @Column(name = "total_cost")
-    private Integer totalCost;
+    private Long totalCost;
 
     // 연료 종류 (일반유/고급유/경유)
     @Enumerated(EnumType.STRING)
@@ -77,10 +77,10 @@ public class FuelingEntity extends BaseEntity {
     public static FuelingEntity create(
             BikeEntity bikeEntity,
             LocalDate fuelingDate,
-            Integer mileageAtFueling,
+            Long mileageAtFueling,
             BigDecimal fuelAmount,
-            Integer pricePerLiter,
-            Integer totalCost,
+            Long pricePerLiter,
+            Long totalCost,
             FuelType fuelType,
             boolean isFullTank,
             String memo,
@@ -103,10 +103,10 @@ public class FuelingEntity extends BaseEntity {
     // 주유 기록 수정
     public void update(
             LocalDate fuelingDate,
-            Integer mileageAtFueling,
+            Long mileageAtFueling,
             BigDecimal fuelAmount,
-            Integer pricePerLiter,
-            Integer totalCost,
+            Long pricePerLiter,
+            Long totalCost,
             FuelType fuelType,
             boolean isFullTank,
             String memo,

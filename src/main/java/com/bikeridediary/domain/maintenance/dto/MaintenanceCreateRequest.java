@@ -20,16 +20,16 @@ public record MaintenanceCreateRequest(
 
         @NotNull(message = "정비 당시 주행거리는 필수입니다")
         @Min(value = 0, message = "주행거리는 0 이상이어야 합니다")
-        Integer mileageAtMaintenance,
+        Long mileageAtMaintenance,
 
         @Min(value = 0, message = "비용은 0 이상이어야 합니다")
-        Integer cost,
+        Long cost,
 
         @Size(max = 500, message = "메모는 500자 이하여야 합니다")
         String description,
 
         @Min(value = 0, message = "다음 정비 예정 주행거리는 0 이상이어야 합니다")
-        Integer nextDueKm,
+        Long nextDueKm,
 
         LocalDate nextDueDate
 ) {

@@ -14,17 +14,17 @@ public record FuelingUpdateRequest(
 
         @NotNull(message = "주유 시 주행거리는 필수입니다")
         @Min(value = 0, message = "주행거리는 0 이상이어야 합니다")
-        Integer mileageAtFueling,
+        Long mileageAtFueling,
 
         @NotNull(message = "주유량은 필수입니다")
         @DecimalMin(value = "0.01", message = "주유량은 0.01 이상이어야 합니다")
         BigDecimal fuelAmount,
 
         @Min(value = 0, message = "리터당 가격은 0 이상이어야 합니다")
-        Integer pricePerLiter,
+        Long pricePerLiter,
 
         @Min(value = 0, message = "총 비용은 0 이상이어야 합니다")
-        Integer totalCost,
+        Long totalCost,
 
         @NotNull(message = "연료 종류는 필수입니다")
         FuelType fuelType,

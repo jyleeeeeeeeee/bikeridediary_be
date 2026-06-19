@@ -42,11 +42,11 @@ public class MaintenanceEntity extends BaseEntity {
 
     // 정비 당시 주행거리 (km)
     @Column(name = "mileage_at_maintenance", nullable = false)
-    private Integer mileageAtMaintenance;
+    private Long mileageAtMaintenance;
 
     // 정비 비용 (원, nullable)
     @Column(name = "cost")
-    private Integer cost;
+    private Long cost;
 
     // 정비 메모 (500자 제한)
     @Column(name = "description", length = 500)
@@ -54,7 +54,7 @@ public class MaintenanceEntity extends BaseEntity {
 
     // 다음 정비 예정 주행거리 (km, nullable)
     @Column(name = "next_due_km")
-    private Integer nextDueKm;
+    private Long nextDueKm;
 
     // 다음 정비 예정 날짜 (nullable)
     @Column(name = "next_due_date")
@@ -65,10 +65,10 @@ public class MaintenanceEntity extends BaseEntity {
             BikeEntity bikeEntity,
             MaintenanceType maintenanceType,
             LocalDate maintenanceDate,
-            Integer mileageAtMaintenance,
-            Integer cost,
+            Long mileageAtMaintenance,
+            Long cost,
             String description,
-            Integer nextDueKm,
+            Long nextDueKm,
             LocalDate nextDueDate
     ) {
         MaintenanceEntity maintenanceEntity = new MaintenanceEntity();
@@ -87,10 +87,10 @@ public class MaintenanceEntity extends BaseEntity {
     public void update(
             MaintenanceType maintenanceType,
             LocalDate maintenanceDate,
-            Integer mileageAtMaintenance,
-            Integer cost,
+            Long mileageAtMaintenance,
+            Long cost,
             String description,
-            Integer nextDueKm,
+            Long nextDueKm,
             LocalDate nextDueDate
     ) {
         this.maintenanceType = maintenanceType;
@@ -103,7 +103,7 @@ public class MaintenanceEntity extends BaseEntity {
     }
 
     // 다음 정비 예정 정보 설정 (km, 날짜)
-    public void setNextMaintenanceDue(Integer nextDueKm, LocalDate nextDueDate) {
+    public void setNextMaintenanceDue(Long nextDueKm, LocalDate nextDueDate) {
         this.nextDueKm = nextDueKm;
         this.nextDueDate = nextDueDate;
     }

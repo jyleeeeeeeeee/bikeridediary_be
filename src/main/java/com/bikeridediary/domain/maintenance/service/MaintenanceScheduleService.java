@@ -35,7 +35,7 @@ public class MaintenanceScheduleService {
         BikeEntity bikeEntity = findBikeOrThrow(bikeId);
         verifyBikeOwnership(bikeEntity, userId);
 
-        Integer currentMileage = bikeEntity.getTotalMileageKm();
+        Long currentMileage = bikeEntity.getTotalMileageKm();
         return scheduleRepository.findByBikeEntityIdAndDeletedAtIsNull(bikeId)
                 .stream()
                 .map(schedule -> buildResponse(schedule, bikeId, currentMileage))
@@ -48,7 +48,7 @@ public class MaintenanceScheduleService {
         verifyScheduleOwnership(entity, userId);
 
         UUID bikeId = entity.getBikeEntity().getId();
-        Integer currentMileage = entity.getBikeEntity().getTotalMileageKm();
+        Long currentMileage = entity.getBikeEntity().getTotalMileageKm();
         return buildResponse(entity, bikeId, currentMileage);
     }
 
@@ -83,7 +83,7 @@ public class MaintenanceScheduleService {
         entity.update(request.intervalKm(), request.intervalMonths());
 
         UUID bikeId = entity.getBikeEntity().getId();
-        Integer currentMileage = entity.getBikeEntity().getTotalMileageKm();
+        Long currentMileage = entity.getBikeEntity().getTotalMileageKm();
         return buildResponse(entity, bikeId, currentMileage);
     }
 
@@ -99,12 +99,12 @@ public class MaintenanceScheduleService {
     // ============ 헬퍼 메서드 ============
 
     private MaintenanceScheduleResponse buildResponse(
-            MaintenanceScheduleEntity schedule, UUID bikeId, Integer currentMileage) {
+            MaintenanceScheduleEntity schedule, UUID bikeId, Long currentMileage) {
         MaintenanceType type = schedule.getMaintenanceType();
         var latestRecord = maintenanceRepository
                 .findTopByBikeEntityIdAndMaintenanceTypeAndDeletedAtIsNullOrderByMaintenanceDateDesc(bikeId, type);
 
-        Integer lastMileage = latestRecord.map(MaintenanceEntity::getMileageAtMaintenance).orElse(null);
+        Long lastMileage = latestRecord.map(MaintenanceEntity::getMileageAtMaintenance).orElse(null);
         LocalDate lastDate = latestRecord.map(MaintenanceEntity::getMaintenanceDate).orElse(null);
 
         return MaintenanceScheduleResponse.from(schedule, currentMileage, lastMileage, lastDate);
