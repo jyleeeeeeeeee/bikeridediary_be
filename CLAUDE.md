@@ -278,10 +278,26 @@ com.bikeridediary
     - 로그인/회원가입: 그래디언트 + 흰색 카드 오버레이 디자인
     - 설정 화면: 프로필 카드 + 앱 정보 + 로그아웃
 
+23. bikemodel 도메인 재구조화 + BikeCategory 마이그레이션 (2026-06-19)
+    - manufacturers 테이블 PK: BIGSERIAL id → manufacturer_name VARCHAR(100)
+    - bike_models FK: manufacturer_id → manufacturer_name
+    - 시드 데이터: 47개 제조사, 120개 바이크 모델 (data.sql)
+    - BikeCategory enum 삭제 → String 타입으로 전환 (bike_models.type 값 직접 사용)
+    - BikeModelNameResponse DTO 추가 (name + type 함께 반환)
+    - 백엔드 DTO/서비스/테스트 전체 수정, Flutter BikeTypeDisplay 유틸 클래스
+    - p6spy 추가: 파라미터 바인딩된 SQL 로깅 (spy.properties)
+    - CORS: 192.168.* 패턴 추가 (로컬 네트워크 접속용)
+24. Flutter 앱 GitHub 업로드 + UI 개선 (2026-06-19)
+    - brd_app 레포지토리 GitHub에 push 완료
+    - 개발 환경: Android Studio → VS Code 전환 (경량화)
+    - 실기기 연결: adb reverse tcp:8081 tcp:8081 (게스트 Wi-Fi AP 격리 우회)
+    - 바이크 등록 화면: 진행 표시기에 번호 원(①②③) + 라벨(제조사/모델/상세) 추가
+    - 바이크 등록 시 모델 선택 → 카테고리 자동 채움 (bike_models.type 연동)
+
 ### 다음 단계
 
-- Flutter 앱 백엔드 연동 테스트 (로그인 → 바이크 → 정비 → 주유 흐름)
-- 소셜 로그인 (카카오/네이버) — 네이티브 SDK 연동 (AVD 해결 후)
+- Flutter 앱 실기기 테스트 (adb reverse로 연결, 로그인 → 바이크 → 정비 → 주유 흐름)
+- 소셜 로그인 (카카오/구글) — 네이티브 SDK 연동
 - 라이딩 코스(Course) 도메인 (GPX 기록/업로드)
 
 ---
