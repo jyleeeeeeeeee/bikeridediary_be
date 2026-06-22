@@ -6,7 +6,6 @@ import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-// 주유 기록 수정 요청 DTO
 public record FuelingUpdateRequest(
 
         @NotNull(message = "주유 날짜는 필수입니다")
@@ -28,9 +27,6 @@ public record FuelingUpdateRequest(
 
         @NotNull(message = "연료 종류는 필수입니다")
         FuelType fuelType,
-
-        @NotNull(message = "만탱크 여부는 필수입니다")
-        Boolean isFullTank,
 
         @Size(max = 500, message = "메모는 500자 이하여야 합니다")
         String memo,

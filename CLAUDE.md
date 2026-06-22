@@ -262,16 +262,16 @@ com.bikeridediary
 
 21. 연비/주유(Fueling) 도메인 구현 (2026-06-16)
     - FuelingEntity: BigDecimal(8,2) 정밀 주유량, FuelType enum (REGULAR/PREMIUM/DIESEL)
-    - 만탱크법(Full-tank method) 연비 계산: 이전 만탱크 기록 ~ 현재 기록 사이 거리/누적주유량
+    - 연비 계산: 이전 주유 기록 주행거리와 현재 주행거리 차이 / 현재 주유량
     - CRUD + 통계 엔드포인트 (6개): GET/POST/PUT/DELETE /fuelings, GET /fuelings/stats
-    - FuelingRepository: 이전 만탱크 조회, 구간 주유량 합계 @Query
+    - FuelingRepository: 이전 주유 기록 조회, 구간 주유량 합계 @Query
     - 단위 테스트 16개 (CRUD, 접근 권한, 연비 계산, 통계)
     - ErrorCode에 FUELING_ACCESS_DENIED 추가
     - schema.sql에 fuelings 테이블 + 인덱스 2개 추가
 22. Flutter 앱 주유 기능 + 전체 UI 현대화 (2026-06-16)
     - 주유 데이터 레이어: model/repository/provider (FamilyAsyncNotifier)
     - 주유 목록: SliverAppBar 통계 헤더 + 바이크 선택 드롭다운 + 카드 리스트
-    - 주유 폼: 주유량/단가 자동 계산, 연료 종류, 만탱크 스위치
+    - 주유 폼: 주유량/단가 자동 계산, 연료 종류
     - 디자인 시스템: deep blue #1B2838 + orange accent #FF6B35
     - 전체 화면 그래디언트 헤더 + 카드 기반 레이아웃으로 통일
     - StatefulShellRoute 4탭 하단 네비게이션 (홈/바이크/주유/설정)

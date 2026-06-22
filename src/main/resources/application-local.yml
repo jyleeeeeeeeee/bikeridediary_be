@@ -30,7 +30,7 @@ spring:
             authorization-grant-type: authorization_code
             scope: profile_nickname, account_email
           google:
-            client-id: dummy
+            client-id: 820091575585-kcgbb0dhpp090o1tbhnv4pgf2it6utj1.apps.googleusercontent.com
             client-secret: dummy
             redirect-uri: "{baseUrl}/api/v1/auth/oauth2/callback/{registrationId}"
             scope: profile, email

@@ -54,7 +54,8 @@ public class BikeService {
                 request.modelName(),
                 request.year(),
                 request.category(),
-                request.totalMileageKm()
+                request.totalMileageKm(),
+                request.isExistModel()
         );
 
         // 첫 번째 바이크면 대표로 설정
@@ -83,7 +84,8 @@ public class BikeService {
                 request.category(),
                 request.totalMileageKm(),
                 request.purchasedAt(),
-                request.memo()
+                request.memo(),
+                request.isExistModel()
         );
 
         return BikeResponse.from(bikeRepository.save(bikeEntity));

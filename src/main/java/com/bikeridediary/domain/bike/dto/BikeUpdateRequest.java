@@ -30,6 +30,8 @@ public record BikeUpdateRequest(
         LocalDate purchasedAt,
 
         @Size(max = 500, message = "메모는 500자 이하여야 합니다")
-        String memo
+        String memo,
+
+        boolean isExistModel
 ) {
 }

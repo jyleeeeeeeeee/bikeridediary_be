@@ -7,7 +7,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
-// 주유 기록 생성 요청 DTO
 public record FuelingCreateRequest(
 
         @NotNull(message = "바이크 ID는 필수입니다")
@@ -32,9 +31,6 @@ public record FuelingCreateRequest(
 
         @NotNull(message = "연료 종류는 필수입니다")
         FuelType fuelType,
-
-        @NotNull(message = "만탱크 여부는 필수입니다")
-        Boolean isFullTank,
 
         @Size(max = 500, message = "메모는 500자 이하여야 합니다")
         String memo,

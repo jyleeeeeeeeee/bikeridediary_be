@@ -2,14 +2,11 @@ package com.bikeridediary.domain.auth.dto;
 
 import jakarta.validation.constraints.NotBlank;
 
-// 소셜 로그인 요청 DTO
-// OAuth2 제공자의 Authorization Code를 전달받음
 public record AuthLoginRequest(
-        // OAuth2 Authorization Code (Kakao만 사용, Google/Apple은 identity_token 사용)
-        @NotBlank(message = "code는 필수입니다")
-        String code,
+        @NotBlank(message = "credential은 필수입니다")
+        String credential,
 
-        // Google/Apple identity token (code 대신 사용)
-        String identityToken
+        // Apple 최초 로그인 시 사용자 이름 (이후 로그인에서는 null)
+        String name
 ) {
 }

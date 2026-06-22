@@ -16,7 +16,6 @@ import java.math.RoundingMode;
 import java.util.List;
 import java.util.UUID;
 
-// 주유 기록 비즈니스 로직 (만탱크법 기반 연비 계산 포함)
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -25,7 +24,6 @@ public class FuelingService {
     private final FuelingRepository fuelingRepository;
     private final BikeRepository bikeRepository;
 
-    // 특정 바이크의 모든 주유 기록 조회
     public List<FuelingResponse> getFuelings(UUID bikeId, UUID userId) {
         BikeEntity bikeEntity = findBikeOrThrow(bikeId);
         verifyBikeOwnership(bikeEntity, userId);
@@ -37,14 +35,12 @@ public class FuelingService {
                 .toList();
     }
 
-    // 특정 주유 기록 조회
     public FuelingResponse getFueling(UUID fuelingId, UUID userId) {
         FuelingEntity entity = findFuelingOrThrow(fuelingId);
         verifyFuelingOwnership(entity, userId);
         return FuelingResponse.from(entity);
     }
 
-    // 주유 기록 생성 + 만탱크법 연비 계산
     @Transactional
     public FuelingResponse createFueling(FuelingCreateRequest request, UUID userId) {
         BikeEntity bikeEntity = findBikeOrThrow(request.bikeId());
@@ -58,22 +54,18 @@ public class FuelingService {
                 request.pricePerLiter(),
                 request.totalCost(),
                 request.fuelType(),
-                request.isFullTank(),
                 request.memo(),
                 request.stationName()
         );
 
-        if (request.isFullTank()) {
-            BigDecimal efficiency = calculateFuelEfficiency(
-                    request.bikeId(), request.mileageAtFueling());
-            entity.setFuelEfficiency(efficiency);
-        }
+        BigDecimal efficiency = calculateFuelEfficiency(
+                request.bikeId(), request.mileageAtFueling(), request.fuelAmount());
+        entity.setFuelEfficiency(efficiency);
 
         FuelingEntity saved = fuelingRepository.save(entity);
         return FuelingResponse.from(saved);
     }
 
-    // 주유 기록 수정 + 연비 재계산
     @Transactional
     public FuelingResponse updateFueling(UUID fuelingId, FuelingUpdateRequest request, UUID userId) {
         FuelingEntity entity = findFuelingOrThrow(fuelingId);
@@ -86,23 +78,17 @@ public class FuelingService {
                 request.pricePerLiter(),
                 request.totalCost(),
                 request.fuelType(),
-                request.isFullTank(),
                 request.memo(),
                 request.stationName()
         );
 
-        if (request.isFullTank()) {
-            BigDecimal efficiency = calculateFuelEfficiency(
-                    entity.getBikeEntity().getId(), request.mileageAtFueling());
-            entity.setFuelEfficiency(efficiency);
-        } else {
-            entity.setFuelEfficiency(null);
-        }
+        BigDecimal efficiency = calculateFuelEfficiency(
+                entity.getBikeEntity().getId(), request.mileageAtFueling(), request.fuelAmount());
+        entity.setFuelEfficiency(efficiency);
 
         return FuelingResponse.from(entity);
     }
 
-    // 주유 기록 삭제 (소프트 삭제)
     @Transactional
     public void deleteFueling(UUID fuelingId, UUID userId) {
         FuelingEntity entity = findFuelingOrThrow(fuelingId);
@@ -110,7 +96,6 @@ public class FuelingService {
         entity.delete();
     }
 
-    // 특정 바이크의 주유 통계 조회
     public FuelingStatsResponse getStats(UUID bikeId, UUID userId) {
         BikeEntity bikeEntity = findBikeOrThrow(bikeId);
         verifyBikeOwnership(bikeEntity, userId);
@@ -141,7 +126,7 @@ public class FuelingService {
                         .reduce(BigDecimal.ZERO, BigDecimal::add)
                         .divide(BigDecimal.valueOf(efficiencies.size()), 2, RoundingMode.HALF_UP);
 
-        BigDecimal latestEfficiency = efficiencies.isEmpty() ? null : efficiencies.get(0);
+        BigDecimal latestEfficiency = efficiencies.isEmpty() ? null : efficiencies.getFirst();
 
         List<Long> prices = fuelings.stream()
                 .filter(f -> f.getPricePerLiter() != null)
@@ -156,36 +141,28 @@ public class FuelingService {
         );
     }
 
-    // ============ 만탱크법 연비 계산 ============
-
-    // 이전 만탱크 시점부터 현재 만탱크까지의 주행거리 / 누적 주유량
-    private BigDecimal calculateFuelEfficiency(UUID bikeId, Long currentMileage) {
-        var prevFullTank = fuelingRepository
-                .findTopByBikeEntityIdAndIsFullTankTrueAndMileageAtFuelingLessThanAndDeletedAtIsNullOrderByMileageAtFuelingDesc(
+    // 연비 계산: (현재 주행거리 - 이전 주유 시 주행거리) / 현재 주유량
+    private BigDecimal calculateFuelEfficiency(UUID bikeId, Long currentMileage, BigDecimal currentFuelAmount) {
+        var prev = fuelingRepository
+                .findTopByBikeEntityIdAndMileageAtFuelingLessThanAndDeletedAtIsNullOrderByMileageAtFuelingDesc(
                         bikeId, currentMileage);
 
-        if (prevFullTank.isEmpty()) {
+        if (prev.isEmpty()) {
             return null;
         }
 
-        Integer prevMileage = prevFullTank.get().getMileageAtFueling();
-        int distanceKm = currentMileage - prevMileage;
+        long distanceKm = currentMileage - prev.get().getMileageAtFueling();
         if (distanceKm <= 0) {
             return null;
         }
 
-        BigDecimal totalFuel = fuelingRepository.sumFuelAmountBetweenMileage(
-                bikeId, prevMileage, currentMileage);
-
-        if (totalFuel.compareTo(BigDecimal.ZERO) <= 0) {
+        if (currentFuelAmount.compareTo(BigDecimal.ZERO) <= 0) {
             return null;
         }
 
         return BigDecimal.valueOf(distanceKm)
-                .divide(totalFuel, 2, RoundingMode.HALF_UP);
+                .divide(currentFuelAmount, 2, RoundingMode.HALF_UP);
     }
-
-    // ============ 헬퍼 메서드 ============
 
     private BikeEntity findBikeOrThrow(UUID bikeId) {
         return bikeRepository.findByIdAndDeletedAtIsNull(bikeId)

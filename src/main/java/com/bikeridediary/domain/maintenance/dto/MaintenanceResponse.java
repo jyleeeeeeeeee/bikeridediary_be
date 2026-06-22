@@ -18,13 +18,13 @@ public record MaintenanceResponse(
         // 정비 날짜
         LocalDate maintenanceDate,
         // 정비 당시 주행거리 (km)
-        Integer mileageAtMaintenance,
+        Long mileageAtMaintenance,
         // 비용 (원)
-        Integer cost,
+        Long cost,
         // 메모
         String description,
         // 다음 정비 예정 주행거리 (km)
-        Integer nextDueKm,
+        Long nextDueKm,
         // 다음 정비 예정 날짜
         LocalDate nextDueDate,
         // 등록 일시

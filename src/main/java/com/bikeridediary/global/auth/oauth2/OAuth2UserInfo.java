@@ -2,10 +2,12 @@ package com.bikeridediary.global.auth.oauth2;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 
 // OAuth2 제공자(카카오, 구글, Apple)의 사용자 정보를 통일된 형식으로 표현.
 // 각 제공자의 응답 형식을 이 포맷으로 변환.
 @Getter
+@Setter
 @AllArgsConstructor
 public class OAuth2UserInfo {
 

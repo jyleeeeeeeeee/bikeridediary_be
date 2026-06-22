@@ -61,12 +61,12 @@ class MaintenanceServiceTest {
         testUser = UserEntity.create("kakao", "123456", "test@example.com", "테스트");
         setId(testUser, userId);
 
-        testBike = BikeEntity.create(testUser, "Honda", "CB650R", 2024, "Sport", 10000);
+        testBike = BikeEntity.create(testUser, "Honda", "CB650R", 2024, "Sport", 10000L);
         setId(testBike, bikeId);
 
         testMaintenance = MaintenanceEntity.create(
                 testBike, MaintenanceType.ENGINE_OIL, LocalDate.of(2026, 6, 1),
-                5000, 50000, "엔진오일 교체", 10000, LocalDate.of(2026, 12, 1)
+                5000L, 50000L, "엔진오일 교체", 10000L, LocalDate.of(2026, 12, 1)
         );
         setId(testMaintenance, maintenanceId);
     }
@@ -164,7 +164,7 @@ class MaintenanceServiceTest {
     void createMaintenance_Success() {
         MaintenanceCreateRequest request = new MaintenanceCreateRequest(
                 bikeId, MaintenanceType.ENGINE_OIL, LocalDate.of(2026, 6, 1),
-                5000, 50000, "엔진오일 교체", 10000, LocalDate.of(2026, 12, 1)
+                5000L, 50000L, "엔진오일 교체", 10000L, LocalDate.of(2026, 12, 1)
         );
 
         when(bikeRepository.findByIdAndDeletedAtIsNull(bikeId))
@@ -184,7 +184,7 @@ class MaintenanceServiceTest {
     void createMaintenance_BikeNotFound() {
         MaintenanceCreateRequest request = new MaintenanceCreateRequest(
                 bikeId, MaintenanceType.ENGINE_OIL, LocalDate.of(2026, 6, 1),
-                5000, 50000, "엔진오일 교체", null, null
+                5000L, 50000L, "엔진오일 교체", null, null
         );
 
         when(bikeRepository.findByIdAndDeletedAtIsNull(bikeId))
@@ -202,7 +202,7 @@ class MaintenanceServiceTest {
     void createMaintenance_AccessDenied() {
         MaintenanceCreateRequest request = new MaintenanceCreateRequest(
                 bikeId, MaintenanceType.ENGINE_OIL, LocalDate.of(2026, 6, 1),
-                5000, 50000, "엔진오일 교체", null, null
+                5000L, 50000L, "엔진오일 교체", null, null
         );
 
         when(bikeRepository.findByIdAndDeletedAtIsNull(bikeId))
@@ -222,7 +222,7 @@ class MaintenanceServiceTest {
     void updateMaintenance_Success() {
         MaintenanceUpdateRequest request = new MaintenanceUpdateRequest(
                 MaintenanceType.FRONT_TIRE, LocalDate.of(2026, 7, 1),
-                6000, 200000, "앞 타이어 교체", 16000, LocalDate.of(2027, 7, 1)
+                6000L, 200000L, "앞 타이어 교체", 16000L, LocalDate.of(2027, 7, 1)
         );
 
         when(maintenanceRepository.findByIdAndDeletedAtIsNull(maintenanceId))
@@ -240,7 +240,7 @@ class MaintenanceServiceTest {
     void updateMaintenance_NotFound() {
         MaintenanceUpdateRequest request = new MaintenanceUpdateRequest(
                 MaintenanceType.FRONT_TIRE, LocalDate.of(2026, 7, 1),
-                6000, 200000, "앞 타이어 교체", null, null
+                6000L, 200000L, "앞 타이어 교체", null, null
         );
 
         when(maintenanceRepository.findByIdAndDeletedAtIsNull(maintenanceId))

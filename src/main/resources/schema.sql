@@ -92,7 +92,6 @@ CREATE TABLE IF NOT EXISTS fuelings (
     price_per_liter   BIGINT,
     total_cost        BIGINT,
     fuel_type         VARCHAR(10)    NOT NULL,
-    is_full_tank      BOOLEAN        NOT NULL DEFAULT FALSE,
     fuel_efficiency   NUMERIC(6,2),
     memo              VARCHAR(500),
     station_name      VARCHAR(100),
@@ -154,8 +153,8 @@ CREATE INDEX IF NOT EXISTS idx_maintenance_schedules_bike_id_type_deleted_at ON 
 
 -- fuelings: findByBikeEntityIdAndDeletedAtIsNullOrderByFuelingDateDesc
 CREATE INDEX IF NOT EXISTS idx_fuelings_bike_id_deleted_at ON fuelings (bike_id, deleted_at);
--- fuelings: 만탱크법 연비 계산용 (이전 만탱크 기록 조회)
-CREATE INDEX IF NOT EXISTS idx_fuelings_bike_id_full_tank_mileage ON fuelings (bike_id, is_full_tank, mileage_at_fueling, deleted_at);
+-- fuelings: 연비 계산용 (이전 주유 기록 조회)
+CREATE INDEX IF NOT EXISTS idx_fuelings_bike_id_mileage ON fuelings (bike_id, mileage_at_fueling, deleted_at);
 
 -- users: findByEmailAndDeletedAtIsNull, existsByEmailAndDeletedAtIsNull
 CREATE INDEX IF NOT EXISTS idx_users_email_deleted_at ON users (email, deleted_at);

@@ -15,6 +15,6 @@ public record FuelingStatsResponse(
         // 최근 연비 (km/L)
         BigDecimal latestFuelEfficiency,
         // 평균 리터당 가격 (원)
-        Long averagePricePerLiter
+        Double averagePricePerLiter
 ) {
 }

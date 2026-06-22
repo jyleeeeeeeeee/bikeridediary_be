@@ -1,31 +1,28 @@
 package com.bikeridediary.global.auth.oauth2;
 
-import lombok.RequiredArgsConstructor;
+import com.nimbusds.jwt.JWTClaimsSet;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 
-// Apple OAuth2 제공자 구현.
-// 현재: Identity Token (JWT)에서 서명 검증 없이 payload만 추출 (프로토타입)
-// TODO: nimbus-jose-jwt 라이브러리 추가 후 완전한 JWT 검증 구현
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class AppleProvider implements OAuth2Provider {
 
-    private final RestTemplate restTemplate;
+    private static final String JWKS_URL = "https://appleid.apple.com/auth/keys";
+    private static final String ISSUER = "https://appleid.apple.com";
+
+    @Value("${apple.client-id}")
+    private String clientId;
 
     @Override
     public OAuth2UserInfo getUserInfo(String identityToken) {
-        // TODO: 완전한 JWT 검증 구현 필요
-        // 현재는 payload 추출만 수행
-        log.warn("Apple JWT 검증이 완전히 구현되지 않음 - 서명 검증 없이 진행");
+        JWTClaimsSet claims = JwksTokenVerifier.verify(identityToken, JWKS_URL, ISSUER, clientId);
 
-        // 임시 구현: payload에서 사용자 정보 추출 (실제 서명 검증 필요)
-        throw new UnsupportedOperationException(
-                "Apple OAuth2 identity token 검증이 아직 완전히 구현되지 않았습니다. " +
-                "nimbus-jose-jwt 의존성을 추가하고 완전한 JWT 검증을 구현해야 합니다."
-        );
+        String sub = claims.getSubject();
+        String email = (String) claims.getClaim("email");
+
+        return OAuth2UserInfo.fromApple(sub, email);
     }
 
     @Override
@@ -33,4 +30,3 @@ public class AppleProvider implements OAuth2Provider {
         return "apple";
     }
 }
-

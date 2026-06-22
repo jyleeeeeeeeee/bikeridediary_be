@@ -69,6 +69,9 @@ public class BikeEntity extends BaseEntity {
     @Column(length = 500)
     private String memo;
 
+    @Column(name = "is_exist_model", nullable = false)
+    private boolean isExistModel = true;
+
     // 바이크의 정비 이력 목록 (양방향 One-To-Many)
     @OneToMany(mappedBy = "bikeEntity", cascade = CascadeType.PERSIST, orphanRemoval = false)
     @JsonManagedReference
@@ -81,7 +84,8 @@ public class BikeEntity extends BaseEntity {
             String modelName,
             Integer year,
             String category,
-            Long totalMileageKm
+            Long totalMileageKm,
+            boolean isExistModel
     ) {
         BikeEntity bikeEntity = new BikeEntity();
         bikeEntity.userEntity = userEntity;
@@ -90,6 +94,7 @@ public class BikeEntity extends BaseEntity {
         bikeEntity.year = year;
         bikeEntity.category = category;
         bikeEntity.totalMileageKm = totalMileageKm;
+        bikeEntity.isExistModel = isExistModel;
         return bikeEntity;
     }
 
@@ -101,7 +106,8 @@ public class BikeEntity extends BaseEntity {
             String category,
             Long totalMileageKm,
             LocalDate purchasedAt,
-            String memo
+            String memo,
+            boolean isExistModel
     ) {
         this.manufacturerName = manufacturerName;
         this.modelName = modelName;
@@ -110,6 +116,7 @@ public class BikeEntity extends BaseEntity {
         this.totalMileageKm = totalMileageKm;
         this.purchasedAt = purchasedAt;
         this.memo = memo;
+        this.isExistModel = isExistModel;
     }
 
     // 대표 바이크 여부 설정 (사용자의 기본 바이크로 지정)

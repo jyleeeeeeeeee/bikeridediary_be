@@ -36,6 +36,7 @@ dependencies {
 
     // OAuth2 (Kakao, Google, Apple)
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    implementation 'com.nimbusds:nimbus-jose-jwt:9.37.3'
 
     // JPA & Database
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'

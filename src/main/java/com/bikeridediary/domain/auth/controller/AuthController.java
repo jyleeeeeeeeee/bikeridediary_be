@@ -43,20 +43,13 @@ public class AuthController {
         AuthResponse response = authService.loginWithEmail(request);
         return ResponseEntity.ok(ApiResponse.ok(response));
     }
-    @Operation(summary = "소셜 로그인", description = "OAuth2 소셜 로그인. 카카오는 Authorization Code, 구글/애플은 Identity Token을 사용합니다.")
+    @Operation(summary = "소셜 로그인", description = "OAuth2 소셜 로그인. 카카오는 Access Token, 구글/애플은 Identity Token을 전달합니다.")
     @PostMapping("/login/{provider}")
     public ResponseEntity<ApiResponse<AuthResponse>> login(
             @PathVariable String provider,
             @Valid @RequestBody AuthLoginRequest request
     ) {
-
-        // Authorization Code 또는 Identity Token 판정 (카카오 → code, 구글/애플 → identityToken)
-        String credential = request.code() != null
-                ? request.code()
-                : request.identityToken();
-
-        AuthResponse response = authService.login(provider, credential);
-
+        AuthResponse response = authService.login(provider, request.credential(), request.name());
         return ResponseEntity.ok(ApiResponse.ok(response));
     }
 

@@ -1,37 +1,30 @@
 package com.bikeridediary.global.auth.oauth2;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
+import com.nimbusds.jwt.JWTClaimsSet;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 
-// 구글 OAuth2 제공자 구현.
-// 현재: Identity Token (JWT)에서 서명 검증 없이 payload만 추출 (프로토타입)
-// TODO: nimbus-jose-jwt 라이브러리 추가 후 완전한 JWT 검증 구현
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class GoogleProvider implements OAuth2Provider {
 
-    private final RestTemplate restTemplate;
-    private final ObjectMapper objectMapper;
+    private static final String JWKS_URL = "https://www.googleapis.com/oauth2/v3/certs";
+    private static final String ISSUER = "https://accounts.google.com";
 
     @Value("${spring.security.oauth2.client.registration.google.client-id}")
     private String clientId;
 
     @Override
     public OAuth2UserInfo getUserInfo(String identityToken) {
-        // TODO: 완전한 JWT 검증 구현 필요
-        // 현재는 payload 추출만 수행
-        log.warn("구글 JWT 검증이 완전히 구현되지 않음 - 서명 검증 없이 진행");
+        JWTClaimsSet claims = JwksTokenVerifier.verify(identityToken, JWKS_URL, ISSUER, clientId);
 
-        // 임시 구현: payload에서 사용자 정보 추출 (실제 서명 검증 필요)
-        throw new UnsupportedOperationException(
-                "구글 OAuth2 identity token 검증이 아직 완전히 구현되지 않았습니다. " +
-                "nimbus-jose-jwt 의존성을 추가하고 완전한 JWT 검증을 구현해야 합니다."
-        );
+        String sub = claims.getSubject();
+        String email = (String) claims.getClaim("email");
+        String name = (String) claims.getClaim("name");
+        String picture = (String) claims.getClaim("picture");
+
+        return OAuth2UserInfo.fromGoogle(sub, email, name, picture);
     }
 
     @Override

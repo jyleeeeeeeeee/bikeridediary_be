@@ -126,11 +126,16 @@ public class AuthService {
     //       4. Refresh Token을 Redis에 저장
     //       5. 사용자 정보와 함께 응답
     @Transactional
-    public AuthResponse login(String provider, String credential) {
+    public AuthResponse login(String provider, String credential, String name) {
         log.info("Social login attempt - provider: {}", provider);
 
         // Step 1: 제공자별로 사용자 정보 조회
         OAuth2UserInfo userInfo = getUserInfoByProvider(provider, credential);
+
+        // Apple 최초 로그인 시 클라이언트에서 전달한 이름 설정
+        if (name != null && !name.isBlank() && userInfo.getName() == null) {
+            userInfo.setName(name);
+        }
 
         // Step 2: 기존 사용자 조회 또는 신규 가입
         UserEntity userEntity = findOrCreateUser(provider, userInfo);

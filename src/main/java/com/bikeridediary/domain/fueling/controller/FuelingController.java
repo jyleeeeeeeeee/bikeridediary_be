@@ -46,7 +46,7 @@ public class FuelingController {
         return ResponseEntity.ok(ApiResponse.ok(fueling));
     }
 
-    @Operation(summary = "주유 기록 생성", description = "새로운 주유 기록을 생성합니다. 만탱크 시 연비가 자동 계산됩니다.")
+    @Operation(summary = "주유 기록 생성", description = "새로운 주유 기록을 생성합니다. 이전 주유 기록이 있으면 연비가 자동 계산됩니다.")
     @PostMapping
     public ResponseEntity<ApiResponse<FuelingResponse>> createFueling(
             @Valid @RequestBody FuelingCreateRequest request,
@@ -57,7 +57,7 @@ public class FuelingController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(fueling));
     }
 
-    @Operation(summary = "주유 기록 수정", description = "주유 기록을 수정합니다. 만탱크 여부 변경 시 연비가 재계산됩니다.")
+    @Operation(summary = "주유 기록 수정", description = "주유 기록을 수정합니다. 수정 시 연비가 재계산됩니다.")
     @PutMapping("/{fuelingId}")
     public ResponseEntity<ApiResponse<FuelingResponse>> updateFueling(
             @PathVariable UUID fuelingId,
