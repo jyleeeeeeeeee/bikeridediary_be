@@ -71,7 +71,7 @@ public class MaintenanceScheduleEntity extends BaseEntity {
         if (intervalKm == null || lastMaintenanceMileage == null) {
             return false;
         }
-        return currentMileage >= (lastMaintenanceMileage + intervalKm);
+        return currentMileage > (lastMaintenanceMileage + intervalKm);
     }
 
     // 날짜 기준으로 정비 필요 여부 확인 (마지막 정비 날짜는 정비 기록에서 전달)

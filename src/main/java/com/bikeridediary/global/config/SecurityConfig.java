@@ -3,6 +3,7 @@ package com.bikeridediary.global.config;
 import com.bikeridediary.global.auth.jwt.JwtAuthenticationFilter;
 import com.bikeridediary.global.auth.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -48,10 +49,20 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
+                // 인증 실패 시 403 대신 401 반환
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.getWriter().write(
+                                    "{\"status\":401,\"message\":\"Unauthorized\"}");
+                        })
+                )
+
                 // URL 기반 인가
                 .authorizeHttpRequests(auth -> auth
                         // 공개 엔드포인트
-                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers("/api/v1/auth/**", "/api/v1/stations/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/api-docs/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/courses/public/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/bike-models/**").permitAll()

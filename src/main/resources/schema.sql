@@ -43,6 +43,9 @@ CREATE TABLE IF NOT EXISTS bikes (
     purchased_at      DATE,
     photo_url         VARCHAR(255),
     memo              VARCHAR(500),
+    latest_fuel_efficiency  NUMERIC(6,2),
+    average_fuel_efficiency NUMERIC(6,2),
+    is_exist_model    BOOLEAN      NOT NULL DEFAULT TRUE,
     created_at        TIMESTAMP    NOT NULL DEFAULT now(),
     updated_at        TIMESTAMP,
     deleted_at        TIMESTAMP

@@ -21,7 +21,16 @@ public interface MaintenanceRepository extends JpaRepository<MaintenanceEntity, 
     List<MaintenanceEntity> findByBikeEntityIdAndMaintenanceTypeAndDeletedAtIsNullOrderByMaintenanceDateDesc(
             UUID bikeId, MaintenanceType maintenanceType);
 
-    // 특정 바이크의 특정 정비 종류 최신 기록 1건 조회
+    // 특정 바이크의 특정 정비 종류 최신 기록 1건 조회 (날짜 기준)
     Optional<MaintenanceEntity> findTopByBikeEntityIdAndMaintenanceTypeAndDeletedAtIsNullOrderByMaintenanceDateDesc(
             UUID bikeId, MaintenanceType maintenanceType);
+
+    // 특정 바이크의 특정 정비 종류 최신 기록 1건 조회 (주행거리 기준)
+    Optional<MaintenanceEntity> findTopByBikeEntityIdAndMaintenanceTypeAndDeletedAtIsNullOrderByMileageAtMaintenanceDesc(
+            UUID bikeId, MaintenanceType maintenanceType);
+
+    @org.springframework.data.jpa.repository.Query(
+            "SELECT MAX(m.mileageAtMaintenance) FROM MaintenanceEntity m " +
+            "WHERE m.bikeEntity.id = :bikeId AND m.deletedAt IS NULL")
+    Long findMaxMileageByBikeId(UUID bikeId);
 }

@@ -9,6 +9,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +51,7 @@ public class BikeEntity extends BaseEntity {
     private String category;
 
     // 현재 총 주행거리 (km) - 사용자가 수동으로 업데이트
-    @Column(name = "total_mileage_km", nullable = false)
+    @Column(name = "total_mileage_km", nullable = false) @Setter
     private Long totalMileageKm;
 
     // 대표 바이크 여부 (정비/라이딩 기록의 기본값으로 사용)
@@ -68,6 +69,14 @@ public class BikeEntity extends BaseEntity {
     // 메모
     @Column(length = 500)
     private String memo;
+
+    // 최근 연비 (km/L)
+    @Column(name = "latest_fuel_efficiency", precision = 6, scale = 2)
+    private BigDecimal latestFuelEfficiency;
+
+    // 평균 연비 (km/L)
+    @Column(name = "average_fuel_efficiency", precision = 6, scale = 2)
+    private BigDecimal averageFuelEfficiency;
 
     @Column(name = "is_exist_model", nullable = false)
     private boolean isExistModel = true;
@@ -134,8 +143,15 @@ public class BikeEntity extends BaseEntity {
         this.totalMileageKm = mileageKm;
     }
 
+    // 연비 갱신
+    public void updateFuelEfficiency(BigDecimal latestFuelEfficiency, BigDecimal averageFuelEfficiency) {
+        this.latestFuelEfficiency = latestFuelEfficiency;
+        this.averageFuelEfficiency = averageFuelEfficiency;
+    }
+
     // 이 바이크가 특정 사용자에게 속하는지 권한 검증
     public boolean isOwner(UUID userId) {
         return this.userEntity.getId().equals(userId);
     }
+
 }

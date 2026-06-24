@@ -2,6 +2,7 @@ package com.bikeridediary.domain.maintenance.service;
 
 import com.bikeridediary.domain.bike.entity.BikeEntity;
 import com.bikeridediary.domain.bike.repository.BikeRepository;
+import com.bikeridediary.domain.fueling.repository.FuelingRepository;
 import com.bikeridediary.domain.maintenance.dto.MaintenanceCreateRequest;
 import com.bikeridediary.domain.maintenance.dto.MaintenanceResponse;
 import com.bikeridediary.domain.maintenance.dto.MaintenanceUpdateRequest;
@@ -24,6 +25,7 @@ public class MaintenanceService {
 
     private final MaintenanceRepository maintenanceRepository;
     private final BikeRepository bikeRepository;
+    private final FuelingRepository fuelingRepository;
 
     // 특정 바이크의 모든 정비 기록 조회
     public List<MaintenanceResponse> getMaintenances(UUID bikeId, UUID userId) {
@@ -61,6 +63,7 @@ public class MaintenanceService {
         );
 
         MaintenanceEntity saved = maintenanceRepository.save(entity);
+        updateBikeMileage(bikeEntity);
         return MaintenanceResponse.from(saved);
     }
 
@@ -80,6 +83,7 @@ public class MaintenanceService {
                 request.nextDueDate()
         );
 
+        updateBikeMileage(entity.getBikeEntity());
         return MaintenanceResponse.from(entity);
     }
 
@@ -88,11 +92,25 @@ public class MaintenanceService {
     public void deleteMaintenance(UUID maintenanceId, UUID userId) {
         MaintenanceEntity entity = findMaintenanceOrThrow(maintenanceId);
         verifyMaintenanceOwnership(entity, userId);
-
+        BikeEntity bikeEntity = entity.getBikeEntity();
         entity.delete();
+        updateBikeMileage(bikeEntity);
     }
 
     // ============ 헬퍼 메서드 ============
+
+    private void updateBikeMileage(BikeEntity bikeEntity) {
+        Long maxFueling = fuelingRepository.findMaxMileageByBikeId(bikeEntity.getId());
+        Long maxMaintenance = maintenanceRepository.findMaxMileageByBikeId(bikeEntity.getId());
+        long maxMileage = Math.max(
+                bikeEntity.getTotalMileageKm(),
+                Math.max(
+                        maxFueling != null ? maxFueling : 0L,
+                        maxMaintenance != null ? maxMaintenance : 0L
+                )
+        );
+        bikeEntity.setTotalMileageKm(maxMileage);
+    }
 
     private BikeEntity findBikeOrThrow(UUID bikeId) {
         return bikeRepository.findByIdAndDeletedAtIsNull(bikeId)

@@ -92,7 +92,7 @@ class BikeEntityServiceTest {
     @DisplayName("createBike - 사용자 없음")
     void createBike_UserNotFound() {
         BikeCreateRequest request = new BikeCreateRequest(
-                "Honda", "CB500F", 2023, "Sport", 10000
+                "Honda", "CB500F", 2023, "Sport", 10000L, true
         );
 
         when(userRepository.findByIdAndDeletedAtIsNull(userId))
@@ -107,7 +107,7 @@ class BikeEntityServiceTest {
     @DisplayName("createBike - 첫 바이크는 대표로 설정")
     void createBike_FirstBikeAsRepresentative() {
         BikeCreateRequest request = new BikeCreateRequest(
-                "Honda", "CB500F", 2023, "Sport", 10000
+                "Honda", "CB500F", 2023, "Sport", 10000L, true
         );
 
         when(userRepository.findByIdAndDeletedAtIsNull(userId))
@@ -131,11 +131,11 @@ class BikeEntityServiceTest {
     @Test
     @DisplayName("createBike - 두 번째 바이크는 대표 아님")
     void createBike_SecondBikeNotRepresentative() {
-        BikeEntity firstBikeEntity = BikeEntity.create(testUserEntity, "Honda", "CB500F", 2023, "Sport", 10000);
+        BikeEntity firstBikeEntity = BikeEntity.create(testUserEntity, "Honda", "CB500F", 2023, "Sport", 10000L, true);
         firstBikeEntity.setRepresentative(true);
 
         BikeCreateRequest request = new BikeCreateRequest(
-                "Yamaha", "MT-07", 2022, "Naked bike", 5000
+                "Yamaha", "MT-07", 2022, "Naked bike", 5000L, true
         );
 
         when(userRepository.findByIdAndDeletedAtIsNull(userId))
@@ -160,8 +160,8 @@ class BikeEntityServiceTest {
     @DisplayName("updateBike - 바이크 없음")
     void updateBike_NotFound() {
         BikeUpdateRequest request = new BikeUpdateRequest(
-                "Yamaha", "MT-07", 2022, "Naked bike", 5000,
-                LocalDate.of(2022, 1, 15), "메모"
+                "Yamaha", "MT-07", 2022, "Naked bike", 5000L,
+                LocalDate.of(2022, 1, 15), "메모", true
         );
 
         when(bikeRepository.findByIdAndDeletedAtIsNull(bikeId))

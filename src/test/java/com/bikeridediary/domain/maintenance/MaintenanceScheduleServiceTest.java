@@ -64,11 +64,11 @@ class MaintenanceScheduleServiceTest {
         testUser = UserEntity.create("kakao", "123456", "test@example.com", "테스트");
         setId(testUser, userId);
 
-        testBike = BikeEntity.create(testUser, "Honda", "CB650R", 2024, "Sport", 10000);
+        testBike = BikeEntity.create(testUser, "Honda", "CB650R", 2024, "Sport", 10000L, true);
         setId(testBike, bikeId);
 
         testSchedule = MaintenanceScheduleEntity.create(
-                testBike, MaintenanceType.ENGINE_OIL, 5000, 6
+                testBike, MaintenanceType.ENGINE_OIL, 5000L, 6
         );
         setId(testSchedule, scheduleId);
     }
@@ -173,7 +173,7 @@ class MaintenanceScheduleServiceTest {
     @DisplayName("createSchedule - 성공")
     void createSchedule_Success() {
         MaintenanceScheduleCreateRequest request = new MaintenanceScheduleCreateRequest(
-                bikeId, MaintenanceType.ENGINE_OIL, 5000, 6
+                bikeId, MaintenanceType.ENGINE_OIL, 5000L, 6
         );
 
         when(bikeRepository.findByIdAndDeletedAtIsNull(bikeId))
@@ -197,7 +197,7 @@ class MaintenanceScheduleServiceTest {
     @DisplayName("createSchedule - 바이크 없음")
     void createSchedule_BikeNotFound() {
         MaintenanceScheduleCreateRequest request = new MaintenanceScheduleCreateRequest(
-                bikeId, MaintenanceType.ENGINE_OIL, 5000, 6
+                bikeId, MaintenanceType.ENGINE_OIL, 5000L, 6
         );
 
         when(bikeRepository.findByIdAndDeletedAtIsNull(bikeId))
@@ -214,7 +214,7 @@ class MaintenanceScheduleServiceTest {
     @DisplayName("createSchedule - 다른 사용자의 바이크")
     void createSchedule_AccessDenied() {
         MaintenanceScheduleCreateRequest request = new MaintenanceScheduleCreateRequest(
-                bikeId, MaintenanceType.ENGINE_OIL, 5000, 6
+                bikeId, MaintenanceType.ENGINE_OIL, 5000L, 6
         );
 
         when(bikeRepository.findByIdAndDeletedAtIsNull(bikeId))
@@ -231,7 +231,7 @@ class MaintenanceScheduleServiceTest {
     @DisplayName("createSchedule - 동일 정비 종류 중복")
     void createSchedule_Duplicate() {
         MaintenanceScheduleCreateRequest request = new MaintenanceScheduleCreateRequest(
-                bikeId, MaintenanceType.ENGINE_OIL, 5000, 6
+                bikeId, MaintenanceType.ENGINE_OIL, 5000L, 6
         );
 
         when(bikeRepository.findByIdAndDeletedAtIsNull(bikeId))
@@ -251,7 +251,7 @@ class MaintenanceScheduleServiceTest {
     @Test
     @DisplayName("updateSchedule - 성공")
     void updateSchedule_Success() {
-        MaintenanceScheduleUpdateRequest request = new MaintenanceScheduleUpdateRequest(10000, 12);
+        MaintenanceScheduleUpdateRequest request = new MaintenanceScheduleUpdateRequest(10000L, 12);
 
         when(scheduleRepository.findByIdAndDeletedAtIsNull(scheduleId))
                 .thenReturn(Optional.of(testSchedule));
@@ -268,7 +268,7 @@ class MaintenanceScheduleServiceTest {
     @Test
     @DisplayName("updateSchedule - 정비 주기 없음")
     void updateSchedule_NotFound() {
-        MaintenanceScheduleUpdateRequest request = new MaintenanceScheduleUpdateRequest(10000, 12);
+        MaintenanceScheduleUpdateRequest request = new MaintenanceScheduleUpdateRequest(10000L, 12);
 
         when(scheduleRepository.findByIdAndDeletedAtIsNull(scheduleId))
                 .thenReturn(Optional.empty());
@@ -281,7 +281,7 @@ class MaintenanceScheduleServiceTest {
     @Test
     @DisplayName("updateSchedule - 다른 사용자의 정비 주기")
     void updateSchedule_AccessDenied() {
-        MaintenanceScheduleUpdateRequest request = new MaintenanceScheduleUpdateRequest(10000, 12);
+        MaintenanceScheduleUpdateRequest request = new MaintenanceScheduleUpdateRequest(10000L, 12);
 
         when(scheduleRepository.findByIdAndDeletedAtIsNull(scheduleId))
                 .thenReturn(Optional.of(testSchedule));

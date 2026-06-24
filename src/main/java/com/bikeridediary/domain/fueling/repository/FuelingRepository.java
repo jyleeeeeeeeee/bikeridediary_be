@@ -24,4 +24,9 @@ public interface FuelingRepository extends JpaRepository<FuelingEntity, UUID> {
             "AND f.mileageAtFueling <= :toMileage " +
             "AND f.deletedAt IS NULL")
     java.math.BigDecimal sumFuelAmountBetweenMileage(UUID bikeId, Long fromMileage, Long toMileage);
+
+    @org.springframework.data.jpa.repository.Query(
+            "SELECT MAX(f.mileageAtFueling) FROM FuelingEntity f " +
+            "WHERE f.bikeEntity.id = :bikeId AND f.deletedAt IS NULL")
+    Long findMaxMileageByBikeId(UUID bikeId);
 }

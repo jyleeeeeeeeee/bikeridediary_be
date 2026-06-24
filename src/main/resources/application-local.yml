@@ -62,7 +62,8 @@ kakao:
   api-key: dummy
 
 opinet:
-  api-key: dummy
+  base-url: https://www.opinet.co.kr/api
+  api-key: F260624923
 
 api-ninjas:
   api-key: iNX3KktS3oanqnN5rcZqccU2kVXZLGZCVCp82vu7

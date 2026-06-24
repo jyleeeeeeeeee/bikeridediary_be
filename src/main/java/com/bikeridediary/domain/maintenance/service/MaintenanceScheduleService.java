@@ -101,11 +101,16 @@ public class MaintenanceScheduleService {
     private MaintenanceScheduleResponse buildResponse(
             MaintenanceScheduleEntity schedule, UUID bikeId, Long currentMileage) {
         MaintenanceType type = schedule.getMaintenanceType();
-        var latestRecord = maintenanceRepository
+
+        // km 기준: 주행거리가 가장 높은 기록
+        var highestMileageRecord = maintenanceRepository
+                .findTopByBikeEntityIdAndMaintenanceTypeAndDeletedAtIsNullOrderByMileageAtMaintenanceDesc(bikeId, type);
+        // 날짜 기준: 가장 최근 날짜의 기록
+        var latestDateRecord = maintenanceRepository
                 .findTopByBikeEntityIdAndMaintenanceTypeAndDeletedAtIsNullOrderByMaintenanceDateDesc(bikeId, type);
 
-        Long lastMileage = latestRecord.map(MaintenanceEntity::getMileageAtMaintenance).orElse(null);
-        LocalDate lastDate = latestRecord.map(MaintenanceEntity::getMaintenanceDate).orElse(null);
+        Long lastMileage = highestMileageRecord.map(MaintenanceEntity::getMileageAtMaintenance).orElse(null);
+        LocalDate lastDate = latestDateRecord.map(MaintenanceEntity::getMaintenanceDate).orElse(null);
 
         return MaintenanceScheduleResponse.from(schedule, currentMileage, lastMileage, lastDate);
     }

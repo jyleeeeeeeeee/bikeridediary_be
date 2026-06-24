@@ -90,4 +90,6 @@ public class FuelingController {
         FuelingStatsResponse stats = fuelingService.getStats(bikeId, userId);
         return ResponseEntity.ok(ApiResponse.ok(stats));
     }
+
+
 }

@@ -8,6 +8,7 @@ import com.bikeridediary.domain.maintenance.dto.MaintenanceResponse;
 import com.bikeridediary.domain.maintenance.dto.MaintenanceUpdateRequest;
 import com.bikeridediary.domain.maintenance.entity.MaintenanceEntity;
 import com.bikeridediary.domain.maintenance.entity.MaintenanceType;
+import com.bikeridediary.domain.fueling.repository.FuelingRepository;
 import com.bikeridediary.domain.maintenance.repository.MaintenanceRepository;
 import com.bikeridediary.domain.maintenance.service.MaintenanceService;
 import com.bikeridediary.domain.user.entity.UserEntity;
@@ -40,6 +41,9 @@ class MaintenanceServiceTest {
     @Mock
     private BikeRepository bikeRepository;
 
+    @Mock
+    private FuelingRepository fuelingRepository;
+
     @InjectMocks
     private MaintenanceService maintenanceService;
 
@@ -61,7 +65,7 @@ class MaintenanceServiceTest {
         testUser = UserEntity.create("kakao", "123456", "test@example.com", "테스트");
         setId(testUser, userId);
 
-        testBike = BikeEntity.create(testUser, "Honda", "CB650R", 2024, "Sport", 10000L);
+        testBike = BikeEntity.create(testUser, "Honda", "CB650R", 2024, "Sport", 10000L, true);
         setId(testBike, bikeId);
 
         testMaintenance = MaintenanceEntity.create(
@@ -171,6 +175,8 @@ class MaintenanceServiceTest {
                 .thenReturn(Optional.of(testBike));
         when(maintenanceRepository.save(any(MaintenanceEntity.class)))
                 .thenReturn(testMaintenance);
+        when(fuelingRepository.findMaxMileageByBikeId(bikeId)).thenReturn(null);
+        when(maintenanceRepository.findMaxMileageByBikeId(bikeId)).thenReturn(5000L);
 
         MaintenanceResponse result = maintenanceService.createMaintenance(request, userId);
 
@@ -227,6 +233,8 @@ class MaintenanceServiceTest {
 
         when(maintenanceRepository.findByIdAndDeletedAtIsNull(maintenanceId))
                 .thenReturn(Optional.of(testMaintenance));
+        when(fuelingRepository.findMaxMileageByBikeId(bikeId)).thenReturn(null);
+        when(maintenanceRepository.findMaxMileageByBikeId(bikeId)).thenReturn(6000L);
 
         MaintenanceResponse result = maintenanceService.updateMaintenance(maintenanceId, request, userId);
 
@@ -258,6 +266,8 @@ class MaintenanceServiceTest {
     void deleteMaintenance_Success() {
         when(maintenanceRepository.findByIdAndDeletedAtIsNull(maintenanceId))
                 .thenReturn(Optional.of(testMaintenance));
+        when(fuelingRepository.findMaxMileageByBikeId(bikeId)).thenReturn(null);
+        when(maintenanceRepository.findMaxMileageByBikeId(bikeId)).thenReturn(null);
 
         maintenanceService.deleteMaintenance(maintenanceId, userId);
 

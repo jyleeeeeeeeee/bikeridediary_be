@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.List;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -36,7 +35,7 @@ public class BikeModelService {
     @Value("${api-ninjas.api-key:}")
     private String apiKey;
 
-    private static final String API_BASE_URL = "https://api.api-ninjas.com/v1/motorcycles";
+    private static final String API_NINJA_BASE_URL = "https://api.api-ninjas.com/v1/motorcycles";
 
     // ── 조회 API ────────────────────────────────────────────
 
@@ -105,7 +104,7 @@ public class BikeModelService {
         HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
 
         int totalSaved = 0;
-        String url = API_BASE_URL + "?make=" + replaceSpace(manufacturer.getManufacturerName());
+        String url = API_NINJA_BASE_URL + "?make=" + replaceSpace(manufacturer.getManufacturerName());
         if(modelName != null && !modelName.isEmpty()) {
             url = url + "&model=" + replaceSpace(modelName);
         }

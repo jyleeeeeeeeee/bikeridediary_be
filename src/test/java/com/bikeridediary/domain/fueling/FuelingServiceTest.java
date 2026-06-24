@@ -11,6 +11,7 @@ import com.bikeridediary.domain.fueling.entity.FuelType;
 import com.bikeridediary.domain.fueling.entity.FuelingEntity;
 import com.bikeridediary.domain.fueling.repository.FuelingRepository;
 import com.bikeridediary.domain.fueling.service.FuelingService;
+import com.bikeridediary.domain.maintenance.repository.MaintenanceRepository;
 import com.bikeridediary.domain.user.entity.UserEntity;
 import com.bikeridediary.global.exception.BusinessException;
 import com.bikeridediary.global.exception.ErrorCode;
@@ -42,6 +43,9 @@ class FuelingServiceTest {
     @Mock
     private BikeRepository bikeRepository;
 
+    @Mock
+    private MaintenanceRepository maintenanceRepository;
+
     @InjectMocks
     private FuelingService fuelingService;
 
@@ -63,7 +67,7 @@ class FuelingServiceTest {
         testUser = UserEntity.create("kakao", "123456", "test@example.com", "테스트");
         setId(testUser, userId);
 
-        testBike = BikeEntity.create(testUser, "Honda", "CB650R", 2024, "Sport", 10000L);
+        testBike = BikeEntity.create(testUser, "Honda", "CB650R", 2024, "Sport", 10000L, true);
         setId(testBike, bikeId);
 
         testFueling = FuelingEntity.create(
@@ -183,6 +187,10 @@ class FuelingServiceTest {
                 .thenReturn(Optional.of(prevRecord));
         when(fuelingRepository.save(any(FuelingEntity.class)))
                 .thenReturn(testFueling);
+        when(fuelingRepository.findMaxMileageByBikeId(bikeId)).thenReturn(10500L);
+        when(maintenanceRepository.findMaxMileageByBikeId(bikeId)).thenReturn(null);
+        when(fuelingRepository.findByBikeEntityIdAndDeletedAtIsNullOrderByFuelingDateDescMileageAtFuelingDesc(bikeId))
+                .thenReturn(List.of(testFueling));
 
         FuelingResponse result = fuelingService.createFueling(request, userId);
 
@@ -206,6 +214,10 @@ class FuelingServiceTest {
                 .thenReturn(Optional.empty());
         when(fuelingRepository.save(any(FuelingEntity.class)))
                 .thenReturn(testFueling);
+        when(fuelingRepository.findMaxMileageByBikeId(bikeId)).thenReturn(10500L);
+        when(maintenanceRepository.findMaxMileageByBikeId(bikeId)).thenReturn(null);
+        when(fuelingRepository.findByBikeEntityIdAndDeletedAtIsNullOrderByFuelingDateDescMileageAtFuelingDesc(bikeId))
+                .thenReturn(List.of(testFueling));
 
         FuelingResponse result = fuelingService.createFueling(request, userId);
 
@@ -264,6 +276,10 @@ class FuelingServiceTest {
         when(fuelingRepository.findTopByBikeEntityIdAndMileageAtFuelingLessThanAndDeletedAtIsNullOrderByMileageAtFuelingDesc(
                 any(), any()))
                 .thenReturn(Optional.empty());
+        when(fuelingRepository.findMaxMileageByBikeId(bikeId)).thenReturn(10600L);
+        when(maintenanceRepository.findMaxMileageByBikeId(bikeId)).thenReturn(null);
+        when(fuelingRepository.findByBikeEntityIdAndDeletedAtIsNullOrderByFuelingDateDescMileageAtFuelingDesc(bikeId))
+                .thenReturn(List.of(testFueling));
 
         FuelingResponse result = fuelingService.updateFueling(fuelingId, request, userId);
 
@@ -312,6 +328,10 @@ class FuelingServiceTest {
     void deleteFueling_Success() {
         when(fuelingRepository.findByIdAndDeletedAtIsNull(fuelingId))
                 .thenReturn(Optional.of(testFueling));
+        when(fuelingRepository.findMaxMileageByBikeId(bikeId)).thenReturn(null);
+        when(maintenanceRepository.findMaxMileageByBikeId(bikeId)).thenReturn(null);
+        when(fuelingRepository.findByBikeEntityIdAndDeletedAtIsNullOrderByFuelingDateDescMileageAtFuelingDesc(bikeId))
+                .thenReturn(List.of());
 
         fuelingService.deleteFueling(fuelingId, userId);
 

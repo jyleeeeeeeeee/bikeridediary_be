@@ -5,6 +5,7 @@ import com.bikeridediary.domain.bike.repository.BikeRepository;
 import com.bikeridediary.domain.fueling.dto.*;
 import com.bikeridediary.domain.fueling.entity.FuelingEntity;
 import com.bikeridediary.domain.fueling.repository.FuelingRepository;
+import com.bikeridediary.domain.maintenance.repository.MaintenanceRepository;
 import com.bikeridediary.global.exception.BusinessException;
 import com.bikeridediary.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ public class FuelingService {
 
     private final FuelingRepository fuelingRepository;
     private final BikeRepository bikeRepository;
+    private final MaintenanceRepository maintenanceRepository;
 
     public List<FuelingResponse> getFuelings(UUID bikeId, UUID userId) {
         BikeEntity bikeEntity = findBikeOrThrow(bikeId);
@@ -63,6 +65,8 @@ public class FuelingService {
         entity.setFuelEfficiency(efficiency);
 
         FuelingEntity saved = fuelingRepository.save(entity);
+        updateBikeMileage(bikeEntity);
+        updateBikeFuelEfficiency(bikeEntity);
         return FuelingResponse.from(saved);
     }
 
@@ -86,6 +90,8 @@ public class FuelingService {
                 entity.getBikeEntity().getId(), request.mileageAtFueling(), request.fuelAmount());
         entity.setFuelEfficiency(efficiency);
 
+        updateBikeMileage(entity.getBikeEntity());
+        updateBikeFuelEfficiency(entity.getBikeEntity());
         return FuelingResponse.from(entity);
     }
 
@@ -93,7 +99,10 @@ public class FuelingService {
     public void deleteFueling(UUID fuelingId, UUID userId) {
         FuelingEntity entity = findFuelingOrThrow(fuelingId);
         verifyFuelingOwnership(entity, userId);
+        BikeEntity bikeEntity = entity.getBikeEntity();
         entity.delete();
+        updateBikeMileage(bikeEntity);
+        updateBikeFuelEfficiency(bikeEntity);
     }
 
     public FuelingStatsResponse getStats(UUID bikeId, UUID userId) {
@@ -126,7 +135,7 @@ public class FuelingService {
                         .reduce(BigDecimal.ZERO, BigDecimal::add)
                         .divide(BigDecimal.valueOf(efficiencies.size()), 2, RoundingMode.HALF_UP);
 
-        BigDecimal latestEfficiency = efficiencies.isEmpty() ? null : efficiencies.getFirst();
+        BigDecimal latestEfficiency = efficiencies.isEmpty() ? null : efficiencies.get(0);
 
         List<Long> prices = fuelings.stream()
                 .filter(f -> f.getPricePerLiter() != null)
@@ -139,6 +148,37 @@ public class FuelingService {
                 fuelings.size(), totalFuel, totalCost,
                 avgEfficiency, latestEfficiency, avgPrice
         );
+    }
+
+    private void updateBikeMileage(BikeEntity bikeEntity) {
+        Long maxFueling = fuelingRepository.findMaxMileageByBikeId(bikeEntity.getId());
+        Long maxMaintenance = maintenanceRepository.findMaxMileageByBikeId(bikeEntity.getId());
+        long maxMileage = Math.max(
+                bikeEntity.getTotalMileageKm(),
+                Math.max(
+                        maxFueling != null ? maxFueling : 0L,
+                        maxMaintenance != null ? maxMaintenance : 0L
+                )
+        );
+        bikeEntity.setTotalMileageKm(maxMileage);
+    }
+
+    private void updateBikeFuelEfficiency(BikeEntity bikeEntity) {
+        List<FuelingEntity> fuelings = fuelingRepository
+                .findByBikeEntityIdAndDeletedAtIsNullOrderByFuelingDateDescMileageAtFuelingDesc(bikeEntity.getId());
+
+        List<BigDecimal> efficiencies = fuelings.stream()
+                .filter(f -> f.getFuelEfficiency() != null)
+                .map(FuelingEntity::getFuelEfficiency)
+                .toList();
+
+        BigDecimal latest = efficiencies.isEmpty() ? null : efficiencies.get(0);
+        BigDecimal average = efficiencies.isEmpty() ? null :
+                efficiencies.stream()
+                        .reduce(BigDecimal.ZERO, BigDecimal::add)
+                        .divide(BigDecimal.valueOf(efficiencies.size()), 2, RoundingMode.HALF_UP);
+
+        bikeEntity.updateFuelEfficiency(latest, average);
     }
 
     // 연비 계산: (현재 주행거리 - 이전 주유 시 주행거리) / 현재 주유량

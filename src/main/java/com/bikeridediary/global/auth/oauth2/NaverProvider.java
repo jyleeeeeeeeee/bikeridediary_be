@@ -14,7 +14,6 @@ import org.springframework.web.client.RestTemplate;
 
 @Slf4j
 @Component
-
 @RequiredArgsConstructor
 public class NaverProvider implements OAuth2Provider{
 

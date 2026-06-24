@@ -116,7 +116,7 @@ class AuthServiceTest {
         when(jwtTokenProvider.generateRefreshToken(newUserId))
                 .thenReturn(refreshToken);
 
-        AuthResponse response = authService.login("kakao", code);
+        AuthResponse response = authService.login("kakao", code, null);
 
         assertThat(response).isNotNull();
         assertThat(response.accessToken()).isEqualTo(accessToken);
@@ -142,7 +142,7 @@ class AuthServiceTest {
         when(jwtTokenProvider.generateRefreshToken(testUserEntity.getId()))
                 .thenReturn(refreshToken);
 
-        AuthResponse response = authService.login("kakao", code);
+        AuthResponse response = authService.login("kakao", code, null);
 
         assertThat(response).isNotNull();
         assertThat(response.accessToken()).isEqualTo(accessToken);
@@ -174,7 +174,7 @@ class AuthServiceTest {
         when(jwtTokenProvider.generateRefreshToken(newUserId))
                 .thenReturn(refreshToken);
 
-        authService.login("kakao", code);
+        authService.login("kakao", code, null);
 
         ArgumentCaptor<UserEntity> captor = ArgumentCaptor.forClass(UserEntity.class);
         verify(userRepository).save(captor.capture());
@@ -203,7 +203,7 @@ class AuthServiceTest {
         when(jwtTokenProvider.generateRefreshToken(newUserId))
                 .thenReturn(refreshToken);
 
-        authService.login("kakao", code);
+        authService.login("kakao", code, null);
 
         ArgumentCaptor<UserEntity> captor = ArgumentCaptor.forClass(UserEntity.class);
         verify(userRepository).save(captor.capture());
@@ -232,7 +232,7 @@ class AuthServiceTest {
         when(jwtTokenProvider.generateRefreshToken(newUserId))
                 .thenReturn(refreshToken);
 
-        authService.login("kakao", code);
+        authService.login("kakao", code, null);
 
         ArgumentCaptor<UserEntity> captor = ArgumentCaptor.forClass(UserEntity.class);
         verify(userRepository).save(captor.capture());
@@ -261,7 +261,7 @@ class AuthServiceTest {
         when(jwtTokenProvider.generateRefreshToken(newUserId))
                 .thenReturn(refreshToken);
 
-        authService.login("kakao", code);
+        authService.login("kakao", code, null);
 
         ArgumentCaptor<UserEntity> captor = ArgumentCaptor.forClass(UserEntity.class);
         verify(userRepository).save(captor.capture());
@@ -273,7 +273,7 @@ class AuthServiceTest {
     void login_UnsupportedProvider() {
         String code = "invalid_code";
 
-        assertThatThrownBy(() -> authService.login("invalid_provider", code))
+        assertThatThrownBy(() -> authService.login("invalid_provider", code, null))
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.AUTH_UNSUPPORTED_PROVIDER);
     }

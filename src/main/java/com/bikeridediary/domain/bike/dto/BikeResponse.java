@@ -2,6 +2,7 @@ package com.bikeridediary.domain.bike.dto;
 
 import com.bikeridediary.domain.bike.entity.BikeEntity;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -18,6 +19,8 @@ public record BikeResponse(
         LocalDate purchasedAt,
         String photoUrl,
         String memo,
+        BigDecimal latestFuelEfficiency,
+        BigDecimal averageFuelEfficiency,
         LocalDateTime createdAt
 ) {
 
@@ -33,6 +36,8 @@ public record BikeResponse(
                 bikeEntity.getPurchasedAt(),
                 bikeEntity.getPhotoUrl(),
                 bikeEntity.getMemo(),
+                bikeEntity.getLatestFuelEfficiency(),
+                bikeEntity.getAverageFuelEfficiency(),
                 bikeEntity.getCreatedAt()
         );
     }
