@@ -1,8 +1,11 @@
 package com.bikeridediary.domain.station.controller;
 
-import com.bikeridediary.domain.station.dto.OilResponse;
+import com.bikeridediary.domain.station.dto.AvgOil;
+import com.bikeridediary.domain.station.dto.StationOil;
+import com.bikeridediary.global.response.ApiResponse;
 import com.bikeridediary.infra.opinet.OpinetClient;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,13 +20,15 @@ public class StationController {
     private final OpinetClient client;
 
     @GetMapping("/avg")
-    public List<OilResponse.Oil> getAvgAllPrice() {
-        return client.getAvgAllPrice();
+    public ResponseEntity<ApiResponse<List<AvgOil>>> getAvgAllPrice() {
+        List<AvgOil> response = client.getAvgAllPrice();
+        return ResponseEntity.ok(ApiResponse.ok(response));
     }
 
-    @GetMapping("/around")
-    public List<OilResponse.Oil> getAvgAllPrice() {
-        return client.getAvgAllPrice();
+    @GetMapping("/nearby")
+    public ResponseEntity<ApiResponse<List<StationOil>>> getNearby(double lat, double lng, int radius, int sort, String prodcd) {
+        List<StationOil> response = client.getNearby(lat, lng, radius, sort, prodcd);
+        return ResponseEntity.ok(ApiResponse.ok(response));
     }
 
 }

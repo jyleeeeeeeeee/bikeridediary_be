@@ -1,20 +1,18 @@
 package com.bikeridediary.infra.opinet;
 
-import com.bikeridediary.domain.station.dto.OilResponse;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.bikeridediary.domain.station.dto.AvgOil;
+import com.bikeridediary.domain.station.dto.OpinetResponse;
+import com.bikeridediary.domain.station.dto.StationOil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -29,16 +27,47 @@ public class OpinetClient {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
-    public List<OilResponse.Oil> getAvgAllPrice() {
+    public List<AvgOil> getAvgAllPrice() {
         try {
             String url = OPINET_BASE_URL + "/avgAllPrice.do?out=json&code=" + code;
-            OilResponse oilResponse = restTemplate.getForObject(url, OilResponse.class);
-            assert oilResponse != null;
-            return oilResponse.result().oil().stream().filter(oil -> oil.prodnm().contains("휘발유")).collect(Collectors.toList());
+            OpinetResponse<AvgOil> response = restTemplate.exchange(
+                    url, HttpMethod.GET, null,
+                    new ParameterizedTypeReference<OpinetResponse<AvgOil>>() {
+                    }
+            ).getBody();
+
+            if (response == null) return List.of();
+            return response.getResult().getOils().stream()
+                    .filter(oil -> oil.getProdnm().contains("휘발유")).toList();
         } catch (Exception e) {
             log.error("오피넷 유가 정보 조회 실패", e);
+            return List.of();
         }
-        return List.of();
+    }
+
+    public List<StationOil> getNearby(double lat, double lng, int radius, int sort, String prodcd) {
+        try {
+            double[] katec = converter.toKatec(lat, lng);
+            String url = OPINET_BASE_URL + "/aroundAll.do?out=json&code=" + code
+                    + "&x=" + katec[0] + "&y=" + katec[1] + "&radius=" + radius
+                    + "&sort=" + sort + "&prodcd=" + prodcd;
+            OpinetResponse<StationOil> response = restTemplate.exchange(
+                    url, HttpMethod.GET, null, new ParameterizedTypeReference<OpinetResponse<StationOil>>() {
+                    }
+            ).getBody();
+
+            if (response == null) return List.of();
+            return response.getResult().getOils().stream()
+                    .map(station -> {
+                        double[] wgs84 = converter.toWgs84(station.getGisXCoor(), station.getGisYCoor());
+                        station.setGisXCoor(wgs84[0]);
+                        station.setGisYCoor(wgs84[1]);
+                        return station;
+                    }).toList();
+        } catch (Exception e) {
+            log.error("오피넷 유가 정보 조회 실패", e);
+            return List.of();
+        }
     }
 
 }
