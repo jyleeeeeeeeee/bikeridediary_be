@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 // 정비 기록 엔티티 - 실제 수행된 정비 내역을 기록하고 관리
@@ -60,6 +61,9 @@ public class MaintenanceEntity extends BaseEntity {
     @Column(name = "next_due_date")
     private LocalDate nextDueDate;
 
+    @Column(name = "image_urls", columnDefinition = "TEXT")
+    private String imageUrls;
+
     // 정비 기록 엔티티 생성
     public static MaintenanceEntity create(
             BikeEntity bikeEntity,
@@ -69,7 +73,8 @@ public class MaintenanceEntity extends BaseEntity {
             Long cost,
             String description,
             Long nextDueKm,
-            LocalDate nextDueDate
+            LocalDate nextDueDate,
+            String imageUrls
     ) {
         MaintenanceEntity maintenanceEntity = new MaintenanceEntity();
         maintenanceEntity.bikeEntity = bikeEntity;
@@ -80,6 +85,7 @@ public class MaintenanceEntity extends BaseEntity {
         maintenanceEntity.description = description;
         maintenanceEntity.nextDueKm = nextDueKm;
         maintenanceEntity.nextDueDate = nextDueDate;
+        maintenanceEntity.imageUrls = imageUrls;
         return maintenanceEntity;
     }
 
@@ -91,7 +97,8 @@ public class MaintenanceEntity extends BaseEntity {
             Long cost,
             String description,
             Long nextDueKm,
-            LocalDate nextDueDate
+            LocalDate nextDueDate,
+            String imageUrls
     ) {
         this.maintenanceType = maintenanceType;
         this.maintenanceDate = maintenanceDate;
@@ -100,6 +107,7 @@ public class MaintenanceEntity extends BaseEntity {
         this.description = description;
         this.nextDueKm = nextDueKm;
         this.nextDueDate = nextDueDate;
+        this.imageUrls = imageUrls;
     }
 
     // 다음 정비 예정 정보 설정 (km, 날짜)
@@ -112,4 +120,5 @@ public class MaintenanceEntity extends BaseEntity {
     public boolean isOwner(UUID userId) {
         return this.bikeEntity.isOwner(userId);
     }
+
 }

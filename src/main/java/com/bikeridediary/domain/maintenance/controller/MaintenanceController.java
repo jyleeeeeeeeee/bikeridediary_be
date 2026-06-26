@@ -10,10 +10,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import com.bikeridediary.global.auth.CustomUserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -49,13 +51,14 @@ public class MaintenanceController {
     }
 
     @Operation(summary = "정비 기록 생성", description = "새로운 정비 기록을 생성합니다.")
-    @PostMapping
+    @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<ApiResponse<MaintenanceResponse>> createMaintenance(
-            @Valid @RequestBody MaintenanceCreateRequest request,
+            @Valid @RequestPart("data") MaintenanceCreateRequest request,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         UUID userId = userDetails.getUserId();
-        MaintenanceResponse maintenance = maintenanceService.createMaintenance(request, userId);
+        MaintenanceResponse maintenance = maintenanceService.createMaintenance(request, images, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(maintenance));
     }
 
@@ -63,11 +66,12 @@ public class MaintenanceController {
     @PutMapping("/{maintenanceId}")
     public ResponseEntity<ApiResponse<MaintenanceResponse>> updateMaintenance(
             @PathVariable UUID maintenanceId,
-            @Valid @RequestBody MaintenanceUpdateRequest request,
+            @Valid @RequestPart("data") MaintenanceUpdateRequest request,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         UUID userId = userDetails.getUserId();
-        MaintenanceResponse maintenance = maintenanceService.updateMaintenance(maintenanceId, request, userId);
+        MaintenanceResponse maintenance = maintenanceService.updateMaintenance(maintenanceId, request, images, userId);
         return ResponseEntity.ok(ApiResponse.ok(maintenance));
     }
 

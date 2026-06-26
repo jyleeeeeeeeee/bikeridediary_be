@@ -28,6 +28,7 @@ public enum ErrorCode {
     AUTH_PASSWORD_TOO_WEAK(HttpStatus.BAD_REQUEST, "AUTH_PASSWORD_TOO_WEAK", "비밀번호 강도가 미달됩니다 (8자 이상, 특수문자 포함)"),
     AUTH_NAVER_VERIFICATION_FAILED(HttpStatus.UNAUTHORIZED, "AUTH_NAVER_VERIFICATION_FAILED", "네이버 인증에 실패했습니다"),
 
+
     // 사용자
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", "사용자를 찾을 수 없습니다"),
 
@@ -58,6 +59,8 @@ public enum ErrorCode {
     // 파일 업로드
     FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "FILE_UPLOAD_FAILED", "파일 업로드에 실패했습니다"),
     FILE_SIZE_EXCEEDED(HttpStatus.BAD_REQUEST, "FILE_SIZE_EXCEEDED", "파일 크기가 제한을 초과했습니다 (50MB)"),
+    FILE_ACCESS_DENIED(HttpStatus.FORBIDDEN, "FILE_ACCESS_DENIED", "파일에 접근할 권한이 없습니다."),
+    FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "FILE_NOT_FOUND", "파일을 찾을 수 없습니다."),
 
     // 외부 API
     NAVER_API_ERROR(HttpStatus.BAD_GATEWAY, "NAVER_API_ERROR", "네이버 API 호출에 실패했습니다"),

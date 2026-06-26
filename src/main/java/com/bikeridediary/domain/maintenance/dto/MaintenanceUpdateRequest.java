@@ -4,6 +4,7 @@ import com.bikeridediary.domain.maintenance.entity.MaintenanceType;
 import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 // 정비 기록 수정 요청 DTO
 public record MaintenanceUpdateRequest(
@@ -27,6 +28,7 @@ public record MaintenanceUpdateRequest(
         @Min(value = 0, message = "다음 정비 예정 주행거리는 0 이상이어야 합니다")
         Long nextDueKm,
 
-        LocalDate nextDueDate
+        LocalDate nextDueDate,
+        List<String> existingImageUrls
 ) {
 }

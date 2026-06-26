@@ -60,3 +60,10 @@ springdoc:
 # Server
 server:
   port: 8081
+
+cloud:
+  aws:
+    s3:
+      bucket: your-bucket-name
+    region:
+      static: ap-northeast-2

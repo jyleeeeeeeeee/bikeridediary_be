@@ -18,6 +18,9 @@ target/
 # Environment variables (NEVER commit these)
 .env
 
+# Uploaded files (local image storage — never commit user uploads)
+uploads/
+
 # Logs
 logs/
 *.log

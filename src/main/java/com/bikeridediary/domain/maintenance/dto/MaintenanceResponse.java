@@ -2,9 +2,13 @@ package com.bikeridediary.domain.maintenance.dto;
 
 import com.bikeridediary.domain.maintenance.entity.MaintenanceEntity;
 import com.bikeridediary.domain.maintenance.entity.MaintenanceType;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 // 정비 기록 응답 DTO
@@ -30,10 +34,11 @@ public record MaintenanceResponse(
         // 등록 일시
         LocalDateTime createdAt,
         // 수정 일시
-        LocalDateTime updatedAt
+        LocalDateTime updatedAt,
+        List<String> imageUrls
 ) {
 
-    public static MaintenanceResponse from(MaintenanceEntity entity) {
+    public static MaintenanceResponse from(MaintenanceEntity entity, List<String> imageUrls) {
         return new MaintenanceResponse(
                 entity.getId(),
                 entity.getBikeEntity().getId(),
@@ -45,7 +50,9 @@ public record MaintenanceResponse(
                 entity.getNextDueKm(),
                 entity.getNextDueDate(),
                 entity.getCreatedAt(),
-                entity.getUpdatedAt()
+                entity.getUpdatedAt(),
+                imageUrls
         );
     }
+
 }

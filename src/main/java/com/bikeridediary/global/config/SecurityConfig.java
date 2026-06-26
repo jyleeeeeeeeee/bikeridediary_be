@@ -68,6 +68,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/bike-models/**").permitAll()
                         .requestMatchers("/logos/**").permitAll()
                         // 나머지는 모두 인증 필요
+                        .requestMatchers("/files/**").authenticated()
                         .anyRequest().authenticated()
                 )
 

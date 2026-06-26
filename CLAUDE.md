@@ -294,6 +294,19 @@ com.bikeridediary
     - 바이크 등록 화면: 진행 표시기에 번호 원(①②③) + 라벨(제조사/모델/상세) 추가
     - 바이크 등록 시 모델 선택 → 카테고리 자동 채움 (bike_models.type 연동)
 
+25. 정비 기록 이미지 업로드 + 앱 디자인 개편 (2026-06-26)
+    - 이미지 저장: MaintenanceEntity.image_urls 컬럼(TEXT, JSON 문자열로 URL 목록 저장)
+    - ImageStorageService 인터페이스 + Local/S3 구현체(@Profile로 전환)
+    - 멀티파트 업로드: Controller @RequestPart("data") + @RequestPart("images")
+    - 이미지 서빙: FileController가 인증 + 소유권(userId 비교) 검증 후 서빙, /files/** 경로
+    - 수정 시 삭제된 이미지 정리: existingImageUrls(유지 목록) 기준으로 빠진 파일 스토리지 삭제
+    - 버그 수정: update 시 oldUrls 대신 keepUrls로 저장(3→2장 삭제 반영 안 되던 문제)
+    - 멀티파트 전송 버그: dio BaseOptions에서 Content-Type 고정 제거(FormData 자동 boundary)
+    - Flutter: image_picker로 갤러리/카메라 선택(최대 5장), AuthenticatedImage 위젯(JWT 헤더 포함 이미지 로드)
+    - 디자인 개편: deep blue+orange → iOS 블루(#007AFF) 스타일 전체 적용
+    - 새로고침 전 화면 캐시 invalidate + AlwaysScrollableScrollPhysics(짧은 화면도 당김 가능)
+    - 보안 메모: application-local.yml의 opinet/api-ninjas 키가 이전 커밋부터 추적 중 → 키 회전 + 환경변수화 권장
+
 ### 다음 단계
 
 - Flutter 앱 실기기 테스트 (adb reverse로 연결, 로그인 → 바이크 → 정비 → 주유 흐름)
