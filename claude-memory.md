@@ -2,7 +2,17 @@
 
 > 이 파일은 `CLAUDE.md`에서 `@claude-memory.md`로 import되어 세션 시작 시 자동 로드됩니다.
 > Claude 홈(`~/.claude`)의 메모리는 git 공유가 안 되므로, 정본은 이 파일에 둡니다.
-> 다른 환경에서도 git pull 하면 그대로 읽힙니다. 최종 갱신: 2026-06-29.
+> 다른 환경에서도 git pull 하면 그대로 읽힙니다. 최종 갱신: 2026-06-30.
+
+---
+
+## 🚨 프로젝트 일시 중단 (2026-06-30)
+
+- 바라다(brd_be/brd_app) 작업 **일시 보류**.
+- 분기: 뱅킹각 측정 기능만 따로 분리해 단독 앱 시작 → **CheckBanking** (`C:\Users\jyl93\check_banking`, 원래 D:였으나 Kotlin cross-drive 이슈로 이동).
+- 분리 이유: 센서 기반 정확도 검증이 MVP의 핵심이므로 다른 도메인과 섞지 않고 집중 개발.
+- 복귀 시점 미정. 뱅킹각 앱 검증 후 본 바라다에 라이딩 퍼포먼스 기능으로 다시 합칠 가능성 있음.
+- 작업할 때 디렉터리를 `C:\Users\jyl93\check_banking`으로 옮겨서 진행 (해당 프로젝트 자체 CLAUDE.md/claude-memory.md 존재).
 
 ---
 

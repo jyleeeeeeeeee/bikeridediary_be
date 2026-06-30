@@ -25,7 +25,6 @@ public class OpinetClient {
     private String code;
     private final CoodinateConverter converter;
     private final RestTemplate restTemplate;
-    private final ObjectMapper objectMapper;
 
     public List<AvgOil> getAvgAllPrice() {
         try {
