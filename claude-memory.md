@@ -66,10 +66,20 @@
 ### 주유소 검색 (진행 중)
 - 앱은 완료, 백엔드 오피넷(한국석유공사) API 사용자 구현 중. station은 일부 비활성(`_disabled_features/station`).
 
-### 소셜 로그인 (계획서 있음, 미구현 — MVP 잔여 1순위)
-- auth는 이메일/게스트만 동작. 소셜 버튼은 미연동.
-- 계획서: `C:\Users\jyl93\.claude\plans\dynamic-rolling-twilight.md` (카카오 access token 직접 수신, 구글/애플 identity token JWKS 검증, AuthLoginRequest를 credential 단일 필드로 통합).
-- pubspec에 kakao_flutter_sdk_user, google_sign_in, sign_in_with_apple, crypto 추가됨. 백엔드는 KakaoProvider만 완성, Google/Apple은 미구현. API 키는 사용자 발급 필요.
+### 소셜 로그인 (완료, 2026-07-01 확인)
+- 앱: 이메일/게스트/카카오/구글/애플 5종 다 구현. auth_provider.dart의 loginWithKakao/Google/Apple + auth_repository.socialLogin.
+- 백엔드: `/auth/login/{provider}` 통합 엔드포인트 + KakaoProvider/GoogleProvider/AppleProvider/NaverProvider(백엔드만) 완성. AuthLoginRequest credential 단일 필드로 통합됨.
+- 네이버는 백엔드만 있고 앱 미연동.
+
+### 오프라인/로컬 우선 아키텍처 (진행 중, 2026-07-01 Phase 1 완료)
+- 배경: 5종 로그인이 다 있어도 전부 온라인 필수 → 네트워크 없으면 앱 진입도 불가. 게스트조차 서버 게스트라 오프라인에서 무용.
+- 결정 (사용자 확정): 한 기기 전제 / 클라이언트 UUID / last-write-wins / soft delete(deleted_at) / 이미지 로컬 우선 / 바이크·정비·주유 3개 도메인 리팩터링 (뱅킹은 이미 로컬 우선).
+- Phase 1 완료 (인프라): `connectivity_plus`, `uuid` 패키지, `core/local/app_database.dart`(통합 brd_local.db, 도메인별 migration slot), `core/sync/sync_engine.dart`(Syncable 등록 기반 + 오프라인→온라인 전이 시 자동 syncAll), `core/sync/sync_types.dart`(SyncState enum + syncColumnsSql 공통 스니펫). main.dart에서 startAutoSync 호출. 등록된 도메인 없어서 현재 no-op.
+- 뱅킹은 별도 DB(brd_banking.db) 유지 — 샘플 대량이라 다른 도메인과 파일 분리가 성능상 유리.
+- Phase 2: Auth 오프라인 개선 (로컬 게스트 모드, 저장된 토큰 오프라인 진입, 로그인 화면 오프라인 배너).
+- Phase 3: 도메인 이전 순서 = 바이크 → 주유 → 정비 → 뱅킹 서버 백업. 도메인별 커밋.
+- Phase 4: 백엔드 sync 엔드포인트 (사용자 구현, Claude 가이드).
+- 커밋 원칙: 도메인별 세부 커밋.
 
 ---
 
