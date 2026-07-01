@@ -71,15 +71,44 @@
 - 백엔드: `/auth/login/{provider}` 통합 엔드포인트 + KakaoProvider/GoogleProvider/AppleProvider/NaverProvider(백엔드만) 완성. AuthLoginRequest credential 단일 필드로 통합됨.
 - 네이버는 백엔드만 있고 앱 미연동.
 
-### 오프라인/로컬 우선 아키텍처 (진행 중, 2026-07-01 Phase 1 완료)
+### 오프라인/로컬 우선 아키텍처 (2026-07-01 Phase 1/2/4 완료, Phase 3 인수인계)
 - 배경: 5종 로그인이 다 있어도 전부 온라인 필수 → 네트워크 없으면 앱 진입도 불가. 게스트조차 서버 게스트라 오프라인에서 무용.
 - 결정 (사용자 확정): 한 기기 전제 / 클라이언트 UUID / last-write-wins / soft delete(deleted_at) / 이미지 로컬 우선 / 바이크·정비·주유 3개 도메인 리팩터링 (뱅킹은 이미 로컬 우선).
-- Phase 1 완료 (인프라): `connectivity_plus`, `uuid` 패키지, `core/local/app_database.dart`(통합 brd_local.db, 도메인별 migration slot), `core/sync/sync_engine.dart`(Syncable 등록 기반 + 오프라인→온라인 전이 시 자동 syncAll), `core/sync/sync_types.dart`(SyncState enum + syncColumnsSql 공통 스니펫). main.dart에서 startAutoSync 호출. 등록된 도메인 없어서 현재 no-op.
-- 뱅킹은 별도 DB(brd_banking.db) 유지 — 샘플 대량이라 다른 도메인과 파일 분리가 성능상 유리.
-- Phase 2: Auth 오프라인 개선 (로컬 게스트 모드, 저장된 토큰 오프라인 진입, 로그인 화면 오프라인 배너).
-- Phase 3: 도메인 이전 순서 = 바이크 → 주유 → 정비 → 뱅킹 서버 백업. 도메인별 커밋.
-- Phase 4: 백엔드 sync 엔드포인트 (사용자 구현, Claude 가이드).
-- 커밋 원칙: 도메인별 세부 커밋.
+
+**Phase 1 완료** (커밋 `97cf952`, 인프라):
+- `connectivity_plus`, `uuid` 패키지
+- `core/local/app_database.dart` — 통합 brd_local.db, 도메인별 migration slot
+- `core/sync/sync_engine.dart` — Syncable 등록 기반, 오프라인→온라인 전이 시 자동 syncAll
+- `core/sync/sync_types.dart` — SyncState enum, syncColumnsSql 공통 스니펫
+- main.dart에서 startAutoSync 호출 (등록 도메인 없어 no-op)
+
+**Phase 2 완료** (커밋 `dea1424`, Auth 오프라인):
+- AuthState에 `isLocalGuest` 추가
+- continueAsGuest() 오프라인 fallback (DioException.connectionError/timeout → 로컬 게스트 flag만 세팅)
+- `core/network/connectivity_provider.dart` — 앱 전역 온라인 감지
+- 로그인 화면 오프라인 배너
+- 홈 화면 로컬 게스트 분기 → `_LocalGuestHome`(뱅킹만 안내)
+
+**Phase 4 완료** (백엔드 스펙 문서): `brd_be/docs/sync-api.md`
+- 도메인별 upsert 엔드포인트 스펙, LWW, soft delete, idempotency 명시
+- 각 도메인 request/response, 서버 로직, 에러 처리, 클라이언트 sync 흐름
+- 백엔드 사용자 구현 순서 권장: 바이크 → 주유 → 정비 → 뱅킹
+
+**Phase 3 인수인계 (미완, 백엔드 upsert 완성 후 진행 권장):**
+- 이유: 백엔드 upsert 엔드포인트 없이 클라이언트만 이전하면 sync가 계속 FAILED로 남고 실질적 이득 없음. 로컬 저장은 되지만 서버 백업/복원 흐름 미완결.
+- 도메인 이전 순서 = 바이크(참조 구현) → 주유 → 정비(이미지) → 뱅킹 서버 백업.
+- 각 도메인 이전 작업:
+  1. 로컬 스키마 (app_database.dart의 _migrations에 v2/v3/v4 추가, 컬럼: client UUID PK + 도메인 필드 + syncColumnsSql)
+  2. LocalRepository (SQLite CRUD)
+  3. RemoteRepository는 유지 + `sync()` 메서드 추가 (POST /{domain}/sync)
+  4. SyncService (`Syncable` 구현: pending 조회 → remote sync 호출 → markSynced/markFailed)
+  5. Provider 리팩터 (로컬 우선: create/update는 로컬 저장 후 SyncEngine.syncAll fire-and-forget, list/detail은 로컬 조회)
+  6. UI에 sync 상태 배지 (⏳ pending, ✅ synced, ⚠️ failed)
+  7. main.dart에서 SyncEngine.register(도메인SyncService)
+- 정비 도메인 이미지: 로컬 임시 파일 경로를 로컬 DB에 저장 → sync 시 기존 멀티파트 업로드 재사용 → 서버 응답 URL로 로컬 값 교체.
+- 참조 무결성: 정비/주유의 bikeId는 바이크 sync 완료 후 시도. SyncEngine 순회 순서(바이크 먼저 등록)로 자연스럽게 해결.
+
+**커밋 원칙**: 도메인별 세부 커밋.
 
 ---
 
