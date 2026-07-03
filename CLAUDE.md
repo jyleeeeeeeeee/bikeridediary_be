@@ -1,3 +1,69 @@
+# CLAUDE.md
+
+Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
+
+**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
+
+## 1. Think Before Coding
+
+**Don't assume. Don't hide confusion. Surface tradeoffs.**
+
+Before implementing:
+- State your assumptions explicitly. If uncertain, ask.
+- If multiple interpretations exist, present them - don't pick silently.
+- If a simpler approach exists, say so. Push back when warranted.
+- If something is unclear, stop. Name what's confusing. Ask.
+
+## 2. Simplicity First
+
+**Minimum code that solves the problem. Nothing speculative.**
+
+- No features beyond what was asked.
+- No abstractions for single-use code.
+- No "flexibility" or "configurability" that wasn't requested.
+- No error handling for impossible scenarios.
+- If you write 200 lines and it could be 50, rewrite it.
+
+Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
+
+## 3. Surgical Changes
+
+**Touch only what you must. Clean up only your own mess.**
+
+When editing existing code:
+- Don't "improve" adjacent code, comments, or formatting.
+- Don't refactor things that aren't broken.
+- Match existing style, even if you'd do it differently.
+- If you notice unrelated dead code, mention it - don't delete it.
+
+When your changes create orphans:
+- Remove imports/variables/functions that YOUR changes made unused.
+- Don't remove pre-existing dead code unless asked.
+
+The test: Every changed line should trace directly to the user's request.
+
+## 4. Goal-Driven Execution
+
+**Define success criteria. Loop until verified.**
+
+Transform tasks into verifiable goals:
+- "Add validation" → "Write tests for invalid inputs, then make them pass"
+- "Fix the bug" → "Write a test that reproduces it, then make it pass"
+- "Refactor X" → "Ensure tests pass before and after"
+
+For multi-step tasks, state a brief plan:
+```
+1. [Step] → verify: [check]
+2. [Step] → verify: [check]
+3. [Step] → verify: [check]
+```
+
+Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
+
+---
+
+**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
+
 # 프로젝트 컨텍스트 — 바라다 (BikeRideDiary)
 
 > 작업 메모리(진행 상황·피드백·전략)는 git으로 동기화되는 별도 파일에 있습니다. 세션 시작 시 함께 읽으세요.
@@ -310,10 +376,35 @@ com.bikeridediary
     - 새로고침 전 화면 캐시 invalidate + AlwaysScrollableScrollPhysics(짧은 화면도 당김 가능)
     - 보안 메모: application-local.yml의 opinet/api-ninjas 키가 이전 커밋부터 추적 중 → 키 회전 + 환경변수화 권장
 
+26. 뱅킹각 측정 기능 바라다 통합 (2026-07-03, brd_app 커밋 97cf952 + a1825a4)
+    - CheckBanking 앱의 뱅킹 기능을 brd_app/lib/features/banking/에 이식 (10개 신규 파일)
+    - 센서 스트림/저역 필터/캘리브레이션, Cupertino 다이얼로그(확인=왼쪽, 취소=오른쪽, 다시 안 보기)
+    - wakelock을 recording 상태 종속으로 관리 → 화면 이동해도 기록 유지 (앱 내에 있는 한)
+    - shell 밖 전체 화면 라우트(/banking, /banking/sessions, /banking/sessions/:id)
+    - 로컬 SQLite(brd_banking.db), 서버 백업 버튼 placeholder + synced_at 컬럼 준비
+    - 크래시 fix 2건: 50Hz rebuild thrash(rebuild scope 분리 + Timer 기반 elapsed), OutlinedButton unbounded width(minimumSize override)
+
+27. 오프라인 우선 아키텍처 Phase 1/2/4 (2026-07-03)
+    - Phase 1 (brd_app 커밋 97cf952, 인프라):
+      - core/local/app_database.dart 통합 SQLite(brd_local.db), 도메인별 migration slot
+      - core/sync/sync_engine.dart Syncable 등록 기반, 오프라인→온라인 전이 시 자동 syncAll
+      - core/sync/sync_types.dart SyncState enum + syncColumnsSql 공통 스니펫
+      - connectivity_plus, uuid 패키지 추가, main.dart에서 startAutoSync 호출
+    - Phase 2 (brd_app 커밋 dea1424, Auth 오프라인):
+      - AuthState.isLocalGuest 추가, continueAsGuest DioException.connectionError/timeout 시 로컬 게스트 fallback
+      - core/network/connectivity_provider.dart 앱 전역 온라인 감지
+      - 로그인 화면 오프라인 배너, 홈 화면 _LocalGuestHome 분기(뱅킹만 사용 가능)
+    - Phase 4 (brd_be 커밋 31457dd, 백엔드 스펙 문서):
+      - docs/sync-api.md — 도메인별 upsert 엔드포인트 스펙, LWW, soft delete, idempotency
+      - 클라이언트 UUID 정책, request/response 예시, 서버 로직, 클라이언트 sync 흐름
+    - 결정: 한 기기 전제 / 클라이언트 UUID / LWW / soft delete / 이미지 로컬 우선 / 바이크·정비·주유 3개 도메인
+    - Phase 3(도메인 이전) 인수인계 상태 — 백엔드 upsert 완성 후 진행 권장, 도메인당 7단계 작업 명세는 claude-memory.md 참조
+
 ### 다음 단계
 
-- Flutter 앱 실기기 테스트 (adb reverse로 연결, 로그인 → 바이크 → 정비 → 주유 흐름)
-- 소셜 로그인 (카카오/구글) — 네이티브 SDK 연동
+- **백엔드 sync 엔드포인트 구현** (docs/sync-api.md 참고, 바이크 → 주유 → 정비 → 뱅킹 순)
+- **Phase 3 클라이언트 도메인 이전** (백엔드 완성 후, 도메인별 커밋)
+- Flutter 앱 실기기 오프라인 게스트 시나리오 검증 (비행기 모드 → 가입없이 시작하기 → 뱅킹)
 - 라이딩 코스(Course) 도메인 (GPX 기록/업로드)
 
 ---
