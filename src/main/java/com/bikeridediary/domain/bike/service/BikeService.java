@@ -2,6 +2,7 @@ package com.bikeridediary.domain.bike.service;
 
 import com.bikeridediary.domain.bike.dto.BikeCreateRequest;
 import com.bikeridediary.domain.bike.dto.BikeResponse;
+import com.bikeridediary.domain.bike.dto.BikeSyncRequest;
 import com.bikeridediary.domain.bike.dto.BikeUpdateRequest;
 import com.bikeridediary.domain.bike.entity.BikeEntity;
 import com.bikeridediary.domain.bike.repository.BikeRepository;
@@ -10,10 +11,12 @@ import com.bikeridediary.domain.user.repository.UserRepository;
 import com.bikeridediary.global.exception.BusinessException;
 import com.bikeridediary.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -120,6 +123,66 @@ public class BikeService {
         bikeEntity.setRepresentative(true);
 
         return BikeResponse.from(bikeRepository.save(bikeEntity));
+    }
+
+    @Transactional
+    public BikeResponse sync(UUID userId, BikeSyncRequest req) {
+        UserEntity user = userRepository.findByIdAndDeletedAtIsNull(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        Optional<BikeEntity> existingOpt = bikeRepository.findById(req.id());
+
+        if(existingOpt.isPresent()) {
+            BikeEntity existing = existingOpt.get();
+            if (!existing.isOwner(userId)) {
+                throw new BusinessException(ErrorCode.BIKE_ACCESS_DENIED);
+            }
+
+            if (req.deletedAt() != null) {
+                if(!existing.isDeleted()) existing.delete();
+                return BikeResponse.from(existing);
+            }
+
+            if (req.updatedAt().isAfter(existing.getUpdatedAt())) {
+                existing.update(
+                        req.manufacturerName(),
+                        req.modelName(),
+                        req.year(),
+                        req.category(),
+                        req.totalMileageKm(),
+                        req.purchasedAt(),
+                        req.memo(),
+                        true);
+
+                if (req.isRepresentative() && !existing.isRepresentative()) {
+                    existing.setRepresentative(true);
+                } else {
+                    existing.setRepresentative(false);
+                }
+
+                return BikeResponse.from(existing);
+            }
+        }
+
+        BikeEntity bike = BikeEntity.createWithId(
+                req.id(),
+                user,
+
+                req.manufacturerName(),
+                req.modelName(),
+                req.year(),
+                req.category(),
+                req.totalMileageKm(),
+                true
+        );
+
+        if(req.isRepresentative()) {
+            bikeRepository.clearRepresentative(userId);
+            bike.setRepresentative(true);
+        }
+
+        bikeRepository.save(bike);
+        return BikeResponse.from(bike);
     }
 
     // ============ 헬퍼 메서드 ============

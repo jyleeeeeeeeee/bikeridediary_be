@@ -2,6 +2,7 @@ package com.bikeridediary.domain.bike.controller;
 
 import com.bikeridediary.domain.bike.dto.BikeCreateRequest;
 import com.bikeridediary.domain.bike.dto.BikeResponse;
+import com.bikeridediary.domain.bike.dto.BikeSyncRequest;
 import com.bikeridediary.domain.bike.dto.BikeUpdateRequest;
 import com.bikeridediary.domain.bike.service.BikeService;
 import com.bikeridediary.global.response.ApiResponse;
@@ -89,6 +90,16 @@ public class BikeController {
     ) {
         UUID userId = userDetails.getUserId();
         BikeResponse bike = bikeService.setRepresentative(bikeId, userId);
+        return ResponseEntity.ok(ApiResponse.ok(bike));
+    }
+
+    @PostMapping("/sync")
+    public ResponseEntity<ApiResponse<BikeResponse>> syncBike(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Valid @RequestBody BikeSyncRequest request
+    ) {
+        UUID userId = userDetails.getUserId();
+        BikeResponse bike = bikeService.sync(userId, request);
         return ResponseEntity.ok(ApiResponse.ok(bike));
     }
 }

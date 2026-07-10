@@ -25,7 +25,7 @@ public class BikeEntity extends BaseEntity {
 
     // 바이크 ID (UUID)
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "id")
     private UUID id;
 
     // 소유 사용자 (FK)
@@ -96,15 +96,20 @@ public class BikeEntity extends BaseEntity {
             Long totalMileageKm,
             boolean isExistModel
     ) {
-        BikeEntity bikeEntity = new BikeEntity();
-        bikeEntity.userEntity = userEntity;
-        bikeEntity.manufacturerName = manufacturerName;
-        bikeEntity.modelName = modelName;
-        bikeEntity.year = year;
-        bikeEntity.category = category;
-        bikeEntity.totalMileageKm = totalMileageKm;
-        bikeEntity.isExistModel = isExistModel;
-        return bikeEntity;
+        return createBikeEntity(null, userEntity, manufacturerName, modelName, year, category, totalMileageKm, isExistModel);
+    }
+
+    public static BikeEntity createWithId(
+            UUID id,
+            UserEntity userEntity,
+            String manufacturerName,
+            String modelName,
+            Integer year,
+            String category,
+            Long totalMileageKm,
+            boolean isExistModel
+    ) {
+        return createBikeEntity(id, userEntity, manufacturerName, modelName, year, category, totalMileageKm, isExistModel);
     }
 
     // 바이크 정보 수정
@@ -154,4 +159,25 @@ public class BikeEntity extends BaseEntity {
         return this.userEntity.getId().equals(userId);
     }
 
+    public static BikeEntity createBikeEntity(
+            UUID id,
+            UserEntity userEntity,
+            String manufacturerName,
+            String modelName,
+            Integer year,
+            String category,
+            Long totalMileageKm,
+            boolean isExistModel
+    ) {
+        BikeEntity bikeEntity = new BikeEntity();
+        bikeEntity.id = id == null ? UUID.randomUUID() : id;
+        bikeEntity.userEntity = userEntity;
+        bikeEntity.manufacturerName = manufacturerName;
+        bikeEntity.modelName = modelName;
+        bikeEntity.year = year;
+        bikeEntity.category = category;
+        bikeEntity.totalMileageKm = totalMileageKm;
+        bikeEntity.isExistModel = isExistModel;
+        return bikeEntity;
+    }
 }
