@@ -32,5 +32,7 @@ Thumbs.db
 # QueryDSL generated
 generated/
 
-# Claude (로컬 설정은 제외, CLAUDE.md는 git으로 동기화)
+# Claude (별도 저장소 bikeridediary_claude 에서 관리)
 .claude/
+CLAUDE.md
+claude-memory.md
