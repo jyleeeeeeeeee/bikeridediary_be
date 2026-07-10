@@ -94,19 +94,37 @@
 - 각 도메인 request/response, 서버 로직, 에러 처리, 클라이언트 sync 흐름
 - 백엔드 사용자 구현 순서 권장: 바이크 → 주유 → 정비 → 뱅킹
 
-**Phase 3 인수인계 (미완, 백엔드 upsert 완성 후 진행 권장):**
-- 이유: 백엔드 upsert 엔드포인트 없이 클라이언트만 이전하면 sync가 계속 FAILED로 남고 실질적 이득 없음. 로컬 저장은 되지만 서버 백업/복원 흐름 미완결.
-- 도메인 이전 순서 = 바이크(참조 구현) → 주유 → 정비(이미지) → 뱅킹 서버 백업.
-- 각 도메인 이전 작업:
-  1. 로컬 스키마 (app_database.dart의 _migrations에 v2/v3/v4 추가, 컬럼: client UUID PK + 도메인 필드 + syncColumnsSql)
-  2. LocalRepository (SQLite CRUD)
-  3. RemoteRepository는 유지 + `sync()` 메서드 추가 (POST /{domain}/sync)
-  4. SyncService (`Syncable` 구현: pending 조회 → remote sync 호출 → markSynced/markFailed)
-  5. Provider 리팩터 (로컬 우선: create/update는 로컬 저장 후 SyncEngine.syncAll fire-and-forget, list/detail은 로컬 조회)
-  6. UI에 sync 상태 배지 (⏳ pending, ✅ synced, ⚠️ failed)
-  7. main.dart에서 SyncEngine.register(도메인SyncService)
-- 정비 도메인 이미지: 로컬 임시 파일 경로를 로컬 DB에 저장 → sync 시 기존 멀티파트 업로드 재사용 → 서버 응답 URL로 로컬 값 교체.
-- 참조 무결성: 정비/주유의 bikeId는 바이크 sync 완료 후 시도. SyncEngine 순회 순서(바이크 먼저 등록)로 자연스럽게 해결.
+**Phase 3 진행 상황 (2026-07-07)**:
+- **바이크 도메인 완료** (brd_app 10aa159/f0932ee, brd_be fc30fd6)
+  - 앱 & 백엔드 sync 엔드포인트 양쪽 완성, 통합 검증 A/B/C 시나리오 통과
+  - 참조 구현 완성 — 주유/정비도 같은 패턴 복제 가능
+- **남은 도메인**: 주유(Fueling) → 정비(Maintenance, 이미지 포함) → 뱅킹 서버 백업
+- 도메인당 7단계 작업 (바이크 참고하면 예측 가능):
+  1. 로컬 스키마 (app_database.dart의 _migrations에 v3/v4/v5 추가)
+  2. LocalRepository (SQLite CRUD, softDelete/markSynced/markFailed)
+  3. RemoteRepository에 `sync()` 메서드 추가 (POST /{domain}/sync)
+  4. SyncService (Syncable 구현 + pullFromServerIfEmpty)
+  5. Provider 로컬 우선 재작성 (client UUID 생성, invalidate 순서)
+  6. UI sync 상태 배지 (☁️ pending, ⚠️ failed)
+  7. main.dart에서 SyncEngine.register + 로그인 pull 훅 추가
+- **필수 fix 패턴**: syncPending과 pullFromServerIfEmpty 둘 다에서 로컬 갱신 후 provider invalidate 호출 필수 (안 하면 UI 재시작 전엔 반영 안 됨)
+- 정비 도메인 이미지: 로컬 임시 파일 경로 저장 → sync 시 기존 멀티파트 업로드 재사용 → 서버 응답 URL로 로컬 값 교체
+- 참조 무결성: 정비/주유의 bikeId는 바이크 sync 완료 후 시도. SyncEngine 순회 순서(바이크 먼저 등록)로 자연스럽게 해결
+- 백엔드 sync 엔드포인트 (docs/sync-api.md 참고, 사용자 직접 구현): 주유 → 정비 → 뱅킹 순
+- 백엔드 BikeEntity 리팩터 노트: @GeneratedValue 제거 → createWithId 팩토리 추가 + 기존 create()도 UUID.randomUUID() 명시. 다른 도메인도 동일 패턴 적용
+
+### 지도/POI 인프라 (2026-07-07 착수)
+- 네이버 지도 통합 (flutter_naver_map, .env의 NAVER_MAP_CLIENT_ID)
+- CourseMapScreen shell 밖 /courses 라우트
+- place 도메인 (features/place): 큐레이션 POI (명소/카페/센터). 유저별 데이터 아니라 로컬 우선 아키텍처 대상 아님 — 순수 서버 조회.
+- UI: 카테고리 필터 배지 + 마커 + 하단 상세 시트
+- 백엔드 스펙: docs/place-api.md
+- 사용자 초안 스키마: place(place_id, place_name, place_author, star_point, wished_count) + place_categories(category_code, category_name)
+- 미완: 좌표(lat/lng), category_code FK, address, description, photo_url, deleted_at 등 필수 컬럼 보완 필요
+- 리뷰/후기: 카카오/네이버 리뷰 API 없음. 크롤링 법적 리스크. **자체 리뷰 시스템 + AI 요약** 방향 검토, 결정 유보
+- 딥링크 방향: 상세 시트에 카카오맵/네이버 지도 딥링크 버튼 (url_launcher), 후속 작업
+- 주유소 카테고리: 지도 UI 토글엔 있으나 데이터 소스 미연결. 기존 station API(오피넷)와 통합 필요
+- 확장 메뉴 3버튼 (main_shell): 좌 코스탐색(/courses) / 중 내 바이크(navigationShell.goBranch(2)) / 우 뱅킹각(/banking)
 
 **커밋 원칙**: 도메인별 세부 커밋.
 

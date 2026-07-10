@@ -400,10 +400,44 @@ com.bikeridediary
     - 결정: 한 기기 전제 / 클라이언트 UUID / LWW / soft delete / 이미지 로컬 우선 / 바이크·정비·주유 3개 도메인
     - Phase 3(도메인 이전) 인수인계 상태 — 백엔드 upsert 완성 후 진행 권장, 도메인당 7단계 작업 명세는 claude-memory.md 참조
 
+28. Phase 3 바이크 도메인 로컬 우선 이전 완료 (2026-07-07, brd_app 커밋 10aa159/f0932ee, brd_be 커밋 fc30fd6)
+    - 앱 클라이언트:
+      - features/bike/data/local/bike_local_repository.dart (SQLite CRUD, softDelete/markSynced/markFailed)
+      - features/bike/data/model/bike_response.dart에 optional syncState 필드 추가
+      - features/bike/data/repository/bike_repository.dart의 sync() 메서드 추가 (POST /bikes/sync)
+      - features/bike/domain/bike_sync_service.dart (Syncable 구현 + pullFromServerIfEmpty)
+      - features/bike/domain/bike_provider.dart 로컬 우선 재작성 (create 시 client UUID 생성)
+      - main.dart에서 BikeSyncService.register + 로그인 상태 전이 시 pull + syncAll
+      - Auth logout 시 AppDatabase.clearAll() (한 기기 = 한 유저)
+      - 바이크 목록 카드에 sync 상태 배지 (☁️ pending, ⚠️ failed)
+      - fix: syncPending/pullFromServerIfEmpty 완료 후 provider invalidate (UI 자동 갱신)
+    - 백엔드:
+      - BikeEntity: @GeneratedValue 제거, createWithId 팩토리 추가, create()도 UUID 명시
+      - BikeSyncRequest DTO (client 스키마 그대로 수용)
+      - BikeService.sync(): 소유권 검증 → deletedAt early return → LWW updatedAt 비교 → isRepresentative 3분기
+      - POST /api/v1/bikes/sync 매핑
+
+29. 로그인 로딩 오버레이 + 지도/POI 인프라 (2026-07-07, brd_app 커밋 8b2eac4/3dd5610)
+    - 로그인 화면 로딩 오버레이 (커밋 8b2eac4)
+      - 5개 로그인 흐름 모두 authProvider.status == loading 시 반투명 배경 + 스피너
+      - AbsorbPointer로 중복 요청 방지, select 문법으로 rebuild 최소화
+    - 네이버 지도 + place 도메인 + 확장 메뉴 3버튼 (커밋 3dd5610)
+      - flutter_naver_map 통합, main.dart에서 SDK 초기화 (.env의 NAVER_MAP_CLIENT_ID 필요)
+      - CourseMapScreen (shell 밖 /courses 라우트)
+      - place 도메인 (features/place): PlaceCategory enum(명소/카페/센터/주유), PlaceResponse, PlaceRepository
+      - 지도 상단 카테고리 필터 배지 + 마커 색상 카테고리별 구분 + 하단 상세 시트
+      - main_shell 확장 메뉴 3버튼 부채꼴 (코스탐색/내 바이크/뱅킹각)
+      - 내 바이크 진입은 navigationShell.goBranch(2)로 브랜치 전환
+    - brd_be 커밋 ac5888f: docs/place-api.md 백엔드 스펙
+      - PlaceCategory enum, PlaceEntity 필드, 시드 데이터 예시
+      - GET /api/v1/places?category=X 엔드포인트, permitAll 안내
+
 ### 다음 단계
 
-- **백엔드 sync 엔드포인트 구현** (docs/sync-api.md 참고, 바이크 → 주유 → 정비 → 뱅킹 순)
-- **Phase 3 클라이언트 도메인 이전** (백엔드 완성 후, 도메인별 커밋)
+- **place 도메인 백엔드 구현** (docs/place-api.md 참고, 사용자가 place/place_categories 스키마 초안 만듦 — 좌표/카테고리 FK 등 필수 필드 보완 필요)
+- **Phase 3 클라이언트 도메인 이전 진행**: 주유(Fueling) → 정비(Maintenance) 순, 백엔드 upsert 필요
+- **주유소 지도 통합**: place UI 토글의 주유 카테고리를 기존 station API에 연결
+- **카카오맵/네이버 지도 딥링크 버튼**: 하단 시트에 url_launcher로 추가 (TODO 표시됨)
 - Flutter 앱 실기기 오프라인 게스트 시나리오 검증 (비행기 모드 → 가입없이 시작하기 → 뱅킹)
 - 라이딩 코스(Course) 도메인 (GPX 기록/업로드)
 
