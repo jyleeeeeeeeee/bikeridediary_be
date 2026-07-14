@@ -1,4 +1,4 @@
-package com.bikeridediary.infra.opinet;
+package com.bikeridediary.infra.coordinates;
 
 import org.locationtech.proj4j.*;
 import org.springframework.stereotype.Component;

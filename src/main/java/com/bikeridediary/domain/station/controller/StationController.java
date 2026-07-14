@@ -2,8 +2,8 @@ package com.bikeridediary.domain.station.controller;
 
 import com.bikeridediary.domain.station.dto.AvgOil;
 import com.bikeridediary.domain.station.dto.StationOil;
+import com.bikeridediary.domain.station.service.StationService;
 import com.bikeridediary.global.response.ApiResponse;
-import com.bikeridediary.infra.opinet.OpinetClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,7 +17,7 @@ import java.util.List;
 @RequestMapping("/api/v1/stations")
 public class StationController {
 
-    private final OpinetClient client;
+    private final StationService client;
 
     @GetMapping("/avg")
     public ResponseEntity<ApiResponse<List<AvgOil>>> getAvgAllPrice() {

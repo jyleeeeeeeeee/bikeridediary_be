@@ -1,14 +1,10 @@
-package com.bikeridediary.domain.weather;
+package com.bikeridediary.domain.weather.controller;
 
-import com.bikeridediary.domain.station.dto.AvgOil;
-import com.bikeridediary.domain.station.dto.OpinetResponse;
+import com.bikeridediary.domain.weather.service.WeatherService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpMethod;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
 
 @RestController
 @RequiredArgsConstructor

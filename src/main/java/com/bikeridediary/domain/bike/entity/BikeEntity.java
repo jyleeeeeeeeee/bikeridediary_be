@@ -51,7 +51,8 @@ public class BikeEntity extends BaseEntity {
     private String category;
 
     // 현재 총 주행거리 (km) - 사용자가 수동으로 업데이트
-    @Column(name = "total_mileage_km", nullable = false) @Setter
+    @Setter
+    @Column(name = "total_mileage_km", nullable = false)
     private Long totalMileageKm;
 
     // 대표 바이크 여부 (정비/라이딩 기록의 기본값으로 사용)

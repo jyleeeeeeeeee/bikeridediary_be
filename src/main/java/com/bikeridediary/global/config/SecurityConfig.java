@@ -62,6 +62,7 @@ public class SecurityConfig {
                 // URL 기반 인가
                 .authorizeHttpRequests(auth -> auth
                         // 공개 엔드포인트
+                        .requestMatchers("/api/v1/weathers/**").permitAll()
                         .requestMatchers("/api/v1/auth/**", "/api/v1/stations/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/api-docs/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/courses/public/**").permitAll()

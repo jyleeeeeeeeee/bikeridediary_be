@@ -1,4 +1,4 @@
-package com.bikeridediary.domain.weather;
+package com.bikeridediary.domain.weather.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,10 +22,10 @@ public class WeatherService {
 
     public Object getCurrentConditions(double lat, double lng) {
         try {
-            String url = OPENWEATHER_BASE_URL + "/currentConditions:lookup"
-                    + "?key=" + OPENWEATHER_API_KEY
-                    + "&location.latitude=" + lat
-                    + "&location.longitude=" + lng;
+            String url = OPENWEATHER_BASE_URL + "/weather"
+                    + "?appid=" + OPENWEATHER_API_KEY
+                    + "&lat=" + lat
+                    + "&lon=" + lng;
             java.util.Map body = restTemplate.exchange(url, HttpMethod.GET, null, java.util.Map.class).getBody();
             return body;
         } catch (Exception e) {

@@ -1,9 +1,9 @@
-package com.bikeridediary.infra.opinet;
+package com.bikeridediary.domain.station.service;
 
 import com.bikeridediary.domain.station.dto.AvgOil;
-import com.bikeridediary.domain.station.dto.OpinetResponse;
 import com.bikeridediary.domain.station.dto.StationOil;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.bikeridediary.domain.station.dto.OpinetResponse;
+import com.bikeridediary.infra.coordinates.CoodinateConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,7 +17,7 @@ import java.util.List;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class OpinetClient {
+public class StationService {
     @Value("${opinet.base-url}")
     private String OPINET_BASE_URL;
 
