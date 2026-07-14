@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 // 장소 엔티티 - 라이더용 큐레이션 POI (명소/카페/정비센터). 카테고리는 별도 lookup 테이블(PlaceCategoryEntity)로 관리.
@@ -48,11 +49,11 @@ public class PlaceEntity extends BaseEntity {
 
     // 위도
     @Column(name = "latitude", nullable = false)
-    private double latitude;
+    private BigDecimal latitude;
 
     // 경도
     @Column(name = "longitude", nullable = false)
-    private double longitude;
+    private BigDecimal longitude;
 
     // 지번 주소
     @Column(name = "address", length = 200)
@@ -87,8 +88,8 @@ public class PlaceEntity extends BaseEntity {
             String placeName,
             UserEntity userEntity,
             PlaceCategoryEntity placeCategoryEntity,
-            double latitude,
-            double longitude,
+            BigDecimal latitude,
+            BigDecimal longitude,
             String address,
             String roadAddress,
             String description,
@@ -108,8 +109,8 @@ public class PlaceEntity extends BaseEntity {
             String placeName,
             UserEntity userEntity,
             PlaceCategoryEntity placeCategoryEntity,
-            double latitude,
-            double longitude,
+            BigDecimal latitude,
+            BigDecimal longitude,
             String address,
             String roadAddress,
             String description,
@@ -127,8 +128,8 @@ public class PlaceEntity extends BaseEntity {
     public void update(
             String placeName,
             PlaceCategoryEntity placeCategoryEntity,
-            double latitude,
-            double longitude,
+            BigDecimal latitude,
+            BigDecimal longitude,
             String address,
             String roadAddress,
             String description,
@@ -177,8 +178,8 @@ public class PlaceEntity extends BaseEntity {
             String placeName,
             UserEntity userEntity,
             PlaceCategoryEntity placeCategoryEntity,
-            double latitude,
-            double longitude,
+            BigDecimal latitude,
+            BigDecimal longitude,
             String address,
             String roadAddress,
             String description,
