@@ -4,11 +4,11 @@ import org.locationtech.proj4j.*;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CoodinateConverter {
+public class CoordinateConverter {
     private final CoordinateTransform katecToWgs84;
     private final CoordinateTransform wgs84ToKatec;
 
-    public CoodinateConverter() {
+    public CoordinateConverter() {
         CRSFactory factory = new CRSFactory();
         CoordinateReferenceSystem katec = factory.createFromParameters("KATEC",
                 "+proj=tmerc +lat_0=38 +lon_0=128 +k=0.9999 " +

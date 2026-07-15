@@ -1,9 +1,9 @@
 package com.bikeridediary.utils;
 
+import com.bikeridediary.global.config.FileStorageProperties;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -21,34 +21,33 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class LocalImageStorageService implements ImageStorageService {
 
-    @Value("${file.upload-dir:uploads}")
-    private String uploadDir;
+    private final FileStorageProperties properties;
 
-    @Value("${file.base-url:http://localhost:8081/files}")
-    private String baseUrl;
+    private String uploadDir() { return properties.uploadDir(); }
+    private String baseUrl() { return properties.baseUrl(); }
 
     @PostConstruct
     public void init() throws IOException {
-        Files.createDirectories(Path.of(uploadDir));
+        Files.createDirectories(Path.of(uploadDir()));
     }
 
     @Override
     public String upload(MultipartFile file, String folder) throws IOException {
         String fileName = createFileName(file);
-        Path dirPath = Path.of(uploadDir, folder);
+        Path dirPath = Path.of(uploadDir(), folder);
         Files.createDirectories(dirPath);
         Path filePath = dirPath.resolve(fileName);
         file.transferTo(filePath);
         String uniqueName = folder + "/" + fileName;
 
-        return baseUrl + "/" + uniqueName;
+        return baseUrl() + "/" + uniqueName;
     }
 
     @Override
     public void delete(String fileUrl) {
         try {
-            String relativePath = fileUrl.replace(baseUrl + "/", "");
-            Files.deleteIfExists(Path.of(uploadDir, relativePath));
+            String relativePath = fileUrl.replace(baseUrl() + "/", "");
+            Files.deleteIfExists(Path.of(uploadDir(), relativePath));
         } catch (IOException e) {
             log.warn("로컬 파일 삭제 실패: {}", e.getMessage());
         }
@@ -56,13 +55,13 @@ public class LocalImageStorageService implements ImageStorageService {
 
     @Override
     public boolean isExist(String fileUrl) {
-        return Files.exists(Path.of(fileUrl.replace(baseUrl + "/", "")));
+        return Files.exists(Path.of(fileUrl.replace(baseUrl() + "/", "")));
     }
 
     @Override
     public Resource getResource(String fileUrl) {
-        String relativePath = fileUrl.replace(baseUrl + "/", "");
-        Path filePath = Path.of(uploadDir, relativePath);
+        String relativePath = fileUrl.replace(baseUrl() + "/", "");
+        Path filePath = Path.of(uploadDir(), relativePath);
         return new FileSystemResource(filePath);
     }
 

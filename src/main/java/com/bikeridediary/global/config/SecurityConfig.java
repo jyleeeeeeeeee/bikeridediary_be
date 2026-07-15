@@ -27,6 +27,24 @@ import java.util.List;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+    private final String[] PERMIT_ALL_ENDPOINTS = {
+            "/api/v1/weathers/**",
+            "/api/v1/auth/**",
+            "/api/v1/stations/**",
+            "/api/v1/places/**",
+            "/swagger-ui/**",
+            "/api-docs/**",
+            "/logos/**",
+    };
+
+    private final String[] GET_PERMIT_ALL_ENDPOINTS = {
+            "/api/v1/courses/public/**",
+            "/api/v1/bike-models/**",
+    };
+
+    private final String[] AUTHENTICATED_ENDPOINTS = {
+            "/files/**"
+    };
 
     private final JwtTokenProvider jwtTokenProvider;
     private final UserDetailsService userDetailsService;
@@ -62,14 +80,10 @@ public class SecurityConfig {
                 // URL 기반 인가
                 .authorizeHttpRequests(auth -> auth
                         // 공개 엔드포인트
-                        .requestMatchers("/api/v1/weathers/**").permitAll()
-                        .requestMatchers("/api/v1/auth/**", "/api/v1/stations/**").permitAll()
-                        .requestMatchers("/swagger-ui/**", "/api-docs/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/courses/public/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/bike-models/**").permitAll()
-                        .requestMatchers("/logos/**").permitAll()
+                        .requestMatchers(PERMIT_ALL_ENDPOINTS).permitAll()
+                        .requestMatchers(HttpMethod.GET, GET_PERMIT_ALL_ENDPOINTS).permitAll()
                         // 나머지는 모두 인증 필요
-                        .requestMatchers("/files/**").authenticated()
+                        .requestMatchers(AUTHENTICATED_ENDPOINTS).authenticated()
                         .anyRequest().authenticated()
                 )
 

@@ -4,9 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -19,12 +19,7 @@ public class NaverProvider implements OAuth2Provider{
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
-
-    @Value("${naver.client-id}")
-    private String clientId;
-
-    @Value("${naver.client-secret}")
-    private String clientSecret;
+    private final NaverOAuth2Properties properties;
 
     // 네이버 OAuth2 API 엔드포인트
     private static final String TOKEN_URI = "https://nid.naver.com/oauth2.0/token";
@@ -46,8 +41,8 @@ public class NaverProvider implements OAuth2Provider{
             String body = String.format(
                     "grant_type=%s&client_id=%s&client_secret=%s&code=%s&redirect_uri=%s",
                     GRANT_TYPE,
-                    clientId,
-                    clientSecret,
+                    properties.clientId(),
+                    properties.clientSecret(),
                     code,
                     "http://localhost:8080/api/v1/auth/naver/callback"
             );
@@ -55,8 +50,10 @@ public class NaverProvider implements OAuth2Provider{
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-            HttpEntity<String> request = new HttpEntity<>(body, headers);
-            String response = restTemplate.postForObject(TOKEN_URI, request, String.class);
+            HttpEntity<String> requestEntity = new HttpEntity<>(body, headers);
+            String response = restTemplate
+                    .exchange(TOKEN_URI, HttpMethod.POST, requestEntity, String.class)
+                    .getBody();
 
             JsonNode jsonNode = objectMapper.readTree(response);
             String accessToken = jsonNode.get("access_token").asText();
@@ -89,8 +86,10 @@ public class NaverProvider implements OAuth2Provider{
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setBearerAuth(accessToken);
 
-            HttpEntity<Void> request = new HttpEntity<>(headers);
-            String response = restTemplate.postForObject(USER_INFO_URI, request, String.class);
+            HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+            String response = restTemplate
+                    .exchange(USER_INFO_URI, HttpMethod.POST, requestEntity, String.class)
+                    .getBody();
 
             JsonNode naverAccount = objectMapper.readTree(response).get("response");
 

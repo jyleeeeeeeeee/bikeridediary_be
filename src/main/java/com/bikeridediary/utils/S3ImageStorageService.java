@@ -1,7 +1,7 @@
 package com.bikeridediary.utils;
 
+import com.bikeridediary.global.config.AwsProperties;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -22,15 +22,13 @@ import java.util.UUID;
 public class S3ImageStorageService implements ImageStorageService {
 
     private final S3Client s3Client;
+    private final String bucket;
+    private final String region;
 
-    @Value("${cloud.aws.s3.bucket}")
-    private String bucket;
-
-    @Value("${cloud.aws.region.static}")
-    private String region;
-
-    public S3ImageStorageService(S3Client s3Client) {
+    public S3ImageStorageService(S3Client s3Client, AwsProperties awsProperties) {
         this.s3Client = s3Client;
+        this.bucket = awsProperties.s3().bucket();
+        this.region = awsProperties.region();
     }
 
     @Override

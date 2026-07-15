@@ -52,18 +52,20 @@ aws:
     secret-key: dummy
 
 openweather:
-  base-url: https://api.openweathermap.org/data/2.5
   api-key: ${OPENWEATHER_API_KEY:dummy}
 
 naver:
-  client-id: dummy
-  client-secret: dummy
+  oauth2:
+    client-id: dummy
+    client-secret: dummy
+  search:
+    client-id: ${NAVER_SEARCH_CLIENT_ID}
+    client-secret: ${NAVER_SEARCH_CLIENT_SECRET}
 
 kakao:
   api-key: dummy
 
 opinet:
-  base-url: https://www.opinet.co.kr/api
   api-key: ${OPINET_API_KEY:dummy}
 
 api-ninjas:

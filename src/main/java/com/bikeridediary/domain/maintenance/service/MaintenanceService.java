@@ -16,7 +16,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,11 +37,6 @@ public class MaintenanceService {
     private final BikeRepository bikeRepository;
     private final FuelingRepository fuelingRepository;
     private final ObjectMapper objectMapper;
-
-    @Value("${file.upload-dir:uploads}")
-    private String uploadDir;
-    @Value("${file.base-url:http://localhost:8081/files}")
-    private String baseUrl;
 
     // 특정 바이크의 모든 정비 기록 조회
     public List<MaintenanceResponse> getMaintenances(UUID bikeId, UUID userId) {

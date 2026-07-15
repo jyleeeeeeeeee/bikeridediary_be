@@ -3,10 +3,9 @@ package com.bikeridediary.domain.station.service;
 import com.bikeridediary.domain.station.dto.AvgOil;
 import com.bikeridediary.domain.station.dto.StationOil;
 import com.bikeridediary.domain.station.dto.OpinetResponse;
-import com.bikeridediary.infra.coordinates.CoodinateConverter;
+import com.bikeridediary.infra.coordinates.CoordinateConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
@@ -18,17 +17,14 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class StationService {
-    @Value("${opinet.base-url}")
-    private String OPINET_BASE_URL;
 
-    @Value("${opinet.api-key}")
-    private String code;
-    private final CoodinateConverter converter;
+    private final OpinetProperties properties;
+    private final CoordinateConverter converter;
     private final RestTemplate restTemplate;
 
     public List<AvgOil> getAvgAllPrice() {
         try {
-            String url = OPINET_BASE_URL + "/avgAllPrice.do?out=json&code=" + code;
+            String url = properties.baseUrl() + "/avgAllPrice.do?out=json&code=" + properties.apiKey();
             OpinetResponse<AvgOil> response = restTemplate.exchange(
                     url, HttpMethod.GET, null,
                     new ParameterizedTypeReference<OpinetResponse<AvgOil>>() {
@@ -47,7 +43,7 @@ public class StationService {
     public List<StationOil> getNearby(double lat, double lng, int radius, int sort, String prodcd) {
         try {
             double[] katec = converter.toKatec(lat, lng);
-            String url = OPINET_BASE_URL + "/aroundAll.do?out=json&code=" + code
+            String url = properties.baseUrl() + "/aroundAll.do?out=json&code=" + properties.apiKey()
                     + "&x=" + katec[0] + "&y=" + katec[1] + "&radius=" + radius
                     + "&sort=" + sort + "&prodcd=" + prodcd;
             OpinetResponse<StationOil> response = restTemplate.exchange(

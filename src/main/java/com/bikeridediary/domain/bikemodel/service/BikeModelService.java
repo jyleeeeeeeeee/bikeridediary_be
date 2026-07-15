@@ -9,7 +9,6 @@ import com.bikeridediary.domain.bikemodel.repository.BikeModelRepository;
 import com.bikeridediary.domain.bikemodel.repository.ManufacturerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -31,9 +30,7 @@ public class BikeModelService {
     private final ManufacturerRepository manufacturerRepository;
     private final BikeModelRepository bikeModelRepository;
     private final ObjectMapper objectMapper;
-
-    @Value("${api-ninjas.api-key:}")
-    private String apiKey;
+    private final ApiNinjasProperties apiNinjasProperties;
 
     private static final String API_NINJA_BASE_URL = "https://api.api-ninjas.com/v1/motorcycles";
 
@@ -100,7 +97,7 @@ public class BikeModelService {
     private int syncFromApi(ManufacturerEntity manufacturer, String modelName) {
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
-        headers.set("x-api-key", apiKey);
+        headers.set("x-api-key", apiNinjasProperties.apiKey());
         HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
 
         int totalSaved = 0;

@@ -1,11 +1,11 @@
 package com.bikeridediary.domain.file;
 
 import com.bikeridediary.global.auth.CustomUserDetails;
+import com.bikeridediary.global.config.FileStorageProperties;
 import com.bikeridediary.global.exception.BusinessException;
 import com.bikeridediary.global.exception.ErrorCode;
 import com.bikeridediary.utils.ImageStorageService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,9 +22,7 @@ import java.nio.file.Files;
 @RequiredArgsConstructor
 public class FileController {
     private final ImageStorageService imageStorageService;
-
-    @Value("${file.base-url:http://localhost:8081/files}")
-    private String baseUrl;
+    private final FileStorageProperties fileStorageProperties;
 
     @GetMapping("/files/{userId}/{fileName}")
     public ResponseEntity<Resource> getFile(
@@ -36,7 +34,7 @@ public class FileController {
             throw new BusinessException(ErrorCode.FILE_ACCESS_DENIED);
         }
 
-        String fileUrl = baseUrl + "/" + userId + "/" + fileName;
+        String fileUrl = fileStorageProperties.baseUrl() + "/" + userId + "/" + fileName;
         Resource resource = imageStorageService.getResource(fileUrl);
 
         if(!resource.exists() || !resource.isReadable()) {

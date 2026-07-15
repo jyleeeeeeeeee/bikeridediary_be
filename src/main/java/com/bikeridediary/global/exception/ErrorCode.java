@@ -64,7 +64,12 @@ public enum ErrorCode {
 
     // 외부 API
     NAVER_API_ERROR(HttpStatus.BAD_GATEWAY, "NAVER_API_ERROR", "네이버 API 호출에 실패했습니다"),
-    WEATHER_API_ERROR(HttpStatus.BAD_GATEWAY, "WEATHER_API_ERROR", "날씨 API 호출에 실패했습니다");
+    WEATHER_API_ERROR(HttpStatus.BAD_GATEWAY, "WEATHER_API_ERROR", "날씨 API 호출에 실패했습니다"),
+
+    // 지도 DB 조회
+    PLACE_NOT_FOUND(HttpStatus.NOT_FOUND, "PLACE_NOT_FOUND", "장소 조회에 실패했습니다."),
+    PLACE_CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "PLACE_CATEGORY_NOT_FOUND", "카테고리 조회에 실패했습니다.");
+
 
     private final HttpStatus httpStatus;
     private final String code;

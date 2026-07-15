@@ -1,6 +1,6 @@
 package com.bikeridediary.global.config;
 
-import org.springframework.beans.factory.annotation.Value;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -8,14 +8,14 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @Profile("local")
+@RequiredArgsConstructor
 public class LocalFileConfig implements WebMvcConfigurer {
 
-    @Value("${file.upload-dir:uploads}")
-    private String uploadDir;
+    private final FileStorageProperties properties;
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/files/**")
-                .addResourceLocations("file:" + uploadDir + "/");
+                .addResourceLocations("file:" + properties.uploadDir() + "/");
     }
 }

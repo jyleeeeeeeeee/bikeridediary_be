@@ -5,7 +5,6 @@ import com.bikeridediary.global.exception.ErrorCode;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -22,14 +21,10 @@ public class JwtTokenProvider {
     private final long accessTokenExpiry;
     private final long refreshTokenExpiry;
 
-    public JwtTokenProvider(
-            @Value("${jwt.secret}") String secret,
-            @Value("${jwt.access-token-expiry}") long accessTokenExpiry,
-            @Value("${jwt.refresh-token-expiry}") long refreshTokenExpiry
-    ) {
-        this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-        this.accessTokenExpiry = accessTokenExpiry * 1000L;   // 초를 밀리초로 변환
-        this.refreshTokenExpiry = refreshTokenExpiry * 1000L;
+    public JwtTokenProvider(JwtProperties properties) {
+        this.secretKey = Keys.hmacShaKeyFor(properties.secret().getBytes(StandardCharsets.UTF_8));
+        this.accessTokenExpiry = properties.accessTokenExpiry() * 1000L;   // 초를 밀리초로 변환
+        this.refreshTokenExpiry = properties.refreshTokenExpiry() * 1000L;
     }
 
     // 액세스 토큰 생성

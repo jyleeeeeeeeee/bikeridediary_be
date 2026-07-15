@@ -1,6 +1,8 @@
 package com.bikeridediary.domain.place.entity;
 
 import com.bikeridediary.domain.common.entity.BaseEntity;
+import com.bikeridediary.domain.place.dto.CoordinateUpdateRequest;
+import com.bikeridediary.domain.place.dto.PlaceInfoUpdateRequest;
 import com.bikeridediary.domain.place_category.entity.PlaceCategoryEntity;
 import com.bikeridediary.domain.user.entity.UserEntity;
 import jakarta.persistence.*;
@@ -48,11 +50,12 @@ public class PlaceEntity extends BaseEntity {
     private PlaceCategoryEntity placeCategoryEntity;
 
     // 위도
-    @Column(name = "latitude", nullable = false)
+
+    @Column(name = "latitude", nullable = false, precision = 9, scale = 7)
     private BigDecimal latitude;
 
     // 경도
-    @Column(name = "longitude", nullable = false)
+    @Column(name = "longitude", nullable = false, precision = 10, scale = 7)
     private BigDecimal longitude;
 
     // 지번 주소
@@ -203,5 +206,15 @@ public class PlaceEntity extends BaseEntity {
         placeEntity.kakaoPlaceId = kakaoPlaceId;
         placeEntity.naverPlaceId = naverPlaceId;
         return placeEntity;
+    }
+
+    public void updateCoordinates(CoordinateUpdateRequest request) {
+        this.latitude = request.latitude();
+        this.longitude = request.longitude();
+    }
+
+    public void updateInfo(String placeName, PlaceCategoryEntity placeCategoryEntity) {
+        this.placeName = placeName;
+        this.placeCategoryEntity = placeCategoryEntity;
     }
 }

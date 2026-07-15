@@ -2,7 +2,6 @@ package com.bikeridediary.domain.weather.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -12,18 +11,13 @@ import org.springframework.web.client.RestTemplate;
 @RequiredArgsConstructor
 public class WeatherService {
 
-    @Value("${openweather.base-url}")
-    private String OPENWEATHER_BASE_URL;
-
-    @Value("${openweather.api-key}")
-    private String OPENWEATHER_API_KEY;
-
+    private final OpenWeatherProperties properties;
     private final RestTemplate restTemplate;
 
     public Object getCurrentConditions(double lat, double lng) {
         try {
-            String url = OPENWEATHER_BASE_URL + "/weather"
-                    + "?appid=" + OPENWEATHER_API_KEY
+            String url = properties.baseUrl() + "/weather"
+                    + "?appid=" + properties.apiKey()
                     + "&lat=" + lat
                     + "&lon=" + lng;
             java.util.Map body = restTemplate.exchange(url, HttpMethod.GET, null, java.util.Map.class).getBody();

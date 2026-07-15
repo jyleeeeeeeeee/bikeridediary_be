@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -27,8 +28,10 @@ public class KakaoProvider implements OAuth2Provider {
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setBearerAuth(accessToken);
 
-            HttpEntity<Void> request = new HttpEntity<>(headers);
-            String response = restTemplate.postForObject(USER_INFO_URI, request, String.class);
+            HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+            String response = restTemplate
+                    .exchange(USER_INFO_URI, HttpMethod.POST, requestEntity, String.class)
+                    .getBody();
 
             JsonNode jsonNode = objectMapper.readTree(response);
 

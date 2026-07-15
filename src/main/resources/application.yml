@@ -35,14 +35,18 @@ openweather:
   base-url: https://api.openweathermap.org/data/2.5
 
 naver:
-  directions-url: https://naveropenapi.apigw.ntruss.com/map-direction-15/v1/driving
-  geocoding-url: https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode
+  search:
+    url: https://openapi.naver.com/v1/search/local
+  directions:
+    url: https://naveropenapi.apigw.ntruss.com/map-direction-15/v1/driving
+  geocoding:
+    url: https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode
 
 kakao:
   local-url: https://dapi.kakao.com/v2/local
 
 opinet:
-  base-url: http://www.opinet.co.kr/api
+  base-url: https://www.opinet.co.kr/api
 
 # API-Ninjas (모터사이클 제조사/모델 데이터)
 api-ninjas:
@@ -61,9 +65,7 @@ springdoc:
 server:
   port: 8081
 
-cloud:
-  aws:
-    s3:
-      bucket: your-bucket-name
-    region:
-      static: ap-northeast-2
+# 파일 저장 기본값 (프로필별로 override 가능)
+file:
+  upload-dir: uploads
+  base-url: http://localhost:8081/files
