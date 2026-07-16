@@ -38,7 +38,7 @@ public class SecurityConfig {
     };
 
     private final String[] GET_PERMIT_ALL_ENDPOINTS = {
-            "/api/v1/courses/public/**",
+            "/api/v1/courses",
             "/api/v1/bike-models/**",
     };
 

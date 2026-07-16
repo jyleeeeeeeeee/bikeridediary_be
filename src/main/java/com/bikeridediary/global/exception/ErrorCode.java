@@ -51,6 +51,9 @@ public enum ErrorCode {
     COURSE_ACCESS_DENIED(HttpStatus.FORBIDDEN, "COURSE_ACCESS_DENIED", "해당 코스에 대한 권한이 없습니다"),
     COURSE_GPX_PARSE_FAILED(HttpStatus.BAD_REQUEST, "COURSE_GPX_PARSE_FAILED", "GPX 파일 파싱에 실패했습니다"),
     COURSE_INVALID_FILE_TYPE(HttpStatus.BAD_REQUEST, "COURSE_INVALID_FILE", "GPX 파일만 업로드 가능합니다"),
+    COURSE_FAVORITE_ALREADY_EXISTS(HttpStatus.CONFLICT, "COURSE_FAVORITE_ALREADY_EXISTS", "이미 즐겨찾기한 코스입니다"),
+    COURSE_FAVORITE_NOT_FOUND(HttpStatus.NOT_FOUND, "COURSE_FAVORITE_NOT_FOUND", "즐겨찾기 기록을 찾을 수 없습니다"),
+    COURSE_FAVORITE_OWN_COURSE(HttpStatus.BAD_REQUEST, "COURSE_FAVORITE_OWN_COURSE", "내 코스는 즐겨찾기할 수 없습니다"),
 
     // 주유
     FUELING_NOT_FOUND(HttpStatus.NOT_FOUND, "FUELING_NOT_FOUND", "주유 기록을 찾을 수 없습니다"),
@@ -68,8 +71,10 @@ public enum ErrorCode {
 
     // 지도 DB 조회
     PLACE_NOT_FOUND(HttpStatus.NOT_FOUND, "PLACE_NOT_FOUND", "장소 조회에 실패했습니다."),
-    PLACE_CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "PLACE_CATEGORY_NOT_FOUND", "카테고리 조회에 실패했습니다.");
+    PLACE_CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "PLACE_CATEGORY_NOT_FOUND", "카테고리 조회에 실패했습니다."),
 
+    // 장소
+    PLACE_ALREADY_EXIST(HttpStatus.CONFLICT, "PLACE_ALREADY_EXIST", "장소가 이미 존재합니다.");
 
     private final HttpStatus httpStatus;
     private final String code;

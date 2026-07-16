@@ -2,7 +2,9 @@
 -- BikeRideDiary (바라다) PostgreSQL 스키마
 -- 대상 Entity: UserEntity, BikeEntity, MaintenanceEntity,
 --              MaintenanceScheduleEntity, FuelingEntity,
---              ManufacturerEntity, BikeModelEntity
+--              ManufacturerEntity, BikeModelEntity,
+--              PlaceCategoryEntity, PlaceEntity,
+--              CourseEntity, CourseWaypointEntity, CourseFavoriteEntity
 -- RefreshToken은 Redis에 저장되므로 PostgreSQL 스키마에 포함하지 않음
 -- ============================================================
 
@@ -136,8 +138,139 @@ CREATE TABLE IF NOT EXISTS bike_models (
 );
 
 -- ============================================================
--- 8. 인덱스
+-- 8. place_categories (장소 카테고리 마스터)
 -- ============================================================
+CREATE TABLE IF NOT EXISTS place_categories (
+    category_code VARCHAR(50) PRIMARY KEY,
+    category_name VARCHAR(50)  NOT NULL,
+    display_order INTEGER      NOT NULL DEFAULT 0,
+    created_at    TIMESTAMP    NOT NULL DEFAULT now(),
+    updated_at    TIMESTAMP
+    );
+
+-- ============================================================
+-- 9. places (라이더 큐레이션 POI)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS places (
+    id             UUID          DEFAULT gen_random_uuid() PRIMARY KEY,
+    place_name     VARCHAR(100)  NOT NULL,
+    user_id        UUID          REFERENCES users(id) ON DELETE SET NULL,
+    star_point     REAL,
+    wished_count   INTEGER       NOT NULL DEFAULT 0,
+    category_code  VARCHAR(50)   NOT NULL REFERENCES place_categories(category_code) ON DELETE RESTRICT,
+    latitude       NUMERIC(9,7)  NOT NULL,
+    longitude      NUMERIC(10,7) NOT NULL,
+    address        VARCHAR(200),
+    road_address   VARCHAR(200),
+    description    TEXT,
+    photo_url      VARCHAR(500),
+    phone          VARCHAR(30),
+    kakao_place_id VARCHAR(50),
+    naver_place_id VARCHAR(50),
+    created_at     TIMESTAMP     NOT NULL DEFAULT now(),
+    updated_at     TIMESTAMP,
+    deleted_at     TIMESTAMP
+    );
+
+-- ============================================================
+-- 10. place_wishes (장소 찜)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS place_wishes (
+    place_id   UUID      NOT NULL REFERENCES places(id) ON DELETE CASCADE,
+    user_id    UUID      NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP NOT NULL DEFAULT now(),
+
+    PRIMARY KEY (place_id, user_id)
+    );
+
+-- ============================================================
+-- 11. courses (라이딩 코스)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS courses (
+    id               UUID          DEFAULT gen_random_uuid() PRIMARY KEY,
+    -- user_id nullable: 시드/큐레이션 코스는 작성자 없음 (관리자가 seed로 넣은 코스)
+    -- ON DELETE SET NULL: 유저 탈퇴 시 코스 콘텐츠는 유지
+    user_id          UUID          REFERENCES users(id) ON DELETE SET NULL,
+    name             VARCHAR(100)  NOT NULL,
+    distance_meters  INTEGER       NOT NULL,
+    path             TEXT          NOT NULL,
+    is_public        BOOLEAN       NOT NULL DEFAULT TRUE,
+    -- 원본 코스 참조 — 원본 hard delete 시 SET NULL로 참조만 끊고 파생 코스는 유지
+    source_course_id UUID          REFERENCES courses(id) ON DELETE SET NULL,
+    created_at       TIMESTAMP     NOT NULL DEFAULT now(),
+    updated_at       TIMESTAMP
+    -- deleted_at 없음: courses는 hard delete 정책 (waypoints/favorites CASCADE 자동 삭제)
+    );
+
+-- ============================================================
+-- 12. course_waypoints (코스 경유지)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS course_waypoints (
+    id         UUID          DEFAULT gen_random_uuid() PRIMARY KEY,
+    course_id  UUID          NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+    seq        SMALLINT      NOT NULL,
+    role       VARCHAR(10)   NOT NULL,
+    -- 등록된 place 참조 (옵셔널) — 임의 지점(지도 롱프레스, GPX 임포트)은 NULL
+    -- ON DELETE SET NULL: place 삭제되어도 좌표 스냅샷이 남아 코스는 유효
+    place_id   UUID          REFERENCES places(id) ON DELETE SET NULL,
+    -- 좌표/이름은 스냅샷으로 저장 (place 수정/삭제에도 코스는 그때 그대로 유지)
+    name       VARCHAR(100),
+    latitude   NUMERIC(9,7)  NOT NULL,
+    longitude  NUMERIC(10,7) NOT NULL,
+
+    CONSTRAINT chk_waypoint_role CHECK (role IN ('START', 'VIA', 'END')),
+    CONSTRAINT uq_waypoint_course_seq UNIQUE (course_id, seq)
+    );
+
+-- ============================================================
+-- 13. course_favorites (코스 즐겨찾기)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS course_favorites (
+    course_id  UUID      NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+    user_id    UUID      NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP NOT NULL DEFAULT now(),
+
+    PRIMARY KEY (course_id, user_id)
+    );
+-- ============================================================
+-- 14. 인덱스
+-- ============================================================
+-- places: findByDeletedAtIsNullOrderByPlaceCategoryEntity_DisplayOrderAsc
+CREATE INDEX IF NOT EXISTS idx_places_category_deleted_at
+    ON places (category_code, deleted_at);
+
+-- places: 좌표 반경 검색 (PostGIS 도입 전 NUMERIC 기반, 삭제된 레코드 제외)
+CREATE INDEX IF NOT EXISTS idx_places_lat_lng
+    ON places (latitude, longitude)
+    WHERE deleted_at IS NULL;
+
+-- place_wishes: MY탭에서 user 기준 조회 (PK가 (place_id, user_id)라 user 단독 인덱스 별도 필요)
+CREATE INDEX IF NOT EXISTS idx_place_wishes_user_id
+    ON place_wishes (user_id);
+
+-- courses: 내 코스 조회 (user_id 기준)
+CREATE INDEX IF NOT EXISTS idx_courses_user_id
+    ON courses (user_id);
+
+-- courses: 탐색 목록 - 공개 코스만 (partial index)
+CREATE INDEX IF NOT EXISTS idx_courses_public
+    ON courses (is_public)
+    WHERE is_public = TRUE;
+
+-- courses: 최신순 정렬 지원
+CREATE INDEX IF NOT EXISTS idx_courses_updated_at
+    ON courses (updated_at DESC)
+    WHERE is_public = TRUE;
+
+-- course_favorites: user 기준 MY탭 조회 (PK가 course_id 시작이라 user 단독 인덱스 필요)
+CREATE INDEX IF NOT EXISTS idx_course_favorites_user_id
+    ON course_favorites (user_id);
+
+-- course_waypoints: place 역방향 조회 (특정 place를 지나는 코스 찾기 - 커뮤니티 확장 대비)
+-- place_id IS NOT NULL인 row만 포함하는 partial index
+CREATE INDEX IF NOT EXISTS idx_course_waypoints_place_id
+    ON course_waypoints (place_id)
+    WHERE place_id IS NOT NULL;
 
 -- bikes: findByUserEntityIdAndDeletedAtIsNullOrderByIsRepresentativeDescCreatedAtDesc
 CREATE INDEX IF NOT EXISTS idx_bikes_user_id_deleted_at ON bikes (user_id, deleted_at);

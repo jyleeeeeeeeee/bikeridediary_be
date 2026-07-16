@@ -28,6 +28,10 @@ import static com.bikeridediary.global.exception.ErrorCode.*;
 @RequiredArgsConstructor
 @Transactional
 public class PlaceService {
+
+    private static final double DUPLICATE_RADIUS_METERS = 100.0;
+    private static final BigDecimal LAT_DELTA_100M = new BigDecimal("0.0009"); // 100m ≈ 0.0009° 위도
+
     private final PlaceRepository placeRepository;
     private final PlaceCategoryRepository placeCategoryRepository;
     private final NaverSearchClient naverSearchClient;
@@ -82,10 +86,39 @@ public class PlaceService {
 
     public PlaceResponse addNewPlace(PlaceInsertRequest request, UUID userId) {
         UserEntity userEntity = verifyUserExists(userId);
+        String placeName = request.placeName();
+        BigDecimal lat = request.latitude();
+        BigDecimal lng = request.longitude();
+
+        // 1단계: bounding box (100m 반경을 감싸는 사각형)
+        // 위도는 어디서나 1° ≈ 111km 상수
+        // 경도는 cos(위도) 만큼 축소 (한국 37°N 기준 0.0009 / cos(37°) ≈ 0.00113°)
+        BigDecimal cosLat = BigDecimal.valueOf(Math.cos(Math.toRadians(lat.doubleValue())));
+        BigDecimal lngDelta = LAT_DELTA_100M.divide(cosLat, 10, RoundingMode.HALF_UP);
+
+        List<PlaceEntity> candidates = placeRepository.findNearbyByName(
+                placeName,
+                lat.subtract(LAT_DELTA_100M),
+                lat.add(LAT_DELTA_100M),
+                lng.subtract(lngDelta),
+                lng.add(lngDelta)
+        );
+
+        // 2단계: Haversine으로 실제 거리 확인 (사각형 → 원 정밀화)
+        boolean duplicate = candidates.stream().anyMatch(p ->
+                haversineMeters(lat, lng, p.getLatitude(), p.getLongitude())
+                        < DUPLICATE_RADIUS_METERS
+        );
+        if (duplicate) {
+            throw new BusinessException(PLACE_ALREADY_EXIST);
+        }
+
+
         PlaceCategoryEntity placeCategoryEntity = placeCategoryRepository.findById(request.category())
                 .orElse(PlaceCategoryEntity.create("OTHER", "기타", 9999));
+
         PlaceEntity placeEntity = PlaceEntity.create(
-                request.placeName(),
+                placeName,
                 userEntity,
                 placeCategoryEntity,
                 request.latitude(),
@@ -132,5 +165,26 @@ public class PlaceService {
         return userRepository.findByIdAndDeletedAtIsNull(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
     }
+
+    /**
+     * 두 좌표 사이의 대원 거리 (미터).
+     * 지구 반경 6371km 기준 Haversine 공식.
+     */
+    private static double haversineMeters(
+            BigDecimal lat1, BigDecimal lng1,
+            BigDecimal lat2, BigDecimal lng2
+    ) {
+        final double R = 6_371_000; // 지구 반경 (m)
+        double lat1Rad = Math.toRadians(lat1.doubleValue());
+        double lat2Rad = Math.toRadians(lat2.doubleValue());
+        double dLat = Math.toRadians(lat2.subtract(lat1).doubleValue());
+        double dLng = Math.toRadians(lng2.subtract(lng1).doubleValue());
+
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+                + Math.cos(lat1Rad) * Math.cos(lat2Rad)
+                * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
 
 }
