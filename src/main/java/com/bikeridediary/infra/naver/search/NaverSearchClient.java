@@ -29,13 +29,7 @@ public class NaverSearchClient {
 
         HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
 
-        String url = UriComponentsBuilder.fromUriString(properties.url())
-                .queryParam("query", query)
-                .queryParam("display", 5)
-                .encode(StandardCharsets.UTF_8)
-                .build()
-                .toString();
-
+        String url = properties.url() + "?query=" + query + "&display=5";
         return restTemplate
                 .exchange(url, HttpMethod.GET, requestEntity, NaverLocalSearchResponse.class)
                 .getBody();

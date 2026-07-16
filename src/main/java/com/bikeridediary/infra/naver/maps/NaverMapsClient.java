@@ -1,4 +1,4 @@
-package com.bikeridediary.infra.naver.drive;
+package com.bikeridediary.infra.naver.maps;
 
 import com.bikeridediary.infra.naver.search.dto.NaverLocalSearchResponse;
 import lombok.RequiredArgsConstructor;
@@ -16,9 +16,9 @@ import java.nio.charset.StandardCharsets;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class NaverDriveClient {
+public class NaverMapsClient {
 
-    private final NaverDriveProperties properties;
+    private final NaverMapsProperties properties;
     private final RestTemplate restTemplate;
 
     public NaverLocalSearchResponse search(String query) {

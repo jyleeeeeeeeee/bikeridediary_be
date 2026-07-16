@@ -37,10 +37,13 @@ openweather:
 naver:
   search:
     url: https://openapi.naver.com/v1/search/local
-  directions:
-    url: https://naveropenapi.apigw.ntruss.com/map-direction-15/v1/driving
+  maps:
+    url: https://maps.apigw.ntruss.com/map-direction/v1
+    url15: https://maps.apigw.ntruss.com/map-direction-15/v1
   geocoding:
-    url: https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode
+    url: https://maps.apigw.ntruss.com/map-geocode/v2
+  reverse-geocoding:
+    url: https://maps.apigw.ntruss.com/map-reversegeocode/v2
 
 kakao:
   local-url: https://dapi.kakao.com/v2/local
