@@ -1,14 +1,16 @@
 package com.bikeridediary.domain.place.entity;
 
 import com.bikeridediary.domain.common.entity.BaseEntity;
-import com.bikeridediary.domain.place.dto.CoordinateUpdateRequest;
-import com.bikeridediary.domain.place.dto.PlaceInfoUpdateRequest;
 import com.bikeridediary.domain.place_category.entity.PlaceCategoryEntity;
 import com.bikeridediary.domain.user.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.generator.EventType;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
@@ -25,7 +27,14 @@ public class PlaceEntity extends BaseEntity {
     // 장소 ID (UUID)
     @Id
     @Column(name = "id")
+    @JdbcTypeCode(SqlTypes.UUID)
     private UUID id;
+
+    // 조회용 친숙 번호 (자동 증가, DB DEFAULT nextval). insertable/updatable=false로
+    // 애플리케이션 관여 없이 DB 시퀀스가 담당. INSERT 후 값을 다시 읽어오도록 @Generated.
+    @Column(name = "no", insertable = false, updatable = false)
+    @Generated(event = EventType.INSERT)
+    private Long no;
 
     // 장소 이름
     @Column(name = "place_name", nullable = false, length = 100)
@@ -208,13 +217,18 @@ public class PlaceEntity extends BaseEntity {
         return placeEntity;
     }
 
-    public void updateCoordinates(CoordinateUpdateRequest request) {
-        this.latitude = request.latitude();
-        this.longitude = request.longitude();
+    public void updateCoordinates(BigDecimal latitude, BigDecimal longitude) {
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 
-    public void updateInfo(String placeName, PlaceCategoryEntity placeCategoryEntity) {
+    // 설명(description)은 null이면 기존 값 유지, 빈 문자열/공백만이면 삭제(null 처리),
+    // 그 외 값은 그대로 저장.
+    public void updateInfo(String placeName, PlaceCategoryEntity placeCategoryEntity, String description) {
         this.placeName = placeName;
         this.placeCategoryEntity = placeCategoryEntity;
+        if (description != null) {
+            this.description = description.isBlank() ? null : description;
+        }
     }
 }

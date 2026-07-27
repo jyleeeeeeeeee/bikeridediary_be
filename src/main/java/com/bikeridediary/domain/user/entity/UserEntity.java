@@ -5,6 +5,10 @@ import com.bikeridediary.domain.common.entity.BaseEntity;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.generator.EventType;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.nio.charset.StandardCharsets;
@@ -27,9 +31,16 @@ import java.util.UUID;
 @ToString(of = {"id", "nickname", "provider"})
 public class UserEntity extends BaseEntity {
 
+    // 조회용 친숙 번호 (자동 증가, DB DEFAULT nextval). insertable/updatable=false로
+    // 애플리케이션 관여 없이 DB 시퀀스가 담당. INSERT 후 값을 다시 읽어오도록 @Generated.
+    @Column(name = "no", insertable = false, updatable = false)
+    @Generated(event = EventType.INSERT)
+    private Long no;
+
     // 사용자 ID (UUID)
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @JdbcTypeCode(SqlTypes.UUID)
     private UUID id;
 
     // OAuth2 제공자 (kakao, google, apple)
@@ -59,6 +70,11 @@ public class UserEntity extends BaseEntity {
     // Firebase FCM 푸시 알림 토큰
     @Column(name = "fcm_token")
     private String fcmToken;
+
+    // 사용자 권한(USER : 일반 사용자, ADMIN : 운영자)
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private UserRole role = UserRole.USER;
 
     // 사용자가 소유한 바이크 목록 (양방향 One-To-Many)
     @OneToMany(mappedBy = "userEntity", cascade = CascadeType.PERSIST, orphanRemoval = false)

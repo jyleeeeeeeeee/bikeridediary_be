@@ -20,4 +20,6 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
     // 활성 사용자 중 이메일 중복 확인
     boolean existsByEmailAndDeletedAtIsNull(String email);
 
+    // no(자동 증가 조회 번호)로 특정 user 조회 — DB 관리/디버깅용
+    Optional<UserEntity> findByNo(Long no);
 }

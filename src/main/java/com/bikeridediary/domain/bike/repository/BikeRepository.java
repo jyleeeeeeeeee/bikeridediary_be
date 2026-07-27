@@ -25,4 +25,7 @@ public interface BikeRepository extends JpaRepository<BikeEntity, UUID> {
     @Modifying
     @Query("UPDATE BikeEntity b SET b.isRepresentative = false WHERE b.userEntity.id = :userId")
     void clearRepresentative(@Param("userId") UUID userId);
+
+    // no(자동 증가 조회 번호)로 특정 bike 조회 — DB 관리/디버깅용
+    Optional<BikeEntity> findByNo(Long no);
 }

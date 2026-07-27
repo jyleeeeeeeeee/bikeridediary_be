@@ -23,4 +23,7 @@ public interface MaintenanceScheduleRepository extends JpaRepository<Maintenance
 
     // 특정 바이크에 동일한 정비 종류의 주기가 존재하는지 확인
     boolean existsByBikeEntityIdAndMaintenanceTypeAndDeletedAtIsNull(UUID bikeId, MaintenanceType maintenanceType);
+
+    // no(자동 증가 조회 번호)로 특정 schedule 조회 — DB 관리/디버깅용
+    Optional<MaintenanceScheduleEntity> findByNo(Long no);
 }

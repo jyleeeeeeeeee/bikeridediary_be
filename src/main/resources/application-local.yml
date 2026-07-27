@@ -59,11 +59,11 @@ naver:
     client-id: dummy
     client-secret: dummy
   search:
-    client-id: ${X-Naver-Client-Id}
-    client-secret: ${X-Naver-Client-Secret}
+    client-id: ${NAVER_API_HUB_CLIENT_ID:dummy}
+    client-secret: ${NAVER_API_HUB_CLIENT_SECRET:dummy}
   maps:
-    client-id: ${X-NCP-APIGW-API-KEY-ID}
-    client-secret: ${X-NCP-APIGW-API-KEY}
+    client-id: ${NAVER_MAPS_CLIENT_ID:dummy}
+    client-secret: ${NAVER_MAPS_CLIENT_SECRET:dummy}
 
 kakao:
   api-key: dummy

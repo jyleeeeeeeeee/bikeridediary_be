@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Generated;
+import org.hibernate.generator.EventType;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 // 장소 카테고리 엔티티 - PlaceEntity가 참조하는 lookup 테이블 (LANDMARK/CAFE/SERVICE_CENTER 등, 관리자가 재배포 없이 관리)
@@ -14,6 +16,11 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PlaceCategoryEntity extends BaseEntity {
+
+    // 조회용 친숙 번호 (자동 증가, DB DEFAULT nextval)
+    @Column(name = "no", insertable = false, updatable = false)
+    @Generated(event = EventType.INSERT)
+    private Long no;
 
     // 카테고리 코드 (PK, 예: LANDMARK / CAFE / SERVICE_CENTER)
     @Id

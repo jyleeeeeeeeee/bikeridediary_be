@@ -6,7 +6,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public record NaverMapsProperties(
         String clientId,
         String clientSecret,
-        String url,
-        String url15
+        String directionUrl,
+        String direction15Url,
+        String geocodingUrl,
+        String reverseGeocodingUrl
 ) {
 }

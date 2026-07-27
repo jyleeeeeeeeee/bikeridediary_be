@@ -7,6 +7,10 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.generator.EventType;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
@@ -20,8 +24,14 @@ import java.util.UUID;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class FuelingEntity extends BaseEntity {
 
+    // 조회용 친숙 번호 (자동 증가, DB DEFAULT nextval)
+    @Column(name = "no", insertable = false, updatable = false)
+    @Generated(event = EventType.INSERT)
+    private Long no;
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @JdbcTypeCode(SqlTypes.UUID)
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)

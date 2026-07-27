@@ -1,9 +1,10 @@
 package com.bikeridediary.domain.fueling.repository;
 
 import com.bikeridediary.domain.fueling.entity.FuelingEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -11,7 +12,8 @@ public interface FuelingRepository extends JpaRepository<FuelingEntity, UUID> {
 
     Optional<FuelingEntity> findByIdAndDeletedAtIsNull(UUID id);
 
-    List<FuelingEntity> findByBikeEntityIdAndDeletedAtIsNullOrderByFuelingDateDescMileageAtFuelingDesc(UUID bikeId);
+    // 주유 이력 페이징 (fuelingDate DESC, mileageAtFueling DESC 정렬은 Pageable Sort로)
+    Page<FuelingEntity> findByBikeEntityIdAndDeletedAtIsNull(UUID bikeId, Pageable pageable);
 
     // 현재 주행거리 직전의 주유 기록 조회 (연비 계산용)
     Optional<FuelingEntity> findTopByBikeEntityIdAndMileageAtFuelingLessThanAndDeletedAtIsNullOrderByMileageAtFuelingDesc(
@@ -29,4 +31,7 @@ public interface FuelingRepository extends JpaRepository<FuelingEntity, UUID> {
             "SELECT MAX(f.mileageAtFueling) FROM FuelingEntity f " +
             "WHERE f.bikeEntity.id = :bikeId AND f.deletedAt IS NULL")
     Long findMaxMileageByBikeId(UUID bikeId);
+
+    // no(자동 증가 조회 번호)로 특정 fueling 조회 — DB 관리/디버깅용
+    Optional<FuelingEntity> findByNo(Long no);
 }

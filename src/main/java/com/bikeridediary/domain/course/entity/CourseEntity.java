@@ -6,6 +6,10 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.generator.EventType;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.util.UUID;
@@ -17,9 +21,15 @@ import java.util.UUID;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CourseEntity extends BaseEntity {
 
+    // 조회용 친숙 번호 (자동 증가, DB DEFAULT nextval)
+    @Column(name = "no", insertable = false, updatable = false)
+    @Generated(event = EventType.INSERT)
+    private Long no;
+
     // 코스 ID (클라이언트 UUID)
     @Id
     @Column(name = "id")
+    @JdbcTypeCode(SqlTypes.UUID)
     private UUID id;
 
     // 코스 작성자 (FK, nullable — 시드/큐레이션 코스는 작성자 없음)

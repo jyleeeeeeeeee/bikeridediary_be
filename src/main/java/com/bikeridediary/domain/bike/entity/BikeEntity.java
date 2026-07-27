@@ -7,6 +7,10 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.generator.EventType;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
@@ -23,9 +27,15 @@ import java.util.UUID;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class BikeEntity extends BaseEntity {
 
+    // 조회용 친숙 번호 (자동 증가, DB DEFAULT nextval)
+    @Column(name = "no", insertable = false, updatable = false)
+    @Generated(event = EventType.INSERT)
+    private Long no;
+
     // 바이크 ID (UUID)
     @Id
     @Column(name = "id")
+    @JdbcTypeCode(SqlTypes.UUID)
     private UUID id;
 
     // 소유 사용자 (FK)

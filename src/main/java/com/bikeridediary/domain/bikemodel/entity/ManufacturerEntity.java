@@ -4,12 +4,19 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Generated;
+import org.hibernate.generator.EventType;
 // 모터사이클 제조사 마스터 데이터
 @Entity
 @Table(name = "manufacturers")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ManufacturerEntity {
+
+    // 조회용 친숙 번호 (자동 증가, DB DEFAULT nextval)
+    @Column(name = "no", insertable = false, updatable = false)
+    @Generated(event = EventType.INSERT)
+    private Long no;
 
     // 제조사명 (PK, API-Ninjas make 파라미터와 동일)
     @Id

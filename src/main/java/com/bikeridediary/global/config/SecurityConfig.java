@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -25,13 +26,14 @@ import java.util.List;
 // Spring Security 설정 (상태 비저장 JWT 기반, 공개 엔드포인트 제외 인증 필수)
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final String[] PERMIT_ALL_ENDPOINTS = {
             "/api/v1/weathers/**",
             "/api/v1/auth/**",
             "/api/v1/stations/**",
-            "/api/v1/places/**",
+//            "/api/v1/places/**",
             "/swagger-ui/**",
             "/api-docs/**",
             "/logos/**",
@@ -40,6 +42,9 @@ public class SecurityConfig {
     private final String[] GET_PERMIT_ALL_ENDPOINTS = {
             "/api/v1/courses",
             "/api/v1/bike-models/**",
+            "/api/v1/places/**",
+//            "/api/v1/places/search-external",
+//            "/api/v1/places/geocode",
     };
 
     private final String[] AUTHENTICATED_ENDPOINTS = {

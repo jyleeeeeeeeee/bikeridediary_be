@@ -4,16 +4,19 @@ import com.bikeridediary.domain.fueling.dto.*;
 import com.bikeridediary.domain.fueling.service.FuelingService;
 import com.bikeridediary.global.auth.CustomUserDetails;
 import com.bikeridediary.global.response.ApiResponse;
+import com.bikeridediary.global.response.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @Tag(name = "주유 기록", description = "주유 이력 관리 및 연비 계산 API")
@@ -24,15 +27,19 @@ public class FuelingController {
 
     private final FuelingService fuelingService;
 
-    @Operation(summary = "주유 기록 목록 조회", description = "특정 바이크의 모든 주유 기록을 최신순으로 조회합니다.")
+    @Operation(summary = "주유 기록 목록 조회 (페이징)",
+            description = "특정 바이크의 주유 기록을 최신순으로 페이지 단위 조회합니다.")
     @GetMapping
-    public ResponseEntity<ApiResponse<List<FuelingResponse>>> getFuelings(
+    public ResponseEntity<ApiResponse<PageResponse<FuelingResponse>>> getFuelings(
             @RequestParam UUID bikeId,
-            @AuthenticationPrincipal CustomUserDetails userDetails
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PageableDefault(size = 20, sort = {"fuelingDate", "mileageAtFueling"},
+                    direction = Sort.Direction.DESC)
+            Pageable pageable
     ) {
         UUID userId = userDetails.getUserId();
-        List<FuelingResponse> fuelings = fuelingService.getFuelings(bikeId, userId);
-        return ResponseEntity.ok(ApiResponse.ok(fuelings));
+        return ResponseEntity.ok(ApiResponse.ok(
+                fuelingService.getFuelings(bikeId, userId, pageable)));
     }
 
     @Operation(summary = "주유 기록 상세 조회", description = "특정 주유 기록의 상세 정보를 조회합니다.")

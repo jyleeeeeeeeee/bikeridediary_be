@@ -12,9 +12,31 @@
 -- CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 -- ============================================================
+-- 0. 조회용 no 시퀀스 (각 테이블별 자동 증가 조회 번호)
+-- 각 테이블은 no BIGINT UNIQUE DEFAULT nextval('<table>_no_seq') 사용
+-- 애플리케이션은 관여하지 않고 DB DEFAULT + Hibernate @Generated(INSERT)로만 관리
+-- course_waypoints는 이미 seq(순서 인덱스)를 사용하므로 별도 no 컬럼도 함께 추가
+-- ============================================================
+CREATE SEQUENCE IF NOT EXISTS users_no_seq;
+CREATE SEQUENCE IF NOT EXISTS bikes_no_seq;
+CREATE SEQUENCE IF NOT EXISTS maintenances_no_seq;
+CREATE SEQUENCE IF NOT EXISTS maintenance_schedules_no_seq;
+CREATE SEQUENCE IF NOT EXISTS fuelings_no_seq;
+CREATE SEQUENCE IF NOT EXISTS manufacturers_no_seq;
+CREATE SEQUENCE IF NOT EXISTS bike_models_no_seq;
+CREATE SEQUENCE IF NOT EXISTS place_categories_no_seq;
+-- places_no_seq는 아래 places 섹션에서 이미 선언되어 있음 (기존)
+CREATE SEQUENCE IF NOT EXISTS place_wishes_no_seq;
+CREATE SEQUENCE IF NOT EXISTS courses_no_seq;
+CREATE SEQUENCE IF NOT EXISTS course_favorites_no_seq;
+CREATE SEQUENCE IF NOT EXISTS place_change_requests_no_seq;
+CREATE SEQUENCE IF NOT EXISTS course_waypoints_no_seq;
+
+-- ============================================================
 -- 1. users (사용자)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS users (
+    no                BIGINT       UNIQUE DEFAULT nextval('users_no_seq'),  -- 조회용 친숙 번호
     id                UUID         DEFAULT gen_random_uuid() PRIMARY KEY,
     provider          VARCHAR(20)  NOT NULL,
     provider_id       VARCHAR(255) NOT NULL,
@@ -23,17 +45,20 @@ CREATE TABLE IF NOT EXISTS users (
     nickname          VARCHAR(50)  NOT NULL,
     profile_image_url VARCHAR(255),
     fcm_token         VARCHAR(255),
+    role              VARCHAR(20)  NOT NULL DEFAULT 'USER',  -- 신규
     created_at        TIMESTAMP    NOT NULL DEFAULT now(),
     updated_at        TIMESTAMP,
     deleted_at        TIMESTAMP,
 
-    CONSTRAINT uq_users_provider UNIQUE (provider, provider_id)
-);
+    CONSTRAINT uq_users_provider UNIQUE (provider, provider_id),
+    CONSTRAINT chk_users_role CHECK (role IN ('USER', 'ADMIN'))  -- 신규
+    );
 
 -- ============================================================
 -- 2. bikes (바이크)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS bikes (
+    no                BIGINT       UNIQUE DEFAULT nextval('bikes_no_seq'),  -- 조회용 친숙 번호
     id                UUID         DEFAULT gen_random_uuid() PRIMARY KEY,
     user_id           UUID         NOT NULL REFERENCES users(id),
     manufacturer_name VARCHAR(100) NOT NULL,
@@ -57,6 +82,7 @@ CREATE TABLE IF NOT EXISTS bikes (
 -- 3. maintenances (정비 이력)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS maintenances (
+    no                     BIGINT       UNIQUE DEFAULT nextval('maintenances_no_seq'),  -- 조회용 친숙 번호
     id                     UUID         DEFAULT gen_random_uuid() PRIMARY KEY,
     bike_id                UUID         NOT NULL REFERENCES bikes(id),
     maintenance_type       VARCHAR(20)  NOT NULL,
@@ -75,6 +101,7 @@ CREATE TABLE IF NOT EXISTS maintenances (
 -- 4. maintenance_schedules (정비 주기)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS maintenance_schedules (
+    no                       BIGINT       UNIQUE DEFAULT nextval('maintenance_schedules_no_seq'),  -- 조회용 친숙 번호
     id                       UUID         DEFAULT gen_random_uuid() PRIMARY KEY,
     bike_id                  UUID         NOT NULL REFERENCES bikes(id),
     maintenance_type         VARCHAR(20)  NOT NULL,
@@ -89,6 +116,7 @@ CREATE TABLE IF NOT EXISTS maintenance_schedules (
 -- 5. fuelings (주유 기록)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS fuelings (
+    no                BIGINT         UNIQUE DEFAULT nextval('fuelings_no_seq'),  -- 조회용 친숙 번호
     id                UUID           DEFAULT gen_random_uuid() PRIMARY KEY,
     bike_id           UUID           NOT NULL REFERENCES bikes(id),
     fueling_date      DATE           NOT NULL,
@@ -109,6 +137,7 @@ CREATE TABLE IF NOT EXISTS fuelings (
 -- 6. manufacturers (제조사 마스터)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS manufacturers (
+    no                BIGINT       UNIQUE DEFAULT nextval('manufacturers_no_seq'),  -- 조회용 친숙 번호
     manufacturer_name VARCHAR(100) PRIMARY KEY,
     display_name_ko   VARCHAR(100) NOT NULL,
     country           VARCHAR(50),
@@ -121,6 +150,7 @@ CREATE TABLE IF NOT EXISTS manufacturers (
 -- 7. bike_models (바이크 모델 마스터)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS bike_models (
+    no                BIGINT       UNIQUE DEFAULT nextval('bike_models_no_seq'),  -- 조회용 친숙 번호 (PK id와 별개)
     id                BIGSERIAL    PRIMARY KEY,
     manufacturer_name VARCHAR(100) NOT NULL REFERENCES manufacturers(manufacturer_name),
     name              VARCHAR(150) NOT NULL,
@@ -141,6 +171,7 @@ CREATE TABLE IF NOT EXISTS bike_models (
 -- 8. place_categories (장소 카테고리 마스터)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS place_categories (
+    no            BIGINT       UNIQUE DEFAULT nextval('place_categories_no_seq'),  -- 조회용 친숙 번호
     category_code VARCHAR(50) PRIMARY KEY,
     category_name VARCHAR(50)  NOT NULL,
     display_order INTEGER      NOT NULL DEFAULT 0,
@@ -151,7 +182,11 @@ CREATE TABLE IF NOT EXISTS place_categories (
 -- ============================================================
 -- 9. places (라이더 큐레이션 POI)
 -- ============================================================
+-- 자동 증가 조회 번호용 시퀀스 (places.no)
+CREATE SEQUENCE IF NOT EXISTS places_no_seq;
+
 CREATE TABLE IF NOT EXISTS places (
+    no             BIGINT        UNIQUE DEFAULT nextval('places_no_seq'),  -- 조회용 친숙 번호. nullable, 자동 증가
     id             UUID          DEFAULT gen_random_uuid() PRIMARY KEY,
     place_name     VARCHAR(100)  NOT NULL,
     user_id        UUID          REFERENCES users(id) ON DELETE SET NULL,
@@ -172,10 +207,19 @@ CREATE TABLE IF NOT EXISTS places (
     deleted_at     TIMESTAMP
     );
 
+-- 기존 DB용 places.no 컬럼 보장 (신규 CREATE TABLE엔 이미 포함)
+ALTER TABLE places ADD COLUMN IF NOT EXISTS no BIGINT;
+ALTER TABLE places ALTER COLUMN no SET DEFAULT nextval('places_no_seq');
+-- UNIQUE 제약은 DO 블록으로 idempotent 처리하려 했으나 Spring의 ScriptUtils가
+-- PostgreSQL dollar quoting ($$)을 이해 못 함. 신규 CREATE TABLE에 이미 포함되어 있고,
+-- 기존 로컬 DB는 pm 마이그레이션에서 이미 반영. 필요 시 수동 SQL:
+--   ALTER TABLE places ADD CONSTRAINT uq_places_no UNIQUE (no);
+
 -- ============================================================
 -- 10. place_wishes (장소 찜)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS place_wishes (
+    no         BIGINT    UNIQUE DEFAULT nextval('place_wishes_no_seq'),  -- 조회용 친숙 번호
     place_id   UUID      NOT NULL REFERENCES places(id) ON DELETE CASCADE,
     user_id    UUID      NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     created_at TIMESTAMP NOT NULL DEFAULT now(),
@@ -187,6 +231,7 @@ CREATE TABLE IF NOT EXISTS place_wishes (
 -- 11. courses (라이딩 코스)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS courses (
+    no               BIGINT        UNIQUE DEFAULT nextval('courses_no_seq'),  -- 조회용 친숙 번호
     id               UUID          DEFAULT gen_random_uuid() PRIMARY KEY,
     -- user_id nullable: 시드/큐레이션 코스는 작성자 없음 (관리자가 seed로 넣은 코스)
     -- ON DELETE SET NULL: 유저 탈퇴 시 코스 콘텐츠는 유지
@@ -204,8 +249,11 @@ CREATE TABLE IF NOT EXISTS courses (
 
 -- ============================================================
 -- 12. course_waypoints (코스 경유지)
+-- seq (SMALLINT): waypoint 순서 인덱스 (0-based). 유지.
+-- no  (BIGINT): 조회용 친숙 번호. 신규 추가.
 -- ============================================================
 CREATE TABLE IF NOT EXISTS course_waypoints (
+    no         BIGINT        UNIQUE DEFAULT nextval('course_waypoints_no_seq'),  -- 조회용 친숙 번호
     id         UUID          DEFAULT gen_random_uuid() PRIMARY KEY,
     course_id  UUID          NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
     seq        SMALLINT      NOT NULL,
@@ -226,6 +274,7 @@ CREATE TABLE IF NOT EXISTS course_waypoints (
 -- 13. course_favorites (코스 즐겨찾기)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS course_favorites (
+    no         BIGINT    UNIQUE DEFAULT nextval('course_favorites_no_seq'),  -- 조회용 친숙 번호
     course_id  UUID      NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
     user_id    UUID      NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     created_at TIMESTAMP NOT NULL DEFAULT now(),
@@ -298,12 +347,37 @@ CREATE INDEX IF NOT EXISTS idx_users_email_deleted_at ON users (email, deleted_a
 -- bike_models: 제조사별 모델 조회
 CREATE INDEX IF NOT EXISTS idx_bike_models_manufacturer_name ON bike_models (manufacturer_name);
 
+-- 어드민 요청 목록: status=PENDING 기준 최신순 (부분 인덱스)
+CREATE INDEX IF NOT EXISTS idx_pcr_status_created
+    ON place_change_requests (status, created_at DESC)
+    WHERE status = 'PENDING';
+
+-- 요청자 본인 목록 조회
+CREATE INDEX IF NOT EXISTS idx_pcr_requester
+    ON place_change_requests (requester_id, created_at DESC);
+
+-- 특정 place에 대한 PENDING 존재 여부 조회 (D8: 중복 방지)
+CREATE INDEX IF NOT EXISTS idx_pcr_target_pending
+    ON place_change_requests (target_place_id)
+    WHERE status = 'PENDING' AND target_place_id IS NOT NULL;
+
+-- 중복 방지 UNIQUE (부분): 같은 target_place_id + PENDING 조합 유일
+-- UPDATE_COORDINATES와 UPDATE_INFO를 통틀어 target 하나에 대해 PENDING 1개만 허용
+-- (뷰가 두 개 요청을 동시에 승인하면 순서 문제 있어 아예 UPDATE 계열 통틀어 1건 강제)
+CREATE UNIQUE INDEX IF NOT EXISTS uq_pcr_target_pending
+    ON place_change_requests (target_place_id)
+    WHERE status = 'PENDING' AND target_place_id IS NOT NULL;
+
 -- ============================================================
 -- 9. 레거시 컬럼 정리 (ddl-auto:update는 컬럼을 삭제하지 않음)
 -- ============================================================
 ALTER TABLE manufacturers DROP COLUMN IF EXISTS created_at;
 ALTER TABLE manufacturers DROP COLUMN IF EXISTS updated_at;
 ALTER TABLE bike_models DROP COLUMN IF EXISTS created_at;
+-- 2026-07-21: users.role 컬럼 추가 (승인 워크플로 도입)
+ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(20) NOT NULL DEFAULT 'USER';
+ALTER TABLE users DROP CONSTRAINT IF EXISTS chk_users_role;
+ALTER TABLE users ADD CONSTRAINT chk_users_role CHECK (role IN ('USER', 'ADMIN'));
 
 -- ============================================================
 -- 10. 타입 마이그레이션 (INTEGER → BIGINT, Entity Long 필드 반영)
@@ -318,4 +392,95 @@ ALTER TABLE fuelings ALTER COLUMN mileage_at_fueling TYPE BIGINT;
 ALTER TABLE fuelings ALTER COLUMN price_per_liter TYPE BIGINT;
 ALTER TABLE fuelings ALTER COLUMN total_cost TYPE BIGINT;
 
+-- ============================================================
+-- 11. 기존 DB용 no 컬럼 마이그레이션 (이미 테이블 있는 환경)
+-- places는 위에 이미 있음. 나머지 13개 테이블(course_waypoints 포함, 여기선 no만 추가)에 동일 패턴 적용.
+-- - ADD COLUMN IF NOT EXISTS no BIGINT
+-- - SET DEFAULT nextval('<table>_no_seq')
+-- - UNIQUE 제약 (uq_<table>_no) 없으면 추가
+-- 기존 seq 시퀀스/컬럼/제약이 있었다면 아래 마이그레이션 블록에서 RENAME 처리.
+-- ============================================================
+-- 기존 DB용 no 컬럼 보장 (신규 CREATE TABLE엔 이미 포함).
+-- ALTER ... ADD COLUMN IF NOT EXISTS는 Spring ScriptUtils 세미콜론 스플릿과 호환.
+ALTER TABLE users                  ADD COLUMN IF NOT EXISTS no BIGINT;
+ALTER TABLE bikes                  ADD COLUMN IF NOT EXISTS no BIGINT;
+ALTER TABLE maintenances           ADD COLUMN IF NOT EXISTS no BIGINT;
+ALTER TABLE maintenance_schedules  ADD COLUMN IF NOT EXISTS no BIGINT;
+ALTER TABLE fuelings               ADD COLUMN IF NOT EXISTS no BIGINT;
+ALTER TABLE manufacturers          ADD COLUMN IF NOT EXISTS no BIGINT;
+ALTER TABLE bike_models            ADD COLUMN IF NOT EXISTS no BIGINT;
+ALTER TABLE place_categories       ADD COLUMN IF NOT EXISTS no BIGINT;
+ALTER TABLE place_wishes           ADD COLUMN IF NOT EXISTS no BIGINT;
+ALTER TABLE courses                ADD COLUMN IF NOT EXISTS no BIGINT;
+ALTER TABLE course_favorites       ADD COLUMN IF NOT EXISTS no BIGINT;
+ALTER TABLE place_change_requests  ADD COLUMN IF NOT EXISTS no BIGINT;
+ALTER TABLE course_waypoints       ADD COLUMN IF NOT EXISTS no BIGINT;
+
+-- DEFAULT nextval 세팅 (idempotent — 같은 시퀀스 반복 지정 무해)
+ALTER TABLE users                  ALTER COLUMN no SET DEFAULT nextval('users_no_seq');
+ALTER TABLE bikes                  ALTER COLUMN no SET DEFAULT nextval('bikes_no_seq');
+ALTER TABLE maintenances           ALTER COLUMN no SET DEFAULT nextval('maintenances_no_seq');
+ALTER TABLE maintenance_schedules  ALTER COLUMN no SET DEFAULT nextval('maintenance_schedules_no_seq');
+ALTER TABLE fuelings               ALTER COLUMN no SET DEFAULT nextval('fuelings_no_seq');
+ALTER TABLE manufacturers          ALTER COLUMN no SET DEFAULT nextval('manufacturers_no_seq');
+ALTER TABLE bike_models            ALTER COLUMN no SET DEFAULT nextval('bike_models_no_seq');
+ALTER TABLE place_categories       ALTER COLUMN no SET DEFAULT nextval('place_categories_no_seq');
+ALTER TABLE place_wishes           ALTER COLUMN no SET DEFAULT nextval('place_wishes_no_seq');
+ALTER TABLE courses                ALTER COLUMN no SET DEFAULT nextval('courses_no_seq');
+ALTER TABLE course_favorites       ALTER COLUMN no SET DEFAULT nextval('course_favorites_no_seq');
+ALTER TABLE place_change_requests  ALTER COLUMN no SET DEFAULT nextval('place_change_requests_no_seq');
+ALTER TABLE course_waypoints       ALTER COLUMN no SET DEFAULT nextval('course_waypoints_no_seq');
+
+-- 참고: UNIQUE 제약 및 seq→no RENAME 마이그레이션은 Spring ScriptUtils가 DO $$ 블록을
+-- 지원하지 않아 여기서 실행 못 함. 신규 CREATE TABLE 정의에 UNIQUE가 이미 있고,
+-- 기존 로컬 DB는 pm 마이그레이션에서 반영 완료. 다른 환경에서 필요 시 수동 SQL로 실행.
+
 -- 제조사 초기 데이터는 data.sql에서 관리 (Hibernate 초기화 이후 실행)
+
+-- ============================================================
+-- 15. place_change_requests (장소 변경 요청 큐)
+-- ============================================================
+-- 유저의 신규 장소 등록 요청 / 좌표 수정 / 정보 수정을 어드민 승인 큐로 관리.
+-- 승인되면 places 테이블 반영 후 status=APPROVED, 거절되면 status=REJECTED.
+-- (D6=A: 승인 클릭 트랜잭션 내에서 즉시 places 반영)
+CREATE TABLE IF NOT EXISTS place_change_requests (
+    no               BIGINT       UNIQUE DEFAULT nextval('place_change_requests_no_seq'),  -- 조회용 친숙 번호
+    id               UUID         DEFAULT gen_random_uuid() PRIMARY KEY,
+
+    -- 요청 종류: CREATE / UPDATE_COORDINATES / UPDATE_INFO
+    type             VARCHAR(30)  NOT NULL,
+
+    -- 수정 대상 place (UPDATE_* 계열만 값 있음, CREATE는 NULL)
+    -- ON DELETE CASCADE: place 삭제되면 관련 요청도 정리 (히스토리 유지 필요 시 SET NULL로 변경)
+    target_place_id  UUID         REFERENCES places(id) ON DELETE CASCADE,
+
+    -- 요청자 (NOT NULL). 유저 탈퇴 시 요청 히스토리도 사라져도 무방하므로 CASCADE.
+    requester_id     UUID         NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+
+    -- type별 payload (JSONB)
+    --   CREATE:              { clientUuid, placeName, category, latitude, longitude,
+    --                          address, roadAddress, description, phone, photoUrl }
+    --   UPDATE_COORDINATES:  { latitude, longitude }
+    --   UPDATE_INFO:         { placeName, category }
+    payload          JSONB        NOT NULL,
+
+    -- PENDING / APPROVED / REJECTED
+    status           VARCHAR(20)  NOT NULL DEFAULT 'PENDING',
+
+    -- 어드민이 남기는 승인/거절 사유
+    review_note      TEXT,
+
+    -- 검토한 어드민 (nullable, PENDING 상태에서는 NULL)
+    reviewed_by      UUID         REFERENCES users(id) ON DELETE SET NULL,
+    reviewed_at      TIMESTAMP,
+
+    created_at       TIMESTAMP    NOT NULL DEFAULT now(),
+
+    CONSTRAINT chk_pcr_type   CHECK (type IN ('CREATE', 'UPDATE_COORDINATES', 'UPDATE_INFO')),
+    CONSTRAINT chk_pcr_status CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED')),
+    -- CREATE 요청은 target 없어야 하고, UPDATE_* 는 target 필수
+    CONSTRAINT chk_pcr_target CHECK (
+(type = 'CREATE' AND target_place_id IS NULL) OR
+(type IN ('UPDATE_COORDINATES', 'UPDATE_INFO') AND target_place_id IS NOT NULL)
+    )
+    );

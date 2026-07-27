@@ -30,40 +30,28 @@ public class PlaceController {
         return ResponseEntity.ok(ApiResponse.ok(placeService.list(category)));
     }
 
-    @Operation(summary = "장소 좌표 변경")
-    @PatchMapping("/{id}/coordinates")
-    public ResponseEntity<ApiResponse<PlaceResponse>> updateCoordinates(
-            @PathVariable("id") UUID id,
-            @RequestBody CoordinateUpdateRequest request
-    ) {
-        return ResponseEntity.ok(ApiResponse.ok(placeService.updateCoordinates(id, request)));
-    }
-
-    @Operation(summary = "장소 정보 변경")
-    @PatchMapping("/{id}/info")
-    public ResponseEntity<ApiResponse<PlaceResponse>> updateInfo(
-            @PathVariable("id") UUID id,
-            @RequestBody PlaceInfoUpdateRequest request
-    ) {
-        return ResponseEntity.ok(ApiResponse.ok(placeService.updateInfo(id, request)));
-    }
-
-    @Operation(summary = "네이버 지역 검색")
+    @Operation(summary = "네이버 지역 검색 (start=1부터, 페이지당 5건 상한)")
     @GetMapping("/search-external")
     public ResponseEntity<ApiResponse<List<PlaceCandidateResponse>>> searchExternal(
+            @RequestParam String query,
+            @RequestParam(required = false, defaultValue = "1") int start
+    ) {
+        return ResponseEntity.ok(ApiResponse.ok(placeService.searchExternal(query, start)));
+    }
+
+    @Operation(summary = "주소 검색 (NCP Geocoding)")
+    @GetMapping("/geocode")
+    public ResponseEntity<ApiResponse<List<GeocodeResultResponse>>> geocode(
             @RequestParam String query
     ) {
-        return ResponseEntity.ok(ApiResponse.ok(placeService.searchExternal(query)));
+        return ResponseEntity.ok(ApiResponse.ok(placeService.geocode(query)));
+    }
+
+    @Operation(summary = "장소 등록 순위 (유저별 등록 건수 내림차순)")
+    @GetMapping("/rankings")
+    public ResponseEntity<ApiResponse<List<PlaceRankingResponse>>> rankings() {
+        return ResponseEntity.ok(ApiResponse.ok(placeService.getRankings()));
     }
 
 
-    @Operation(summary = "네이버 지역 검색 결과 등록")
-    @PostMapping
-    public ResponseEntity<ApiResponse<PlaceResponse>> addNewPlace(
-            @RequestBody PlaceInsertRequest request,
-            @AuthenticationPrincipal CustomUserDetails userDetails
-    ) {
-        UUID userId = userDetails.getUserId();
-        return ResponseEntity.ok(ApiResponse.ok(placeService.addNewPlace(request, userId)));
-    }
 }

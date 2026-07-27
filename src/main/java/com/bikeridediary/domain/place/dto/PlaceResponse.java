@@ -7,6 +7,7 @@ import java.util.UUID;
 
 public record PlaceResponse(
         UUID id,
+        UUID userId,          // 등록자 UUID (nullable — 시드/큐레이션 장소는 없음)
         String placeName,
         String category,
         BigDecimal latitude,
@@ -22,6 +23,7 @@ public record PlaceResponse(
     public static PlaceResponse from(PlaceEntity entity) {
         return new PlaceResponse(
                 entity.getId(),
+                entity.getUserEntity() == null ? null : entity.getUserEntity().getId(),
                 entity.getPlaceName(),
                 entity.getPlaceCategoryEntity().getCategoryCode(),
                 entity.getLatitude(),

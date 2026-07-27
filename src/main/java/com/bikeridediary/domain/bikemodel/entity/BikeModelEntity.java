@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Generated;
+import org.hibernate.generator.EventType;
 // 바이크 모델 마스터 데이터 — API-Ninjas로부터 동기화
 @Entity
 @Table(name = "bike_models",
@@ -11,6 +13,11 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class BikeModelEntity {
+
+    // 조회용 친숙 번호 (자동 증가, DB DEFAULT nextval - 기존 PK id와는 별개)
+    @Column(name = "no", insertable = false, updatable = false)
+    @Generated(event = EventType.INSERT)
+    private Long no;
 
     // 모델 ID
     @Id

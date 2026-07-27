@@ -4,6 +4,8 @@ import com.bikeridediary.global.response.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -35,6 +37,20 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.fail(ErrorCode.INVALID_INPUT.getCode(), message));
+    }
+
+    // 인가 실패 (@PreAuthorize 등에서 발생) — 403 반환
+    // @EnableMethodSecurity로 던지는 AuthorizationDeniedException,
+    // 그 상위의 AccessDeniedException 둘 다 처리.
+    @ExceptionHandler({AuthorizationDeniedException.class, AccessDeniedException.class})
+    public ResponseEntity<ApiResponse<Void>> handleAccessDenied(RuntimeException e) {
+        log.warn("Access denied: {}", e.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.fail(
+                        ErrorCode.FORBIDDEN.getCode(),
+                        ErrorCode.FORBIDDEN.getMessage()
+                ));
     }
 
     // 처리되지 않은 예외

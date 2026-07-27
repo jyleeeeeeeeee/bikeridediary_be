@@ -8,7 +8,10 @@ import com.bikeridediary.domain.fueling.repository.FuelingRepository;
 import com.bikeridediary.domain.maintenance.repository.MaintenanceRepository;
 import com.bikeridediary.global.exception.BusinessException;
 import com.bikeridediary.global.exception.ErrorCode;
+import com.bikeridediary.global.response.PageResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,15 +29,23 @@ public class FuelingService {
     private final BikeRepository bikeRepository;
     private final MaintenanceRepository maintenanceRepository;
 
-    public List<FuelingResponse> getFuelings(UUID bikeId, UUID userId) {
+    // 사용자 화면 목록 (페이징) — fuelingDate DESC, 동일 날짜는 mileageAtFueling DESC
+    public PageResponse<FuelingResponse> getFuelings(UUID bikeId, UUID userId, Pageable pageable) {
         BikeEntity bikeEntity = findBikeOrThrow(bikeId);
         verifyBikeOwnership(bikeEntity, userId);
 
+        return PageResponse.of(
+                fuelingRepository.findByBikeEntityIdAndDeletedAtIsNull(bikeId, pageable),
+                FuelingResponse::from
+        );
+    }
+
+    // 통계 계산용 내부 조회 — 전체 데이터 필요 (fuelings 컬렉션 순회로 sum/avg 계산)
+    private List<FuelingEntity> loadAllFuelings(UUID bikeId) {
         return fuelingRepository
-                .findByBikeEntityIdAndDeletedAtIsNullOrderByFuelingDateDescMileageAtFuelingDesc(bikeId)
-                .stream()
-                .map(FuelingResponse::from)
-                .toList();
+                .findByBikeEntityIdAndDeletedAtIsNull(bikeId, Pageable.unpaged(
+                        Sort.by(Sort.Direction.DESC, "fuelingDate", "mileageAtFueling")))
+                .getContent();
     }
 
     public FuelingResponse getFueling(UUID fuelingId, UUID userId) {
@@ -109,8 +120,7 @@ public class FuelingService {
         BikeEntity bikeEntity = findBikeOrThrow(bikeId);
         verifyBikeOwnership(bikeEntity, userId);
 
-        List<FuelingEntity> fuelings = fuelingRepository
-                .findByBikeEntityIdAndDeletedAtIsNullOrderByFuelingDateDescMileageAtFuelingDesc(bikeId);
+        List<FuelingEntity> fuelings = loadAllFuelings(bikeId);
 
         if (fuelings.isEmpty()) {
             return new FuelingStatsResponse(0, BigDecimal.ZERO, 0L, null, null, null);
@@ -164,8 +174,7 @@ public class FuelingService {
     }
 
     private void updateBikeFuelEfficiency(BikeEntity bikeEntity) {
-        List<FuelingEntity> fuelings = fuelingRepository
-                .findByBikeEntityIdAndDeletedAtIsNullOrderByFuelingDateDescMileageAtFuelingDesc(bikeEntity.getId());
+        List<FuelingEntity> fuelings = loadAllFuelings(bikeEntity.getId());
 
         List<BigDecimal> efficiencies = fuelings.stream()
                 .filter(f -> f.getFuelEfficiency() != null)

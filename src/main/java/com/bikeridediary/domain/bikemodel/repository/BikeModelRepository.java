@@ -7,9 +7,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public interface BikeModelRepository extends JpaRepository<BikeModelEntity, Long> {
+
+    // no(자동 증가 조회 번호)로 특정 bike_model 조회 — DB 관리/디버깅용
+    Optional<BikeModelEntity> findByNo(Long no);
 
     List<BikeModelEntity> findByManufacturerManufacturerNameOrderByNameAsc(String manufacturerName);
 

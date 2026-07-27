@@ -5,10 +5,14 @@ import com.bikeridediary.domain.maintenance.dto.MaintenanceResponse;
 import com.bikeridediary.domain.maintenance.dto.MaintenanceUpdateRequest;
 import com.bikeridediary.domain.maintenance.service.MaintenanceService;
 import com.bikeridediary.global.response.ApiResponse;
+import com.bikeridediary.global.response.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -28,15 +32,18 @@ public class MaintenanceController {
 
     private final MaintenanceService maintenanceService;
 
-    @Operation(summary = "정비 기록 목록 조회", description = "특정 바이크의 모든 정비 기록을 최신순으로 조회합니다.")
+    @Operation(summary = "정비 기록 목록 조회 (페이징)",
+            description = "특정 바이크의 정비 기록을 최신순으로 페이지 단위 조회합니다.")
     @GetMapping
-    public ResponseEntity<ApiResponse<List<MaintenanceResponse>>> getMaintenances(
+    public ResponseEntity<ApiResponse<PageResponse<MaintenanceResponse>>> getMaintenances(
             @RequestParam UUID bikeId,
-            @AuthenticationPrincipal CustomUserDetails userDetails
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PageableDefault(size = 20, sort = "maintenanceDate", direction = Sort.Direction.DESC)
+            Pageable pageable
     ) {
         UUID userId = userDetails.getUserId();
-        List<MaintenanceResponse> maintenances = maintenanceService.getMaintenances(bikeId, userId);
-        return ResponseEntity.ok(ApiResponse.ok(maintenances));
+        return ResponseEntity.ok(ApiResponse.ok(
+                maintenanceService.getMaintenances(bikeId, userId, pageable)));
     }
 
     @Operation(summary = "정비 기록 상세 조회", description = "특정 정비 기록의 상세 정보를 조회합니다.")

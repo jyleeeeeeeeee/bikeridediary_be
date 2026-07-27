@@ -11,15 +11,15 @@ import com.bikeridediary.domain.course.repository.CourseRepository;
 import com.bikeridediary.domain.course.repository.CourseWaypointRepository;
 import com.bikeridediary.domain.user.repository.UserRepository;
 import com.bikeridediary.global.exception.BusinessException;
+import com.bikeridediary.global.response.PageResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static com.bikeridediary.global.exception.ErrorCode.*;
 
@@ -32,29 +32,41 @@ public class CourseService {
     private final CourseFavoriteRepository courseFavoriteRepository;
     private final CourseWaypointRepository courseWaypointRepository;
 
-
+    // 내가 만든 코스 (페이징) — 항상 isMineOnly=true 로 매핑되므로 isFavorited=false
     @Transactional(readOnly = true)
-    public List<CourseSummaryResponse> getMyList(UUID userId) {
-        List<CourseEntity> myCourses = courseRepository.findByUserEntityIdOrderByCreatedAtDesc(userId);
-        List<CourseEntity> favorites = courseRepository.findFavoritedByOthers(userId);
-
-        List<CourseSummaryResponse> result = new ArrayList<>();
-        myCourses.forEach(course -> result.add(CourseSummaryResponse.from(course, userId, false)));
-        favorites.forEach(course -> result.add(CourseSummaryResponse.from(course, userId, true)));
-        return result;
+    public PageResponse<CourseSummaryResponse> getMyOwnedCourses(UUID userId, Pageable pageable) {
+        return PageResponse.of(
+                courseRepository.findByUserEntityId(userId, pageable),
+                course -> CourseSummaryResponse.from(course, userId, false)
+        );
     }
 
+    // 내가 즐겨찾기한 코스 (Slice) — 무한 스크롤용, count 절약
     @Transactional(readOnly = true)
-    public List<CourseSummaryResponse> getPublicList(UUID userId, String keyword) {
-        List<CourseEntity> courses = (keyword == null || keyword.isBlank())
-            ? courseRepository.findByIsPublicTrueOrderByCreatedAtDesc()
-            : courseRepository.searchPublicByName(keyword);
+    public PageResponse<CourseSummaryResponse> getMyFavoriteCourses(UUID userId, Pageable pageable) {
+        return PageResponse.ofSlice(
+                courseRepository.findFavoritedByOthers(userId, pageable),
+                course -> CourseSummaryResponse.from(course, userId, true)
+        );
+    }
 
-        Set<UUID> myFavoriteIds = (userId == null) ? Set.of() : courseRepository.findFavoritedByOthers(userId)
-                .stream().map(CourseEntity::getId).collect(Collectors.toSet());
-        return courses.stream()
-                .map(course -> CourseSummaryResponse.from(course, userId, myFavoriteIds.contains(course.getId())))
-                .toList();
+    // 탐색탭 — 공개 코스 (Slice). userId 있으면 페이지 단위 favorite 여부 batch 조회.
+    @Transactional(readOnly = true)
+    public PageResponse<CourseSummaryResponse> getPublicList(UUID userId, String keyword, Pageable pageable) {
+        var slice = (keyword == null || keyword.isBlank())
+                ? courseRepository.findByIsPublicTrue(pageable)
+                : courseRepository.searchPublicByName(keyword, pageable);
+
+        // 페이지에 포함된 courseId만 대상으로 favorite 여부 batch 조회 (N+1 방지)
+        List<UUID> pageIds = slice.getContent().stream().map(CourseEntity::getId).toList();
+        Set<UUID> favoritedIds = (userId == null || pageIds.isEmpty())
+                ? Set.of()
+                : Set.copyOf(courseRepository.findFavoritedCourseIdsIn(userId, pageIds));
+
+        return PageResponse.ofSlice(
+                slice,
+                course -> CourseSummaryResponse.from(course, userId, favoritedIds.contains(course.getId()))
+        );
     }
 
     @Transactional(readOnly = true)

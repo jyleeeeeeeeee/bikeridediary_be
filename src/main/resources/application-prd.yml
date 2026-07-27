@@ -50,8 +50,12 @@ openweather:
   api-key: ${OPENWEATHER_API_KEY}
 
 naver:
-  client-id: ${NAVER_CLIENT_ID}
-  client-secret: ${NAVER_CLIENT_SECRET}
+  search:
+    client-id: ${NAVER_API_HUB_CLIENT_ID}
+    client-secret: ${NAVER_API_HUB_CLIENT_SECRET}
+  maps:
+    client-id: ${NAVER_MAPS_CLIENT_ID}
+    client-secret: ${NAVER_MAPS_CLIENT_SECRET}
 
 kakao:
   api-key: ${KAKAO_API_KEY}

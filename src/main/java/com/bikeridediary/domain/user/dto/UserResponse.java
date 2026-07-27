@@ -1,6 +1,7 @@
 package com.bikeridediary.domain.user.dto;
 
 import com.bikeridediary.domain.user.entity.UserEntity;
+import com.bikeridediary.domain.user.entity.UserRole;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -23,7 +24,9 @@ public record UserResponse(
         String profileImageUrl,
 
         // 가입 일시
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+
+        UserRole role
 ) {
 
     // UserEntity로부터 응답 DTO 생성
@@ -34,7 +37,8 @@ public record UserResponse(
                 userEntity.getNickname(),
                 userEntity.getEmail(),
                 userEntity.getProfileImageUrl(),
-                userEntity.getCreatedAt()
+                userEntity.getCreatedAt(),
+                userEntity.getRole()
         );
     }
 }

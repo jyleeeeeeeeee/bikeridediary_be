@@ -10,12 +10,14 @@ import com.bikeridediary.domain.maintenance.entity.MaintenanceEntity;
 import com.bikeridediary.domain.maintenance.repository.MaintenanceRepository;
 import com.bikeridediary.global.exception.BusinessException;
 import com.bikeridediary.global.exception.ErrorCode;
+import com.bikeridediary.global.response.PageResponse;
 import com.bikeridediary.utils.ImageStorageService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,15 +40,15 @@ public class MaintenanceService {
     private final FuelingRepository fuelingRepository;
     private final ObjectMapper objectMapper;
 
-    // 특정 바이크의 모든 정비 기록 조회
-    public List<MaintenanceResponse> getMaintenances(UUID bikeId, UUID userId) {
+    // 특정 바이크의 정비 기록 (페이징)
+    public PageResponse<MaintenanceResponse> getMaintenances(UUID bikeId, UUID userId, Pageable pageable) {
         BikeEntity bikeEntity = findBikeOrThrow(bikeId);
         verifyBikeOwnership(bikeEntity, userId);
 
-        return maintenanceRepository.findByBikeEntityIdAndDeletedAtIsNullOrderByMaintenanceDateDesc(bikeId)
-                .stream()
-                .map(this::responseMaintenance)
-                .toList();
+        return PageResponse.of(
+                maintenanceRepository.findByBikeEntityIdAndDeletedAtIsNull(bikeId, pageable),
+                this::responseMaintenance
+        );
     }
 
     // 특정 정비 기록 조회

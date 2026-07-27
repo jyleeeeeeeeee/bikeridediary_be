@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface CourseWaypointRepository extends JpaRepository<CourseWaypointEntity, UUID> {
@@ -18,4 +19,7 @@ public interface CourseWaypointRepository extends JpaRepository<CourseWaypointEn
         ORDER BY w.seq ASC
         """)
     List<CourseWaypointEntity> findByCourseEntityIdWithPlaceOrderBySeqAsc(@Param("courseId") UUID courseId);
+
+    // no(자동 증가 조회 번호)로 특정 waypoint 조회 — DB 관리/디버깅용
+    Optional<CourseWaypointEntity> findByNo(Long no);
 }

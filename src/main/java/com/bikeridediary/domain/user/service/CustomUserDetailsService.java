@@ -6,7 +6,6 @@ import com.bikeridediary.global.auth.CustomUserDetails;
 import com.bikeridediary.global.exception.BusinessException;
 import com.bikeridediary.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -23,20 +22,13 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
 
-    @Transactional(readOnly = true)
-    public UserDetails loadUserById(String userId) throws UsernameNotFoundException {
-        return this.loadUserByUsername(userId);
-    }
-
     @Override
+    @Transactional
     public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
         UserEntity userEntity = userRepository.findByIdAndDeletedAtIsNull(UUID.fromString(userId))
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        return new CustomUserDetails(
-                userEntity.getId(),
-                List.of(new SimpleGrantedAuthority("ROLE_USER"))
-        );
+        return new CustomUserDetails(userEntity.getId(), userEntity.getRole());
     }
 
 
