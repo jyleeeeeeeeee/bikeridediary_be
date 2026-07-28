@@ -2,9 +2,6 @@ package com.bikeridediary.domain.maintenance.dto;
 
 import com.bikeridediary.domain.maintenance.entity.MaintenanceEntity;
 import com.bikeridediary.domain.maintenance.entity.MaintenanceType;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -41,7 +38,7 @@ public record MaintenanceResponse(
     public static MaintenanceResponse from(MaintenanceEntity entity, List<String> imageUrls) {
         return new MaintenanceResponse(
                 entity.getId(),
-                entity.getBikeEntity().getId(),
+                entity.getBike().getId(),
                 entity.getMaintenanceType(),
                 entity.getMaintenanceDate(),
                 entity.getMileageAtMaintenance(),

@@ -30,13 +30,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final String[] PERMIT_ALL_ENDPOINTS = {
-            "/api/v1/weathers/**",
-            "/api/v1/auth/**",
-            "/api/v1/stations/**",
-//            "/api/v1/places/**",
-            "/swagger-ui/**",
-            "/api-docs/**",
-            "/logos/**",
+        "/api/v1/weathers/**",
+        "/api/v1/auth/**",
+        "/api/v1/stations/**",
+        //            "/api/v1/places/**",
+        "/swagger-ui/**",
+        "/api-docs/**",
+        "/logos/**",
+        // /fuelings, /maintenances, /maintenance-schedules는 인증 필수.
+        // permitAll에 두면 controller가 @AuthenticationPrincipal에서 null 받아 NPE.
     };
 
     private final String[] GET_PERMIT_ALL_ENDPOINTS = {
@@ -52,7 +54,6 @@ public class SecurityConfig {
     };
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final UserDetailsService userDetailsService;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -94,7 +95,7 @@ public class SecurityConfig {
 
                 // JWT 필터를 UsernamePasswordAuthenticationFilter 앞에 추가
                 .addFilterBefore(
-                        new JwtAuthenticationFilter(jwtTokenProvider, userDetailsService),
+                        new JwtAuthenticationFilter(jwtTokenProvider),
                         UsernamePasswordAuthenticationFilter.class
                 );
 

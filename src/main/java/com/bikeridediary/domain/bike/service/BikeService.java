@@ -164,7 +164,7 @@ public class BikeService {
             }
         }
 
-        BikeEntity bike = BikeEntity.createWithId(
+        BikeEntity toSave = BikeEntity.createWithId(
                 req.id(),
                 user,
 
@@ -178,10 +178,12 @@ public class BikeService {
 
         if(req.isRepresentative()) {
             bikeRepository.clearRepresentative(userId);
-            bike.setRepresentative(true);
+            toSave.setRepresentative(true);
         }
 
-        bikeRepository.save(bike);
+        // save 반환값이 managed 엔티티. ID 수동 세팅 → Spring이 merge 사용 →
+        // @PrePersist는 managed 복사본에만 발생하므로 반환값을 사용해야 createdAt이 채워짐.
+        BikeEntity bike = bikeRepository.save(toSave);
         return BikeResponse.from(bike);
     }
 

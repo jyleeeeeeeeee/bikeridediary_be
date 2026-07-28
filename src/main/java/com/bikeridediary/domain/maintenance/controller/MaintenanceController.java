@@ -2,6 +2,7 @@ package com.bikeridediary.domain.maintenance.controller;
 
 import com.bikeridediary.domain.maintenance.dto.MaintenanceCreateRequest;
 import com.bikeridediary.domain.maintenance.dto.MaintenanceResponse;
+import com.bikeridediary.domain.maintenance.dto.MaintenanceSyncRequest;
 import com.bikeridediary.domain.maintenance.dto.MaintenanceUpdateRequest;
 import com.bikeridediary.domain.maintenance.service.MaintenanceService;
 import com.bikeridediary.global.response.ApiResponse;
@@ -91,5 +92,24 @@ public class MaintenanceController {
         UUID userId = userDetails.getUserId();
         maintenanceService.deleteMaintenance(maintenanceId, userId);
         return ResponseEntity.ok(ApiResponse.ok());
+    }
+
+    @PostMapping(value = "/sync", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<MaintenanceResponse>> syncMaintenance(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestPart("data") @Valid MaintenanceSyncRequest request,
+            @RequestPart(value = "images", required = false) List<MultipartFile> newImages
+    ) {
+        UUID userId = userDetails.getUserId();
+        MaintenanceResponse response = maintenanceService.sync(userId, request, newImages);
+        return ResponseEntity.ok(ApiResponse.ok(response));
+    }
+
+    @GetMapping("/my")
+    public ResponseEntity<ApiResponse<List<MaintenanceResponse>>> getMyMaintenances(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        UUID userId = userDetails.getUserId();
+        return ResponseEntity.ok(ApiResponse.ok(maintenanceService.getMyMaintenances(userId)));
     }
 }

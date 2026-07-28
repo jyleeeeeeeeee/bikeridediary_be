@@ -6,6 +6,8 @@ import com.bikeridediary.domain.fueling.dto.*;
 import com.bikeridediary.domain.fueling.entity.FuelingEntity;
 import com.bikeridediary.domain.fueling.repository.FuelingRepository;
 import com.bikeridediary.domain.maintenance.repository.MaintenanceRepository;
+import com.bikeridediary.domain.user.entity.UserEntity;
+import com.bikeridediary.domain.user.repository.UserRepository;
 import com.bikeridediary.global.exception.BusinessException;
 import com.bikeridediary.global.exception.ErrorCode;
 import com.bikeridediary.global.response.PageResponse;
@@ -18,7 +20,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+
+import static com.bikeridediary.global.exception.ErrorCode.*;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +33,7 @@ public class FuelingService {
     private final FuelingRepository fuelingRepository;
     private final BikeRepository bikeRepository;
     private final MaintenanceRepository maintenanceRepository;
+    private final UserRepository userRepository;
 
     // 사용자 화면 목록 (페이징) — fuelingDate DESC, 동일 날짜는 mileageAtFueling DESC
     public PageResponse<FuelingResponse> getFuelings(UUID bikeId, UUID userId, Pageable pageable) {
@@ -215,23 +221,87 @@ public class FuelingService {
 
     private BikeEntity findBikeOrThrow(UUID bikeId) {
         return bikeRepository.findByIdAndDeletedAtIsNull(bikeId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.BIKE_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(BIKE_NOT_FOUND));
     }
 
     private FuelingEntity findFuelingOrThrow(UUID fuelingId) {
         return fuelingRepository.findByIdAndDeletedAtIsNull(fuelingId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.FUELING_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(FUELING_NOT_FOUND));
     }
 
     private void verifyBikeOwnership(BikeEntity bikeEntity, UUID userId) {
         if (!bikeEntity.isOwner(userId)) {
-            throw new BusinessException(ErrorCode.BIKE_ACCESS_DENIED);
+            throw new BusinessException(BIKE_ACCESS_DENIED);
         }
     }
 
     private void verifyFuelingOwnership(FuelingEntity entity, UUID userId) {
         if (!entity.isOwner(userId)) {
-            throw new BusinessException(ErrorCode.FUELING_ACCESS_DENIED);
+            throw new BusinessException(FUELING_ACCESS_DENIED);
         }
+    }
+
+    @Transactional
+    public FuelingResponse sync(UUID userId, FuelingSyncRequest request) {
+        UserEntity user = userRepository.findByIdAndDeletedAtIsNull(userId)
+                .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
+        BikeEntity bike = bikeRepository.findByIdAndDeletedAtIsNull(request.bikeId())
+                .orElseThrow(() -> new BusinessException(BIKE_NOT_FOUND));
+        if(!bike.isOwner(userId)) throw new BusinessException(BIKE_ACCESS_DENIED);
+
+        FuelingEntity target;
+        Optional<FuelingEntity> existingOpt = fuelingRepository.findByIdAndDeletedAtIsNull(request.id());
+        if(existingOpt.isPresent()) {
+            FuelingEntity existing = existingOpt.get();
+            if(!existing.isOwner(userId)) throw new BusinessException(FUELING_ACCESS_DENIED);
+            if(request.deletedAt() != null && !existing.isDeleted()) return FuelingResponse.from(existing);
+
+            if(request.updatedAt().isAfter(existing.getUpdatedAt())) {
+                existing.update(request.fuelingDate(), request.mileageAtFueling(), request.fuelAmount(),
+                        request.pricePerLiter(), request.totalCost(), request.fuelType(), request.memo(), request.stationName());
+                target = existing;
+            } else {
+                return FuelingResponse.from(existing);
+            }
+        } else {
+            FuelingEntity toSave = FuelingEntity.createWithId(
+                    request.id(), bike,
+                    request.fuelingDate(), request.mileageAtFueling(), request.fuelAmount(),
+                    request.pricePerLiter(), request.totalCost(), request.fuelType(),
+                    request.memo(), request.stationName());
+            // save 반환값이 managed 엔티티. ID 수동 세팅 → Spring이 merge 사용 →
+            // @PrePersist는 managed 복사본에만 발생하므로 반환값을 사용해야 createdAt이 채워짐.
+            target = fuelingRepository.save(toSave);
+        }
+
+        // efficiency 재계산 — 이전 주유 기록 기준
+        recalculateFuelEfficiency(target);
+        // 바이크 total_mileage_km 갱신 (기존 create/update 흐름과 동일)
+        updateBikeMileage(bike);
+        return FuelingResponse.from(target);
+    }
+
+    private void recalculateFuelEfficiency(FuelingEntity current) {
+        // 같은 바이크의 이 시점 이전(fuelingDate/mileage) 가장 최근 활성 기록 조회
+        Optional<FuelingEntity> prevOpt = fuelingRepository
+                .findTopByBikeEntityAndFuelingDateBeforeAndDeletedAtIsNullOrderByFuelingDateDesc(
+                        current.getBikeEntity(), current.getFuelingDate());
+        if (prevOpt.isEmpty()) {
+            current.setFuelEfficiency(null);
+            return;
+        }
+        long deltaKm = current.getMileageAtFueling() - prevOpt.get().getMileageAtFueling();
+        if (deltaKm <= 0 || current.getFuelAmount().signum() <= 0) {
+            current.setFuelEfficiency(null);
+            return;
+        }
+        BigDecimal efficiency = BigDecimal.valueOf(deltaKm)
+                .divide(current.getFuelAmount(), 2, RoundingMode.HALF_UP);
+        current.setFuelEfficiency(efficiency);
+    }
+
+    public List<FuelingResponse> getMyFuelings(UUID userId) {
+        return fuelingRepository.findByBikeEntity_UserEntity_IdAndDeletedAtIsNullOrderByFuelingDateDesc(userId)
+                .stream().map(FuelingResponse::from).toList();
     }
 }

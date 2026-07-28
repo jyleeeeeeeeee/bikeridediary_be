@@ -1,5 +1,6 @@
 package com.bikeridediary.global.auth.jwt;
 
+import com.bikeridediary.domain.user.entity.UserRole;
 import com.bikeridediary.global.exception.BusinessException;
 import com.bikeridediary.global.exception.ErrorCode;
 import io.jsonwebtoken.*;
@@ -17,6 +18,8 @@ import java.util.UUID;
 @Component
 public class JwtTokenProvider {
 
+    private static final String CLAIM_ROLE = "role"; // 액세스 토큰 role claim 키
+
     private final SecretKey secretKey;
     private final long accessTokenExpiry;
     private final long refreshTokenExpiry;
@@ -28,8 +31,8 @@ public class JwtTokenProvider {
     }
 
     // 액세스 토큰 생성
-    public String generateAccessToken(UUID userId) {
-        return buildToken(userId.toString(), accessTokenExpiry);
+    public String generateAccessToken(UUID userId, UserRole role) {
+        return buildToken(userId.toString(), accessTokenExpiry, role);
     }
 
     // 리프레시 토큰 생성
@@ -52,10 +55,36 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+    private String buildToken(String subject, long expiry, UserRole role) {
+        Date now = new Date();
+        return Jwts.builder()
+                .subject(subject)
+                .claim(CLAIM_ROLE, role.name())
+                .issuedAt(now)
+                .expiration(new Date(now.getTime() + expiry))
+                .signWith(secretKey)
+                .compact();
+    }
+
     // 토큰에서 사용자 ID 추출
     public UUID extractUserId(String token) {
         String subject = parseClaims(token).getSubject();
         return UUID.fromString(subject);
+    }
+
+    // 토큰에서 role 추출 (액세스 토큰 전용)
+    public UserRole extractUserRole(String token) {
+        String roleName = parseClaims(token).get(CLAIM_ROLE, String.class);
+        if (roleName == null) {
+            return UserRole.USER;
+        }
+
+        try {
+            return UserRole.valueOf(roleName);
+        } catch (IllegalArgumentException e) {
+            log.warn("Unknown role claim in token: {}", roleName);
+            return UserRole.USER;
+        }
     }
 
     // 토큰 유효성 검증 및 유효하면 true 반환

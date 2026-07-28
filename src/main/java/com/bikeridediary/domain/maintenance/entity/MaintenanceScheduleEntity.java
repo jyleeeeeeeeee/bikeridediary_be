@@ -30,9 +30,8 @@ public class MaintenanceScheduleEntity extends BaseEntity {
     @Generated(event = EventType.INSERT)
     private Long no;
 
-    // 정비 주기 ID (UUID)
+    // 정비 주기 ID (UUID) — 클라이언트가 생성한 UUID 그대로 수용 (로컬 우선 sync)
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     @JdbcTypeCode(SqlTypes.UUID)
     private UUID id;
 
@@ -55,14 +54,26 @@ public class MaintenanceScheduleEntity extends BaseEntity {
     @Column(name = "interval_months")
     private Integer intervalMonths;
 
-    // 정비 주기 엔티티 생성
+    // 정비 주기 엔티티 생성 (서버에서 UUID 생성)
     public static MaintenanceScheduleEntity create(
             BikeEntity bikeEntity,
             MaintenanceType maintenanceType,
             Long intervalKm,
             Integer intervalMonths
     ) {
+        return createWithId(UUID.randomUUID(), bikeEntity, maintenanceType, intervalKm, intervalMonths);
+    }
+
+    // 정비 주기 엔티티 생성 (클라이언트 UUID 그대로 수용) — sync 전용
+    public static MaintenanceScheduleEntity createWithId(
+            UUID id,
+            BikeEntity bikeEntity,
+            MaintenanceType maintenanceType,
+            Long intervalKm,
+            Integer intervalMonths
+    ) {
         MaintenanceScheduleEntity entity = new MaintenanceScheduleEntity();
+        entity.id = id;
         entity.bikeEntity = bikeEntity;
         entity.maintenanceType = maintenanceType;
         entity.intervalKm = intervalKm;

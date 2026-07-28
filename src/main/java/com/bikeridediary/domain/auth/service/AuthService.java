@@ -50,7 +50,7 @@ public class AuthService {
         UserEntity guest = UserEntity.create("guest", UUID.randomUUID().toString(), email, nickname);
         UserEntity saved = userRepository.save(guest);
 
-        String accessToken = jwtTokenProvider.generateAccessToken(saved.getId());
+        String accessToken = jwtTokenProvider.generateAccessToken(saved.getId(), saved.getRole());
         String refreshToken = jwtTokenProvider.generateGuestRefreshToken(saved.getId());
 
         refreshTokenRepository.save(saved.getId(), refreshToken, 365, TimeUnit.DAYS);
@@ -82,7 +82,7 @@ public class AuthService {
         UserEntity savedUserEntity = userRepository.save(newUserEntity);
 
         UUID id = savedUserEntity.getId();
-        String accessToken = jwtTokenProvider.generateAccessToken(id);
+        String accessToken = jwtTokenProvider.generateAccessToken(id, savedUserEntity.getRole());
         String refreshToken = jwtTokenProvider.generateRefreshToken(id);
 
         refreshTokenRepository.save(id, refreshToken);
@@ -141,7 +141,7 @@ public class AuthService {
         UserEntity userEntity = findOrCreateUser(provider, userInfo);
 
         // Step 3: JWT 토큰 발급
-        String accessToken = jwtTokenProvider.generateAccessToken(userEntity.getId());
+        String accessToken = jwtTokenProvider.generateAccessToken(userEntity.getId(), userEntity.getRole());
         String refreshToken = jwtTokenProvider.generateRefreshToken(userEntity.getId());
 
         // Step 4: Refresh Token 저장 (Redis)
@@ -170,7 +170,7 @@ public class AuthService {
 
         // Step 3: JWT 토큰 발급
         UUID id = userEntity.getId();
-        String accessToken = jwtTokenProvider.generateAccessToken(id);
+        String accessToken = jwtTokenProvider.generateAccessToken(id, userEntity.getRole());
         String refreshToken = jwtTokenProvider.generateRefreshToken(id);
 
         // Step 4: RefreshToken Redis 저장
@@ -258,7 +258,9 @@ public class AuthService {
             }
 
             // Step 3: 새로운 Access Token 발급
-            String newAccessToken = jwtTokenProvider.generateAccessToken(userId);
+            UserEntity userEntity = userRepository.findByIdAndDeletedAtIsNull(userId)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+            String newAccessToken = jwtTokenProvider.generateAccessToken(userId, userEntity.getRole());
 
             // Step 4: 새로운 Refresh Token 발급 및 저장
             String newRefreshToken = jwtTokenProvider.generateRefreshToken(userId);

@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @Tag(name = "주유 기록", description = "주유 이력 관리 및 연비 계산 API")
@@ -98,5 +99,22 @@ public class FuelingController {
         return ResponseEntity.ok(ApiResponse.ok(stats));
     }
 
+    @PostMapping("/sync")
+    public ResponseEntity<ApiResponse<FuelingResponse>> syncFueling(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Valid @RequestBody FuelingSyncRequest request
+    ) {
+        UUID userId = userDetails.getUserId();
+        FuelingResponse sync = fuelingService.sync(userId, request);
+        return ResponseEntity.ok(ApiResponse.ok(sync));
+    }
 
+    // GET /api/v1/fuelings/my — 초기 pull용, 유저 전체 주유 기록
+    @GetMapping("/my")
+    public ResponseEntity<ApiResponse<List<FuelingResponse>>> getMyFuelings(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        UUID userId = userDetails.getUserId();
+        return ResponseEntity.ok(ApiResponse.ok(fuelingService.getMyFuelings(userId)));
+    }
 }

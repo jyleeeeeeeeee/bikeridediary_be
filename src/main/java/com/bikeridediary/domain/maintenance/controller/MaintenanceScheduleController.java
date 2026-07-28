@@ -2,6 +2,7 @@ package com.bikeridediary.domain.maintenance.controller;
 
 import com.bikeridediary.domain.maintenance.dto.MaintenanceScheduleCreateRequest;
 import com.bikeridediary.domain.maintenance.dto.MaintenanceScheduleResponse;
+import com.bikeridediary.domain.maintenance.dto.MaintenanceScheduleSyncRequest;
 import com.bikeridediary.domain.maintenance.dto.MaintenanceScheduleUpdateRequest;
 import com.bikeridediary.domain.maintenance.service.MaintenanceScheduleService;
 import com.bikeridediary.global.response.ApiResponse;
@@ -80,5 +81,22 @@ public class MaintenanceScheduleController {
         UUID userId = userDetails.getUserId();
         scheduleService.deleteSchedule(scheduleId, userId);
         return ResponseEntity.ok(ApiResponse.ok());
+    }
+    @PostMapping("/sync")
+    public ResponseEntity<ApiResponse<MaintenanceScheduleResponse>> syncSchedule(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Valid @RequestBody MaintenanceScheduleSyncRequest request
+    ) {
+        UUID userId = userDetails.getUserId();
+        MaintenanceScheduleResponse response = scheduleService.sync(userId, request);
+        return ResponseEntity.ok(ApiResponse.ok(response));
+    }
+
+    @GetMapping("/my")
+    public ResponseEntity<ApiResponse<List<MaintenanceScheduleResponse>>> getMySchedules(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        UUID userId = userDetails.getUserId();
+        return ResponseEntity.ok(ApiResponse.ok(scheduleService.getMySchedules(userId)));
     }
 }

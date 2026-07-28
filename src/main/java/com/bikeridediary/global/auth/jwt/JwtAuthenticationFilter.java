@@ -1,5 +1,7 @@
 package com.bikeridediary.global.auth.jwt;
 
+import com.bikeridediary.domain.user.entity.UserRole;
+import com.bikeridediary.global.auth.CustomUserDetails;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,7 +25,6 @@ import java.util.UUID;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final UserDetailsService userDetailsService;
 
     @Override
     protected void doFilterInternal(
@@ -31,12 +32,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain
     ) throws ServletException, IOException {
-
         String token = extractToken(request);
 
         if (StringUtils.hasText(token) && jwtTokenProvider.isValid(token)) {
             UUID userId = jwtTokenProvider.extractUserId(token);
-            UserDetails userDetails = userDetailsService.loadUserByUsername(userId.toString());
+            UserRole role = jwtTokenProvider.extractUserRole(token);
+            CustomUserDetails userDetails = new CustomUserDetails(userId, role);
 
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());

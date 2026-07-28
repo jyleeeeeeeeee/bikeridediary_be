@@ -2,12 +2,15 @@ package com.bikeridediary.domain.maintenance.service;
 
 import com.bikeridediary.domain.bike.entity.BikeEntity;
 import com.bikeridediary.domain.bike.repository.BikeRepository;
+import com.bikeridediary.domain.fueling.dto.FuelingResponse;
 import com.bikeridediary.domain.fueling.repository.FuelingRepository;
 import com.bikeridediary.domain.maintenance.dto.MaintenanceCreateRequest;
 import com.bikeridediary.domain.maintenance.dto.MaintenanceResponse;
+import com.bikeridediary.domain.maintenance.dto.MaintenanceSyncRequest;
 import com.bikeridediary.domain.maintenance.dto.MaintenanceUpdateRequest;
 import com.bikeridediary.domain.maintenance.entity.MaintenanceEntity;
 import com.bikeridediary.domain.maintenance.repository.MaintenanceRepository;
+import com.bikeridediary.domain.user.repository.UserRepository;
 import com.bikeridediary.global.exception.BusinessException;
 import com.bikeridediary.global.exception.ErrorCode;
 import com.bikeridediary.global.response.PageResponse;
@@ -25,7 +28,10 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+
+import static com.bikeridediary.global.exception.ErrorCode.*;
 
 // 정비 기록 비즈니스 로직
 @Slf4j
@@ -38,6 +44,7 @@ public class MaintenanceService {
     private final MaintenanceRepository maintenanceRepository;
     private final BikeRepository bikeRepository;
     private final FuelingRepository fuelingRepository;
+    private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
 
     // 특정 바이크의 정비 기록 (페이징)
@@ -46,7 +53,7 @@ public class MaintenanceService {
         verifyBikeOwnership(bikeEntity, userId);
 
         return PageResponse.of(
-                maintenanceRepository.findByBikeEntityIdAndDeletedAtIsNull(bikeId, pageable),
+                maintenanceRepository.findByBikeIdAndDeletedAtIsNull(bikeId, pageable),
                 this::responseMaintenance
         );
     }
@@ -106,7 +113,7 @@ public class MaintenanceService {
                 addImageUrls(keepUrls, images, userId)
         );
 
-        updateBikeMileage(entity.getBikeEntity());
+        updateBikeMileage(entity.getBike());
         return responseMaintenance(entity);
     }
 
@@ -115,11 +122,96 @@ public class MaintenanceService {
     public void deleteMaintenance(UUID maintenanceId, UUID userId) {
         MaintenanceEntity entity = findMaintenanceOrThrow(maintenanceId);
         verifyMaintenanceOwnership(entity, userId);
-        BikeEntity bikeEntity = entity.getBikeEntity();
+        BikeEntity bikeEntity = entity.getBike();
         entity.delete();
         updateBikeMileage(bikeEntity);
     }
 
+    @Transactional
+    public MaintenanceResponse sync(UUID userId, MaintenanceSyncRequest req,
+                                    List<MultipartFile> newImages) {
+        userRepository.findByIdAndDeletedAtIsNull(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        BikeEntity bike = bikeRepository.findById(req.bikeId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.BIKE_NOT_FOUND));
+        if (!bike.isOwner(userId)) {
+            throw new BusinessException(ErrorCode.MAINTENANCE_ACCESS_DENIED);
+        }
+
+        Optional<MaintenanceEntity> existingOpt = maintenanceRepository.findById(req.id());
+        MaintenanceEntity target;
+        List<String> oldServerUrls = List.of();
+
+        if (existingOpt.isPresent()) {
+            MaintenanceEntity existing = existingOpt.get();
+            if (!existing.isOwner(userId)) {
+                throw new BusinessException(ErrorCode.MAINTENANCE_ACCESS_DENIED);
+            }
+            if (req.deletedAt() != null) {
+                if (!existing.isDeleted()) existing.delete();
+                // 소프트 삭제 시 이미지 파일도 스토리지에서 정리
+                parseStringToList(existing.getImageUrls()).forEach(imageStorageService::delete);
+                return responseMaintenance(existing);
+            }
+            if (!req.updatedAt().isAfter(existing.getUpdatedAt())) {
+                // 서버가 더 최신 — 반영 안 함
+                return responseMaintenance(existing);
+            }
+            oldServerUrls = parseStringToList(existing.getImageUrls());
+            // update()는 imageUrls도 필수 인자 — 아래서 setImageUrls로 최종 확정하므로 임시로 기존값 전달
+            existing.update(
+                    req.maintenanceType(), req.maintenanceDate(),
+                    req.mileageAtMaintenance(), req.cost(),
+                    req.description(), req.nextDueKm(), req.nextDueDate(),
+                    existing.getImageUrls()
+            );
+            target = existing;
+        } else {
+            MaintenanceEntity toSave = MaintenanceEntity.createWithId(
+                    req.id(), bike,
+                    req.maintenanceType(), req.maintenanceDate(),
+                    req.mileageAtMaintenance(), req.cost(),
+                    req.description(), req.nextDueKm(), req.nextDueDate(),
+                    "[]"
+            );
+            // save 반환값이 managed 엔티티. ID 수동 세팅 → Spring이 merge 사용 →
+            // @PrePersist는 managed 복사본에만 발생하므로 반환값을 사용해야 createdAt 등이 채워짐.
+            target = maintenanceRepository.save(toSave);
+        }
+
+        // 이미지: existingImageUrls에 없는 old URL은 파일 삭제
+        List<String> keepUrls = req.existingImageUrls() == null
+                ? List.of() : req.existingImageUrls();
+        for (String oldUrl : oldServerUrls) {
+            if (!keepUrls.contains(oldUrl)) {
+                imageStorageService.delete(oldUrl);
+            }
+        }
+
+        // 새 이미지 업로드 → 최종 URL 목록 확정 후 setImageUrls
+        List<String> finalUrls = new ArrayList<>(keepUrls);
+        if (newImages != null) {
+            for (MultipartFile file : newImages) {
+                try {
+                    finalUrls.add(imageStorageService.upload(file, userId.toString()));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+        target.setImageUrls(toJson(finalUrls));
+
+        // 바이크 total_mileage_km 갱신 (기존 create/update 흐름과 동일)
+        updateBikeMileage(bike);
+
+        return responseMaintenance(target);
+    }
+
+    public List<MaintenanceResponse> getMyMaintenances(UUID userId) {
+        return maintenanceRepository.findMyMaintenances(userId)
+                .stream().map(this::responseMaintenance).toList();
+    }
 
     // ============ 이미지 헬퍼 ============
 

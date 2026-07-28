@@ -14,7 +14,6 @@ import org.hibernate.type.SqlTypes;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.UUID;
 
 // 정비 기록 엔티티 - 실제 수행된 정비 내역을 기록하고 관리
@@ -32,7 +31,6 @@ public class MaintenanceEntity extends BaseEntity {
 
     // 정비 기록 ID (UUID)
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     @JdbcTypeCode(SqlTypes.UUID)
     private UUID id;
 
@@ -40,7 +38,7 @@ public class MaintenanceEntity extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bike_id", nullable = false)
     @JsonBackReference
-    private BikeEntity bikeEntity;
+    private BikeEntity bike;
 
     // 정비 종류 (엔진오일, 체인, 타이어, 브레이크 등)
     @Enumerated(EnumType.STRING)
@@ -76,7 +74,7 @@ public class MaintenanceEntity extends BaseEntity {
 
     // 정비 기록 엔티티 생성
     public static MaintenanceEntity create(
-            BikeEntity bikeEntity,
+            BikeEntity bike,
             MaintenanceType maintenanceType,
             LocalDate maintenanceDate,
             Long mileageAtMaintenance,
@@ -86,17 +84,35 @@ public class MaintenanceEntity extends BaseEntity {
             LocalDate nextDueDate,
             String imageUrls
     ) {
-        MaintenanceEntity maintenanceEntity = new MaintenanceEntity();
-        maintenanceEntity.bikeEntity = bikeEntity;
-        maintenanceEntity.maintenanceType = maintenanceType;
-        maintenanceEntity.maintenanceDate = maintenanceDate;
-        maintenanceEntity.mileageAtMaintenance = mileageAtMaintenance;
-        maintenanceEntity.cost = cost;
-        maintenanceEntity.description = description;
-        maintenanceEntity.nextDueKm = nextDueKm;
-        maintenanceEntity.nextDueDate = nextDueDate;
-        maintenanceEntity.imageUrls = imageUrls;
-        return maintenanceEntity;
+        return createWithId(UUID.randomUUID(), bike,maintenanceType, maintenanceDate, mileageAtMaintenance,
+                cost, description, nextDueKm, nextDueDate,imageUrls);
+    }
+
+    // 정비 기록 엔티티 생성
+    public static MaintenanceEntity createWithId(
+            UUID id,
+            BikeEntity bike,
+            MaintenanceType maintenanceType,
+            LocalDate maintenanceDate,
+            Long mileageAtMaintenance,
+            Long cost,
+            String description,
+            Long nextDueKm,
+            LocalDate nextDueDate,
+            String imageUrls
+    ) {
+        MaintenanceEntity e = new MaintenanceEntity();
+        e.id = id;
+        e.bike = bike;
+        e.maintenanceType = maintenanceType;
+        e.maintenanceDate = maintenanceDate;
+        e.mileageAtMaintenance = mileageAtMaintenance;
+        e.cost = cost;
+        e.description = description;
+        e.nextDueKm = nextDueKm;
+        e.nextDueDate = nextDueDate;
+        e.imageUrls = imageUrls;
+        return e;
     }
 
     // 정비 기록 정보 수정
@@ -126,9 +142,14 @@ public class MaintenanceEntity extends BaseEntity {
         this.nextDueDate = nextDueDate;
     }
 
+    // sync 시 이미지 업로드/삭제 후 최종 URL 목록만 갱신할 때 사용
+    public void setImageUrls(String imageUrls) {
+        this.imageUrls = imageUrls;
+    }
+
     // 이 정비 기록이 특정 사용자의 바이크에 속하는지 권한 검증
     public boolean isOwner(UUID userId) {
-        return this.bikeEntity.isOwner(userId);
+        return this.bike.isOwner(userId);
     }
 
 }

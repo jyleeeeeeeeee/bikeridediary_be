@@ -6,6 +6,7 @@ import com.bikeridediary.domain.auth.dto.SignupRequest;
 import com.bikeridediary.domain.auth.dto.TokenResponse;
 import com.bikeridediary.domain.auth.service.AuthService;
 import com.bikeridediary.domain.user.entity.UserEntity;
+import com.bikeridediary.domain.user.entity.UserRole;
 import com.bikeridediary.domain.user.repository.UserRepository;
 import com.bikeridediary.global.auth.jwt.JwtTokenProvider;
 import com.bikeridediary.global.auth.oauth2.*;
@@ -111,7 +112,7 @@ class AuthServiceTest {
                     setUserIdReflection(userEntity, newUserId);
                     return userEntity;
                 });
-        when(jwtTokenProvider.generateAccessToken(newUserId))
+        when(jwtTokenProvider.generateAccessToken(newUserId, UserRole.USER))
                 .thenReturn(accessToken);
         when(jwtTokenProvider.generateRefreshToken(newUserId))
                 .thenReturn(refreshToken);
@@ -137,7 +138,7 @@ class AuthServiceTest {
                 .thenReturn(userInfo);
         when(userRepository.findByProviderAndProviderId("kakao", "123456"))
                 .thenReturn(Optional.of(testUserEntity));
-        when(jwtTokenProvider.generateAccessToken(testUserEntity.getId()))
+        when(jwtTokenProvider.generateAccessToken(testUserEntity.getId(), UserRole.USER))
                 .thenReturn(accessToken);
         when(jwtTokenProvider.generateRefreshToken(testUserEntity.getId()))
                 .thenReturn(refreshToken);
@@ -169,7 +170,7 @@ class AuthServiceTest {
                     setUserIdReflection(userEntity, newUserId);
                     return userEntity;
                 });
-        when(jwtTokenProvider.generateAccessToken(newUserId))
+        when(jwtTokenProvider.generateAccessToken(newUserId, UserRole.USER))
                 .thenReturn(accessToken);
         when(jwtTokenProvider.generateRefreshToken(newUserId))
                 .thenReturn(refreshToken);
@@ -198,7 +199,7 @@ class AuthServiceTest {
                     setUserIdReflection(userEntity, newUserId);
                     return userEntity;
                 });
-        when(jwtTokenProvider.generateAccessToken(newUserId))
+        when(jwtTokenProvider.generateAccessToken(newUserId, UserRole.USER))
                 .thenReturn(accessToken);
         when(jwtTokenProvider.generateRefreshToken(newUserId))
                 .thenReturn(refreshToken);
@@ -227,7 +228,7 @@ class AuthServiceTest {
                     setUserIdReflection(userEntity, newUserId);
                     return userEntity;
                 });
-        when(jwtTokenProvider.generateAccessToken(newUserId))
+        when(jwtTokenProvider.generateAccessToken(newUserId, UserRole.USER))
                 .thenReturn(accessToken);
         when(jwtTokenProvider.generateRefreshToken(newUserId))
                 .thenReturn(refreshToken);
@@ -256,7 +257,7 @@ class AuthServiceTest {
                     setUserIdReflection(userEntity, newUserId);
                     return userEntity;
                 });
-        when(jwtTokenProvider.generateAccessToken(newUserId))
+        when(jwtTokenProvider.generateAccessToken(newUserId, UserRole.USER))
                 .thenReturn(accessToken);
         when(jwtTokenProvider.generateRefreshToken(newUserId))
                 .thenReturn(refreshToken);
@@ -288,7 +289,7 @@ class AuthServiceTest {
                 .thenReturn(userId);
         when(refreshTokenRepository.isValid(userId, refreshToken))
                 .thenReturn(true);
-        when(jwtTokenProvider.generateAccessToken(userId))
+        when(jwtTokenProvider.generateAccessToken(userId, UserRole.USER))
                 .thenReturn(newAccessToken);
         when(jwtTokenProvider.generateRefreshToken(userId))
                 .thenReturn(newRefreshToken);
@@ -352,7 +353,7 @@ class AuthServiceTest {
                     setUserIdReflection(userEntity, newUserId);
                     return userEntity;
                 });
-        when(jwtTokenProvider.generateAccessToken(newUserId))
+        when(jwtTokenProvider.generateAccessToken(newUserId, UserRole.USER))
                 .thenReturn(accessToken);
         when(jwtTokenProvider.generateRefreshToken(newUserId))
                 .thenReturn(refreshToken);
@@ -479,7 +480,7 @@ class AuthServiceTest {
 
         when(userRepository.findByEmailAndDeletedAtIsNull("test@example.com"))
                 .thenReturn(Optional.of(emailUserEntity));
-        when(jwtTokenProvider.generateAccessToken(userId))
+        when(jwtTokenProvider.generateAccessToken(userId, UserRole.USER))
                 .thenReturn(accessToken);
         when(jwtTokenProvider.generateRefreshToken(userId))
                 .thenReturn(refreshToken);

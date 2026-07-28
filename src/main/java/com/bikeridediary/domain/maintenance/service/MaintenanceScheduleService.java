@@ -4,6 +4,7 @@ import com.bikeridediary.domain.bike.entity.BikeEntity;
 import com.bikeridediary.domain.bike.repository.BikeRepository;
 import com.bikeridediary.domain.maintenance.dto.MaintenanceScheduleCreateRequest;
 import com.bikeridediary.domain.maintenance.dto.MaintenanceScheduleResponse;
+import com.bikeridediary.domain.maintenance.dto.MaintenanceScheduleSyncRequest;
 import com.bikeridediary.domain.maintenance.dto.MaintenanceScheduleUpdateRequest;
 import com.bikeridediary.domain.maintenance.entity.MaintenanceEntity;
 import com.bikeridediary.domain.maintenance.entity.MaintenanceScheduleEntity;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 // 정비 주기 비즈니스 로직
@@ -29,6 +31,7 @@ public class MaintenanceScheduleService {
     private final MaintenanceScheduleRepository scheduleRepository;
     private final MaintenanceRepository maintenanceRepository;
     private final BikeRepository bikeRepository;
+    private final com.bikeridediary.domain.user.repository.UserRepository userRepository;
 
     // 특정 바이크의 모든 정비 주기 조회 (정비 기록 기반으로 overdue 판단)
     public List<MaintenanceScheduleResponse> getSchedules(UUID bikeId, UUID userId) {
@@ -104,10 +107,10 @@ public class MaintenanceScheduleService {
 
         // km 기준: 주행거리가 가장 높은 기록
         var highestMileageRecord = maintenanceRepository
-                .findTopByBikeEntityIdAndMaintenanceTypeAndDeletedAtIsNullOrderByMileageAtMaintenanceDesc(bikeId, type);
+                .findTopByBikeIdAndMaintenanceTypeAndDeletedAtIsNullOrderByMileageAtMaintenanceDesc(bikeId, type);
         // 날짜 기준: 가장 최근 날짜의 기록
         var latestDateRecord = maintenanceRepository
-                .findTopByBikeEntityIdAndMaintenanceTypeAndDeletedAtIsNullOrderByMaintenanceDateDesc(bikeId, type);
+                .findTopByBikeIdAndMaintenanceTypeAndDeletedAtIsNullOrderByMaintenanceDateDesc(bikeId, type);
 
         Long lastMileage = highestMileageRecord.map(MaintenanceEntity::getMileageAtMaintenance).orElse(null);
         LocalDate lastDate = latestDateRecord.map(MaintenanceEntity::getMaintenanceDate).orElse(null);
@@ -135,5 +138,56 @@ public class MaintenanceScheduleService {
         if (!entity.isOwner(userId)) {
             throw new BusinessException(ErrorCode.MAINTENANCE_SCHEDULE_ACCESS_DENIED);
         }
+    }
+
+    @Transactional
+    public MaintenanceScheduleResponse sync(UUID userId, MaintenanceScheduleSyncRequest req) {
+        userRepository.findByIdAndDeletedAtIsNull(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        BikeEntity bike = bikeRepository.findById(req.bikeId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.BIKE_NOT_FOUND));
+        if (!bike.isOwner(userId)) {
+            throw new BusinessException(ErrorCode.MAINTENANCE_SCHEDULE_ACCESS_DENIED);
+        }
+
+        Optional<MaintenanceScheduleEntity> existingOpt =
+                scheduleRepository.findById(req.id());
+        MaintenanceScheduleEntity target;
+
+        if (existingOpt.isPresent()) {
+            MaintenanceScheduleEntity existing = existingOpt.get();
+            if (!existing.isOwner(userId)) {
+                throw new BusinessException(ErrorCode.MAINTENANCE_SCHEDULE_ACCESS_DENIED);
+            }
+            if (req.deletedAt() != null) {
+                if (!existing.isDeleted()) existing.delete();
+                return buildResponse(existing, bike.getId(), bike.getTotalMileageKm());
+            }
+            if (!req.updatedAt().isAfter(existing.getUpdatedAt())) {
+                // 서버가 더 최신 — 반영 안 함
+                return buildResponse(existing, bike.getId(), bike.getTotalMileageKm());
+            }
+            existing.update(req.intervalKm(), req.intervalMonths());
+            target = existing;
+        } else {
+            target = MaintenanceScheduleEntity.createWithId(
+                    req.id(), bike, req.maintenanceType(),
+                    req.intervalKm(), req.intervalMonths()
+            );
+            scheduleRepository.save(target);
+        }
+
+        return buildResponse(target, bike.getId(), bike.getTotalMileageKm());
+    }
+
+    // 초기 pull용 — 유저의 모든 활성 스케줄
+    public List<MaintenanceScheduleResponse> getMySchedules(UUID userId) {
+        return scheduleRepository.findMySchedules(userId).stream()
+                .map(s -> buildResponse(
+                        s,
+                        s.getBikeEntity().getId(),
+                        s.getBikeEntity().getTotalMileageKm()))
+                .toList();
     }
 }

@@ -26,4 +26,12 @@ public interface MaintenanceScheduleRepository extends JpaRepository<Maintenance
 
     // no(자동 증가 조회 번호)로 특정 schedule 조회 — DB 관리/디버깅용
     Optional<MaintenanceScheduleEntity> findByNo(Long no);
+
+    // 초기 pull용 — 유저의 모든 활성 정비 스케줄
+    @org.springframework.data.jpa.repository.Query(
+            "SELECT s FROM MaintenanceScheduleEntity s " +
+            "JOIN FETCH s.bikeEntity b " +
+            "WHERE b.userEntity.id = :userId AND s.deletedAt IS NULL " +
+            "ORDER BY s.createdAt DESC")
+    List<MaintenanceScheduleEntity> findMySchedules(UUID userId);
 }

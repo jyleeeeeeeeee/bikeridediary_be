@@ -15,6 +15,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -30,7 +31,6 @@ public class FuelingEntity extends BaseEntity {
     private Long no;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     @JdbcTypeCode(SqlTypes.UUID)
     private UUID id;
 
@@ -78,7 +78,24 @@ public class FuelingEntity extends BaseEntity {
             String memo,
             String stationName
     ) {
+        return createWithId(UUID.randomUUID(), bikeEntity, fuelingDate, mileageAtFueling,
+                fuelAmount, pricePerLiter,totalCost, fuelType, memo, stationName);
+    }
+
+    public static FuelingEntity createWithId(
+            UUID id,
+            BikeEntity bikeEntity,
+            LocalDate fuelingDate,
+            Long mileageAtFueling,
+            BigDecimal fuelAmount,
+            Long pricePerLiter,
+            Long totalCost,
+            FuelType fuelType,
+            String memo,
+            String stationName
+    ) {
         FuelingEntity entity = new FuelingEntity();
+        entity.id = id;
         entity.bikeEntity = bikeEntity;
         entity.fuelingDate = fuelingDate;
         entity.mileageAtFueling = mileageAtFueling;

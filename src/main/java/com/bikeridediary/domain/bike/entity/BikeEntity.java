@@ -93,7 +93,7 @@ public class BikeEntity extends BaseEntity {
     private boolean isExistModel = true;
 
     // 바이크의 정비 이력 목록 (양방향 One-To-Many)
-    @OneToMany(mappedBy = "bikeEntity", cascade = CascadeType.PERSIST, orphanRemoval = false)
+    @OneToMany(mappedBy = "bike", cascade = CascadeType.PERSIST, orphanRemoval = false)
     @JsonManagedReference
     private List<MaintenanceEntity> maintenances = new ArrayList<>();
 

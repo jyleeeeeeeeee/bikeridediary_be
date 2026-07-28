@@ -92,7 +92,7 @@ class MaintenanceScheduleServiceTest {
                 .thenReturn(Optional.of(testBike));
         when(scheduleRepository.findByBikeEntityIdAndDeletedAtIsNull(bikeId))
                 .thenReturn(List.of(testSchedule));
-        when(maintenanceRepository.findTopByBikeEntityIdAndMaintenanceTypeAndDeletedAtIsNullOrderByMaintenanceDateDesc(
+        when(maintenanceRepository.findTopByBikeIdAndMaintenanceTypeAndDeletedAtIsNullOrderByMaintenanceDateDesc(
                 bikeId, MaintenanceType.ENGINE_OIL))
                 .thenReturn(Optional.empty());
 
@@ -134,7 +134,7 @@ class MaintenanceScheduleServiceTest {
     void getSchedule_Success() {
         when(scheduleRepository.findByIdAndDeletedAtIsNull(scheduleId))
                 .thenReturn(Optional.of(testSchedule));
-        when(maintenanceRepository.findTopByBikeEntityIdAndMaintenanceTypeAndDeletedAtIsNullOrderByMaintenanceDateDesc(
+        when(maintenanceRepository.findTopByBikeIdAndMaintenanceTypeAndDeletedAtIsNullOrderByMaintenanceDateDesc(
                 bikeId, MaintenanceType.ENGINE_OIL))
                 .thenReturn(Optional.empty());
 
@@ -182,7 +182,7 @@ class MaintenanceScheduleServiceTest {
                 .thenReturn(false);
         when(scheduleRepository.save(any(MaintenanceScheduleEntity.class)))
                 .thenReturn(testSchedule);
-        when(maintenanceRepository.findTopByBikeEntityIdAndMaintenanceTypeAndDeletedAtIsNullOrderByMaintenanceDateDesc(
+        when(maintenanceRepository.findTopByBikeIdAndMaintenanceTypeAndDeletedAtIsNullOrderByMaintenanceDateDesc(
                 bikeId, MaintenanceType.ENGINE_OIL))
                 .thenReturn(Optional.empty());
 
@@ -255,7 +255,7 @@ class MaintenanceScheduleServiceTest {
 
         when(scheduleRepository.findByIdAndDeletedAtIsNull(scheduleId))
                 .thenReturn(Optional.of(testSchedule));
-        when(maintenanceRepository.findTopByBikeEntityIdAndMaintenanceTypeAndDeletedAtIsNullOrderByMaintenanceDateDesc(
+        when(maintenanceRepository.findTopByBikeIdAndMaintenanceTypeAndDeletedAtIsNullOrderByMaintenanceDateDesc(
                 bikeId, MaintenanceType.ENGINE_OIL))
                 .thenReturn(Optional.empty());
 
