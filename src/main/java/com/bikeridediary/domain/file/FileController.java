@@ -3,7 +3,6 @@ package com.bikeridediary.domain.file;
 import com.bikeridediary.global.auth.CustomUserDetails;
 import com.bikeridediary.global.config.FileStorageProperties;
 import com.bikeridediary.global.exception.BusinessException;
-import com.bikeridediary.global.exception.ErrorCode;
 import com.bikeridediary.utils.ImageStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
@@ -18,6 +17,8 @@ import org.springframework.http.HttpHeaders;
 import java.io.IOException;
 import java.nio.file.Files;
 
+
+
 @RestController
 @RequiredArgsConstructor
 public class FileController {
@@ -31,14 +32,14 @@ public class FileController {
             @AuthenticationPrincipal CustomUserDetails userDetails
             ) {
         if (!userDetails.getUserId().toString().equals(userId)) {
-            throw new BusinessException(ErrorCode.FILE_ACCESS_DENIED);
+            throw new BusinessException(FILE_ACCESS_DENIED);
         }
 
         String fileUrl = fileStorageProperties.baseUrl() + "/" + userId + "/" + fileName;
         Resource resource = imageStorageService.getResource(fileUrl);
 
         if(!resource.exists() || !resource.isReadable()) {
-            throw new BusinessException(ErrorCode.FILE_NOT_FOUND);
+            throw new BusinessException(FILE_NOT_FOUND);
         }
 
         MediaType mediaType = resolveMediaType(resource);

@@ -11,7 +11,7 @@ import com.bikeridediary.global.auth.jwt.JwtTokenProvider;
 import com.bikeridediary.global.auth.oauth2.*;
 import com.bikeridediary.global.auth.token.RefreshTokenRepository;
 import com.bikeridediary.global.exception.BusinessException;
-import com.bikeridediary.global.exception.ErrorCode;
+import static com.bikeridediary.global.exception.ErrorCode.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,11 +22,12 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+
+
 // OAuth2 소셜 로그인 및 토큰 관리 서비스
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class AuthService {
 
     private final UserRepository userRepository;
@@ -65,7 +66,7 @@ public class AuthService {
         // Step 1: 이메일 중복 확인
         String email = request.email();
         if (userRepository.existsByEmailAndDeletedAtIsNull(email)) {
-            throw new BusinessException(ErrorCode.AUTH_USER_ALREADY_EXISTS);
+            throw new BusinessException(AUTH_USER_ALREADY_EXISTS);
         }
 
         // Step 2: 이메일 형식 검증
@@ -95,26 +96,26 @@ public class AuthService {
     private static void validateEmail(String email) {
         String emailRegex = "^[A-Za-z0-9+_.-]+@(.+)$";
         if (!email.matches(emailRegex)) {
-            throw new BusinessException(ErrorCode.AUTH_EMAIL_INVALID_FORMAT);
+            throw new BusinessException(AUTH_EMAIL_INVALID_FORMAT);
         }
     }
 
     private void validatePassword(String password) {
         // 최소 8자
         if (password.length() < 8) {
-            throw new BusinessException(ErrorCode.AUTH_PASSWORD_TOO_WEAK);
+            throw new BusinessException(AUTH_PASSWORD_TOO_WEAK);
         }
         // 영문 포함
         if (!password.matches(".*[a-zA-Z].*")) {
-            throw new BusinessException(ErrorCode.AUTH_PASSWORD_TOO_WEAK);
+            throw new BusinessException(AUTH_PASSWORD_TOO_WEAK);
         }
         // 숫자 포함
         if (!password.matches(".*\\d.*")) {
-            throw new BusinessException(ErrorCode.AUTH_PASSWORD_TOO_WEAK);
+            throw new BusinessException(AUTH_PASSWORD_TOO_WEAK);
         }
         // 특수문자 포함
         if (!password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};:'\",.<>?/\\\\|`~].*")) {
-            throw new BusinessException(ErrorCode.AUTH_PASSWORD_TOO_WEAK);
+            throw new BusinessException(AUTH_PASSWORD_TOO_WEAK);
         }
     }
 
@@ -161,11 +162,11 @@ public class AuthService {
     public AuthResponse loginWithEmail(LoginRequest request) {
         // Step 1: 이메일로 사용자 조회
         UserEntity userEntity = userRepository.findByEmailAndDeletedAtIsNull(request.email())
-                .orElseThrow(() -> new BusinessException(ErrorCode.AUTH_INVALID_CREDENTIALS));
+                .orElseThrow(() -> new BusinessException(AUTH_INVALID_CREDENTIALS));
 
         // Step 2: 비밀번호 검증
         if(!passwordEncoder.matches(request.password(), userEntity.getPassword())) {
-            throw new BusinessException(ErrorCode.AUTH_INVALID_CREDENTIALS);
+            throw new BusinessException(AUTH_INVALID_CREDENTIALS);
         }
 
         // Step 3: JWT 토큰 발급
@@ -193,7 +194,7 @@ public class AuthService {
             case "google" -> googleProvider.getUserInfo(credential);
             case "apple" -> appleProvider.getUserInfo(credential);
             case "naver" -> naverProvider.getUserInfo(credential);
-            default -> throw new BusinessException(ErrorCode.AUTH_UNSUPPORTED_PROVIDER);
+            default -> throw new BusinessException(AUTH_UNSUPPORTED_PROVIDER);
         };
     }
 
@@ -254,12 +255,12 @@ public class AuthService {
 
             // Step 2: Redis에서 저장된 토큰과 비교하여 유효성 검증
             if (!refreshTokenRepository.isValid(userId, refreshToken)) {
-                throw new BusinessException(ErrorCode.AUTH_INVALID_REFRESH_TOKEN);
+                throw new BusinessException(AUTH_INVALID_REFRESH_TOKEN);
             }
 
             // Step 3: 새로운 Access Token 발급
             UserEntity userEntity = userRepository.findByIdAndDeletedAtIsNull(userId)
-                    .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+                    .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
             String newAccessToken = jwtTokenProvider.generateAccessToken(userId, userEntity.getRole());
 
             // Step 4: 새로운 Refresh Token 발급 및 저장
@@ -273,7 +274,7 @@ public class AuthService {
             throw e;
         } catch (Exception e) {
             log.error("Token refresh failed", e);
-            throw new BusinessException(ErrorCode.AUTH_INVALID_REFRESH_TOKEN);
+            throw new BusinessException(AUTH_INVALID_REFRESH_TOKEN);
         }
     }
 

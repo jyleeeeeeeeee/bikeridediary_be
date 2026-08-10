@@ -12,7 +12,7 @@ import com.bikeridediary.global.auth.jwt.JwtTokenProvider;
 import com.bikeridediary.global.auth.oauth2.*;
 import com.bikeridediary.global.auth.token.RefreshTokenRepository;
 import com.bikeridediary.global.exception.BusinessException;
-import com.bikeridediary.global.exception.ErrorCode;
+import static com.bikeridediary.global.exception.ErrorCode.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

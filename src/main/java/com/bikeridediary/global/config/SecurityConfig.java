@@ -45,8 +45,8 @@ public class SecurityConfig {
             "/api/v1/courses",
             "/api/v1/bike-models/**",
             "/api/v1/places/**",
-//            "/api/v1/places/search-external",
-//            "/api/v1/places/geocode",
+//            "/api/v1/places/search-externa`l",
+//            "/api/v1/places/geocode",`
     };
 
     private final String[] AUTHENTICATED_ENDPOINTS = {

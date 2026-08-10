@@ -12,7 +12,7 @@ import com.bikeridediary.domain.maintenance.entity.MaintenanceEntity;
 import com.bikeridediary.domain.maintenance.repository.MaintenanceRepository;
 import com.bikeridediary.domain.user.repository.UserRepository;
 import com.bikeridediary.global.exception.BusinessException;
-import com.bikeridediary.global.exception.ErrorCode;
+import static com.bikeridediary.global.exception.ErrorCode.*;
 import com.bikeridediary.global.response.PageResponse;
 import com.bikeridediary.utils.ImageStorageService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -31,13 +31,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.bikeridediary.global.exception.ErrorCode.*;
+
 
 // 정비 기록 비즈니스 로직
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class MaintenanceService {
 
     private final ImageStorageService imageStorageService;
@@ -48,6 +47,7 @@ public class MaintenanceService {
     private final ObjectMapper objectMapper;
 
     // 특정 바이크의 정비 기록 (페이징)
+    @Transactional(readOnly = true)
     public PageResponse<MaintenanceResponse> getMaintenances(UUID bikeId, UUID userId, Pageable pageable) {
         BikeEntity bikeEntity = findBikeOrThrow(bikeId);
         verifyBikeOwnership(bikeEntity, userId);
@@ -59,6 +59,7 @@ public class MaintenanceService {
     }
 
     // 특정 정비 기록 조회
+    @Transactional(readOnly = true)
     public MaintenanceResponse getMaintenance(UUID maintenanceId, UUID userId) {
         MaintenanceEntity entity = findMaintenanceOrThrow(maintenanceId);
         verifyMaintenanceOwnership(entity, userId);
@@ -131,12 +132,12 @@ public class MaintenanceService {
     public MaintenanceResponse sync(UUID userId, MaintenanceSyncRequest req,
                                     List<MultipartFile> newImages) {
         userRepository.findByIdAndDeletedAtIsNull(userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
 
         BikeEntity bike = bikeRepository.findById(req.bikeId())
-                .orElseThrow(() -> new BusinessException(ErrorCode.BIKE_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(BIKE_NOT_FOUND));
         if (!bike.isOwner(userId)) {
-            throw new BusinessException(ErrorCode.MAINTENANCE_ACCESS_DENIED);
+            throw new BusinessException(MAINTENANCE_ACCESS_DENIED);
         }
 
         Optional<MaintenanceEntity> existingOpt = maintenanceRepository.findById(req.id());
@@ -146,7 +147,7 @@ public class MaintenanceService {
         if (existingOpt.isPresent()) {
             MaintenanceEntity existing = existingOpt.get();
             if (!existing.isOwner(userId)) {
-                throw new BusinessException(ErrorCode.MAINTENANCE_ACCESS_DENIED);
+                throw new BusinessException(MAINTENANCE_ACCESS_DENIED);
             }
             if (req.deletedAt() != null) {
                 if (!existing.isDeleted()) existing.delete();
@@ -208,6 +209,7 @@ public class MaintenanceService {
         return responseMaintenance(target);
     }
 
+    @Transactional(readOnly = true)
     public List<MaintenanceResponse> getMyMaintenances(UUID userId) {
         return maintenanceRepository.findMyMaintenances(userId)
                 .stream().map(this::responseMaintenance).toList();
@@ -262,23 +264,23 @@ public class MaintenanceService {
 
     private BikeEntity findBikeOrThrow(UUID bikeId) {
         return bikeRepository.findByIdAndDeletedAtIsNull(bikeId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.BIKE_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(BIKE_NOT_FOUND));
     }
 
     private MaintenanceEntity findMaintenanceOrThrow(UUID maintenanceId) {
         return maintenanceRepository.findByIdAndDeletedAtIsNull(maintenanceId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.MAINTENANCE_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(MAINTENANCE_NOT_FOUND));
     }
 
     private void verifyBikeOwnership(BikeEntity bikeEntity, UUID userId) {
         if (!bikeEntity.isOwner(userId)) {
-            throw new BusinessException(ErrorCode.BIKE_ACCESS_DENIED);
+            throw new BusinessException(BIKE_ACCESS_DENIED);
         }
     }
 
     private void verifyMaintenanceOwnership(MaintenanceEntity entity, UUID userId) {
         if (!entity.isOwner(userId)) {
-            throw new BusinessException(ErrorCode.MAINTENANCE_ACCESS_DENIED);
+            throw new BusinessException(MAINTENANCE_ACCESS_DENIED);
         }
     }
 

@@ -9,7 +9,7 @@ import com.bikeridediary.domain.maintenance.repository.MaintenanceRepository;
 import com.bikeridediary.domain.user.entity.UserEntity;
 import com.bikeridediary.domain.user.repository.UserRepository;
 import com.bikeridediary.global.exception.BusinessException;
-import com.bikeridediary.global.exception.ErrorCode;
+import static com.bikeridediary.global.exception.ErrorCode.*;
 import com.bikeridediary.global.response.PageResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -23,11 +23,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.bikeridediary.global.exception.ErrorCode.*;
+
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class FuelingService {
 
     private final FuelingRepository fuelingRepository;
@@ -36,6 +35,7 @@ public class FuelingService {
     private final UserRepository userRepository;
 
     // 사용자 화면 목록 (페이징) — fuelingDate DESC, 동일 날짜는 mileageAtFueling DESC
+    @Transactional(readOnly = true)
     public PageResponse<FuelingResponse> getFuelings(UUID bikeId, UUID userId, Pageable pageable) {
         BikeEntity bikeEntity = findBikeOrThrow(bikeId);
         verifyBikeOwnership(bikeEntity, userId);
@@ -54,6 +54,7 @@ public class FuelingService {
                 .getContent();
     }
 
+    @Transactional(readOnly = true)
     public FuelingResponse getFueling(UUID fuelingId, UUID userId) {
         FuelingEntity entity = findFuelingOrThrow(fuelingId);
         verifyFuelingOwnership(entity, userId);
@@ -122,6 +123,7 @@ public class FuelingService {
         updateBikeFuelEfficiency(bikeEntity);
     }
 
+    @Transactional(readOnly = true)
     public FuelingStatsResponse getStats(UUID bikeId, UUID userId) {
         BikeEntity bikeEntity = findBikeOrThrow(bikeId);
         verifyBikeOwnership(bikeEntity, userId);
@@ -300,6 +302,7 @@ public class FuelingService {
         current.setFuelEfficiency(efficiency);
     }
 
+    @Transactional(readOnly = true)
     public List<FuelingResponse> getMyFuelings(UUID userId) {
         return fuelingRepository.findByBikeEntity_UserEntity_IdAndDeletedAtIsNullOrderByFuelingDateDesc(userId)
                 .stream().map(FuelingResponse::from).toList();

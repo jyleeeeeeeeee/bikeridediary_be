@@ -4,7 +4,7 @@ import com.bikeridediary.domain.user.entity.UserEntity;
 import com.bikeridediary.domain.user.repository.UserRepository;
 import com.bikeridediary.global.auth.CustomUserDetails;
 import com.bikeridediary.global.exception.BusinessException;
-import com.bikeridediary.global.exception.ErrorCode;
+import static com.bikeridediary.global.exception.ErrorCode.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -23,10 +23,10 @@ public class CustomUserDetailsService implements UserDetailsService {
     private final UserRepository userRepository;
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
         UserEntity userEntity = userRepository.findByIdAndDeletedAtIsNull(UUID.fromString(userId))
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
 
         return new CustomUserDetails(userEntity.getId(), userEntity.getRole());
     }

@@ -54,6 +54,9 @@ public enum ErrorCode {
     COURSE_FAVORITE_ALREADY_EXISTS(HttpStatus.CONFLICT, "COURSE_FAVORITE_ALREADY_EXISTS", "이미 즐겨찾기한 코스입니다"),
     COURSE_FAVORITE_NOT_FOUND(HttpStatus.NOT_FOUND, "COURSE_FAVORITE_NOT_FOUND", "즐겨찾기 기록을 찾을 수 없습니다"),
     COURSE_FAVORITE_OWN_COURSE(HttpStatus.BAD_REQUEST, "COURSE_FAVORITE_OWN_COURSE", "내 코스는 즐겨찾기할 수 없습니다"),
+    COURSE_DIRECTIONS_FAILED(HttpStatus.BAD_GATEWAY, "COURSE_DIRECTIONS_FAILED", "경로를 계산할 수 없습니다. 출발지·경유지·도착지를 확인해 주세요"),
+    COURSE_DIRECTIONS_WAYPOINTS_LIMIT(HttpStatus.BAD_REQUEST, "COURSE_DIRECTIONS_WAYPOINTS_LIMIT", "경유지는 최대 15개까지 지정할 수 있습니다"),
+    COURSE_INVALID_WAYPOINTS(HttpStatus.BAD_REQUEST, "COURSE_INVALID_WAYPOINTS", "waypoint 구성이 올바르지 않습니다 (출발지 1개, 도착지 1개 필수)"),
 
     // 주유
     FUELING_NOT_FOUND(HttpStatus.NOT_FOUND, "FUELING_NOT_FOUND", "주유 기록을 찾을 수 없습니다"),

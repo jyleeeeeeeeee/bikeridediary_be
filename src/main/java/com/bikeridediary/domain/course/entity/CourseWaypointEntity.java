@@ -47,7 +47,7 @@ public class CourseWaypointEntity {
     @Column(name = "seq", nullable = false)
     private short seq;
 
-    // 역할 (START: 출발지, END: 목적지, VIA: 경유지)
+    // 역할 (START: 출발지, GOAL: 목적지, VIA: 경유지)
     @Column(name = "role", nullable = false, length = 20)
     private String role;
 

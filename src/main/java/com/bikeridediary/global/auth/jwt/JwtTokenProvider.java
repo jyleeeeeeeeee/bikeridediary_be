@@ -2,7 +2,7 @@ package com.bikeridediary.global.auth.jwt;
 
 import com.bikeridediary.domain.user.entity.UserRole;
 import com.bikeridediary.global.exception.BusinessException;
-import com.bikeridediary.global.exception.ErrorCode;
+import static com.bikeridediary.global.exception.ErrorCode.*;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
@@ -93,9 +93,9 @@ public class JwtTokenProvider {
             parseClaims(token);
             return true;
         } catch (ExpiredJwtException e) {
-            throw new BusinessException(ErrorCode.AUTH_EXPIRED_TOKEN);
+            throw new BusinessException(AUTH_EXPIRED_TOKEN);
         } catch (JwtException | IllegalArgumentException e) {
-            throw new BusinessException(ErrorCode.AUTH_INVALID_TOKEN);
+            throw new BusinessException(AUTH_INVALID_TOKEN);
         }
     }
 

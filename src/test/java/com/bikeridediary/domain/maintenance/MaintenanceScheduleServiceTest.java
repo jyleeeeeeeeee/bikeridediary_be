@@ -13,7 +13,7 @@ import com.bikeridediary.domain.maintenance.repository.MaintenanceScheduleReposi
 import com.bikeridediary.domain.maintenance.service.MaintenanceScheduleService;
 import com.bikeridediary.domain.user.entity.UserEntity;
 import com.bikeridediary.global.exception.BusinessException;
-import com.bikeridediary.global.exception.ErrorCode;
+import static com.bikeridediary.global.exception.ErrorCode.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -243,9 +243,11 @@ CREATE TABLE IF NOT EXISTS courses (
     -- 원본 코스 참조 — 원본 hard delete 시 SET NULL로 참조만 끊고 파생 코스는 유지
     source_course_id UUID          REFERENCES courses(id) ON DELETE SET NULL,
     created_at       TIMESTAMP     NOT NULL DEFAULT now(),
-    updated_at       TIMESTAMP
+    updated_at       TIMESTAMP,
+    description TEXT
     -- deleted_at 없음: courses는 hard delete 정책 (waypoints/favorites CASCADE 자동 삭제)
     );
+
 
 -- ============================================================
 -- 12. course_waypoints (코스 경유지)
@@ -266,7 +268,7 @@ CREATE TABLE IF NOT EXISTS course_waypoints (
     latitude   NUMERIC(9,7)  NOT NULL,
     longitude  NUMERIC(10,7) NOT NULL,
 
-    CONSTRAINT chk_waypoint_role CHECK (role IN ('START', 'VIA', 'END')),
+    CONSTRAINT chk_waypoint_role CHECK (role IN ('START', 'VIA', 'GOAL')),
     CONSTRAINT uq_waypoint_course_seq UNIQUE (course_id, seq)
     );
 
@@ -378,6 +380,10 @@ ALTER TABLE bike_models DROP COLUMN IF EXISTS created_at;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(20) NOT NULL DEFAULT 'USER';
 ALTER TABLE users DROP CONSTRAINT IF EXISTS chk_users_role;
 ALTER TABLE users ADD CONSTRAINT chk_users_role CHECK (role IN ('USER', 'ADMIN'));
+-- 기존 CHECK 제약 삭제 후 재생성
+ALTER TABLE course_waypoints DROP CONSTRAINT IF EXISTS course_waypoints_role_check;
+ALTER TABLE course_waypoints ADD CONSTRAINT course_waypoints_role_check
+    CHECK (role IN ('START','VIA','GOAL'));
 
 -- ============================================================
 -- 10. 타입 마이그레이션 (INTEGER → BIGINT, Entity Long 필드 반영)
@@ -415,6 +421,8 @@ ALTER TABLE courses                ADD COLUMN IF NOT EXISTS no BIGINT;
 ALTER TABLE course_favorites       ADD COLUMN IF NOT EXISTS no BIGINT;
 ALTER TABLE place_change_requests  ADD COLUMN IF NOT EXISTS no BIGINT;
 ALTER TABLE course_waypoints       ADD COLUMN IF NOT EXISTS no BIGINT;
+ALTER TABLE courses                ADD COLUMN IF NOT EXISTS description TEXT;
+
 
 -- DEFAULT nextval 세팅 (idempotent — 같은 시퀀스 반복 지정 무해)
 ALTER TABLE users                  ALTER COLUMN no SET DEFAULT nextval('users_no_seq');
@@ -430,6 +438,7 @@ ALTER TABLE courses                ALTER COLUMN no SET DEFAULT nextval('courses_
 ALTER TABLE course_favorites       ALTER COLUMN no SET DEFAULT nextval('course_favorites_no_seq');
 ALTER TABLE place_change_requests  ALTER COLUMN no SET DEFAULT nextval('place_change_requests_no_seq');
 ALTER TABLE course_waypoints       ALTER COLUMN no SET DEFAULT nextval('course_waypoints_no_seq');
+
 
 -- 참고: UNIQUE 제약 및 seq→no RENAME 마이그레이션은 Spring ScriptUtils가 DO $$ 블록을
 -- 지원하지 않아 여기서 실행 못 함. 신규 CREATE TABLE 정의에 UNIQUE가 이미 있고,

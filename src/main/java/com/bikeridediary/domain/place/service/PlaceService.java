@@ -7,8 +7,8 @@ import com.bikeridediary.domain.place.repository.PlaceRepository;
 import com.bikeridediary.domain.user.entity.UserEntity;
 import com.bikeridediary.domain.user.repository.UserRepository;
 import com.bikeridediary.global.exception.BusinessException;
-import com.bikeridediary.global.exception.ErrorCode;
-import com.bikeridediary.infra.naver.maps.NaverGeocodingClient;
+import static com.bikeridediary.global.exception.ErrorCode.*;
+import com.bikeridediary.infra.naver.maps.NaverMapsClient;
 import com.bikeridediary.infra.naver.maps.dto.NaverGeocodeResponse;
 import com.bikeridediary.infra.naver.search.NaverSearchClient;
 import com.bikeridediary.infra.naver.search.dto.NaverLocalItem;
@@ -23,11 +23,10 @@ import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
-import static com.bikeridediary.global.exception.ErrorCode.*;
+
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class PlaceService {
 
     private static final double DUPLICATE_RADIUS_METERS = 100.0;
@@ -36,14 +35,18 @@ public class PlaceService {
     private final PlaceRepository placeRepository;
     private final UserRepository userRepository;
     private final NaverSearchClient naverSearchClient;
-    private final NaverGeocodingClient naverGeocodingClient;
+    private final NaverMapsClient naverMapsClient;
 
     private static final Pattern HTML_TAG = Pattern.compile("<[^>]+>");
     private static final BigDecimal COORD_SCALE = BigDecimal.valueOf(10_000_000);
 
     @Transactional(readOnly = true)
     public List<PlaceResponse> list(String categoryCode) {
-        return ((categoryCode == null || categoryCode.isBlank()) ? placeRepository.findByDeletedAtIsNullOrderByPlaceCategoryEntity_DisplayOrderAsc() : placeRepository.findByPlaceCategoryEntity_CategoryCodeAndDeletedAtIsNull(categoryCode)).stream().map(PlaceResponse::from).toList();
+        return (
+                (categoryCode == null || categoryCode.isBlank()) ?
+                    placeRepository.findByDeletedAtIsNullOrderByPlaceCategoryEntity_DisplayOrderAsc() :
+                    placeRepository.findByPlaceCategoryEntity_CategoryCodeAndDeletedAtIsNull(categoryCode))
+                .stream().map(PlaceResponse::from).toList();
     }
 
     // Naver 지역검색 API는 display 최대 5 상한이라 페이지 크기 고정.
@@ -59,7 +62,7 @@ public class PlaceService {
     }
 
     public List<GeocodeResultResponse> geocode(String query) {
-        NaverGeocodeResponse response = naverGeocodingClient.search(query);
+        NaverGeocodeResponse response = naverMapsClient.search(query);
         if (response == null || !"OK".equals(response.status()) ||
                 response.addresses() == null || response.addresses().isEmpty()) {
             return List.of();
@@ -88,6 +91,7 @@ public class PlaceService {
     }
 
     // 유저별 장소 등록 순위 (내림차순)
+    @Transactional(readOnly = true)
     public List<PlaceRankingResponse> getRankings() {
         List<PlaceRegistrationCount> counts = placeRepository.countRegistrationsByUser();
         List<PlaceRankingResponse> ranked = new java.util.ArrayList<>(counts.size());
@@ -98,6 +102,7 @@ public class PlaceService {
     }
 
     // 어드민 soft delete — deleted_at 세팅. 지도/조회에서 숨김. 복구 가능.
+    @Transactional
     public void softDeleteByAdmin(UUID placeId) {
         PlaceEntity place = placeRepository.findById(placeId)
                 .orElseThrow(() -> new BusinessException(PLACE_NOT_FOUND));
@@ -109,6 +114,7 @@ public class PlaceService {
     //   - place_wishes: 삭제
     //   - place_change_requests: 삭제 (제보 이력 소실 주의)
     //   - course_waypoints.place_id: SET NULL (waypoint 자체는 유지)
+    @Transactional
     public void hardDeleteByAdmin(UUID placeId) {
         PlaceEntity place = placeRepository.findById(placeId)
                 .orElseThrow(() -> new BusinessException(PLACE_NOT_FOUND));
@@ -116,7 +122,7 @@ public class PlaceService {
     }
 
     private UserEntity verifyUserExists(UUID userId) {
-        return userRepository.findByIdAndDeletedAtIsNull(userId).orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        return userRepository.findByIdAndDeletedAtIsNull(userId).orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
     }
 
     /**
@@ -134,6 +140,7 @@ public class PlaceService {
         return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
 
+    @Transactional(readOnly = true)
     public void checkDuplicate(String placeName, BigDecimal latitude, BigDecimal longitude) {
 
         // 1단계: bounding box (100m 반경을 감싸는 사각형)

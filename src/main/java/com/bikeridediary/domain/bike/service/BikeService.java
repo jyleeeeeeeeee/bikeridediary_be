@@ -9,7 +9,7 @@ import com.bikeridediary.domain.bike.repository.BikeRepository;
 import com.bikeridediary.domain.user.entity.UserEntity;
 import com.bikeridediary.domain.user.repository.UserRepository;
 import com.bikeridediary.global.exception.BusinessException;
-import com.bikeridediary.global.exception.ErrorCode;
+import static com.bikeridediary.global.exception.ErrorCode.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -19,15 +19,17 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+
+
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class BikeService {
 
     private final BikeRepository bikeRepository;
     private final UserRepository userRepository;
 
     // 사용자의 모든 활성 바이크 조회 (대표 순서 내림차순, 생성 날짜 내림차순)
+    @Transactional(readOnly = true)
     public List<BikeResponse> getMyBikes(UUID userId) {
         verifyUserExists(userId);
         return bikeRepository.findByUserEntityIdAndDeletedAtIsNullOrderByIsRepresentativeDescCreatedAtDesc(userId)
@@ -37,9 +39,10 @@ public class BikeService {
     }
 
     // 특정 바이크 조회 (사용자 소유 확인 필수)
+    @Transactional(readOnly = true)
     public BikeResponse getBike(UUID bikeId, UUID userId) {
         BikeEntity bikeEntity = bikeRepository.findByIdAndDeletedAtIsNull(bikeId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.BIKE_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(BIKE_NOT_FOUND));
 
         verifyBikeOwnership(bikeEntity, userId);
         return BikeResponse.from(bikeEntity);
@@ -49,7 +52,7 @@ public class BikeService {
     @Transactional
     public BikeResponse createBike(BikeCreateRequest request, UUID userId) {
         UserEntity userEntity = userRepository.findByIdAndDeletedAtIsNull(userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
 
         BikeEntity bikeEntity = BikeEntity.create(
                 userEntity,
@@ -76,7 +79,7 @@ public class BikeService {
     @Transactional
     public BikeResponse updateBike(UUID bikeId, BikeUpdateRequest request, UUID userId) {
         BikeEntity bikeEntity = bikeRepository.findByIdAndDeletedAtIsNull(bikeId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.BIKE_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(BIKE_NOT_FOUND));
 
         verifyBikeOwnership(bikeEntity, userId);
 
@@ -98,7 +101,7 @@ public class BikeService {
     @Transactional
     public void deleteBike(UUID bikeId, UUID userId) {
         BikeEntity bikeEntity = bikeRepository.findByIdAndDeletedAtIsNull(bikeId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.BIKE_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(BIKE_NOT_FOUND));
 
         verifyBikeOwnership(bikeEntity, userId);
 
@@ -115,7 +118,7 @@ public class BikeService {
     @Transactional
     public BikeResponse setRepresentative(UUID bikeId, UUID userId) {
         BikeEntity bikeEntity = bikeRepository.findByIdAndDeletedAtIsNull(bikeId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.BIKE_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(BIKE_NOT_FOUND));
 
         verifyBikeOwnership(bikeEntity, userId);
 
@@ -128,14 +131,14 @@ public class BikeService {
     @Transactional
     public BikeResponse sync(UUID userId, BikeSyncRequest req) {
         UserEntity user = userRepository.findByIdAndDeletedAtIsNull(userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
 
         Optional<BikeEntity> existingOpt = bikeRepository.findById(req.id());
 
         if(existingOpt.isPresent()) {
             BikeEntity existing = existingOpt.get();
             if (!existing.isOwner(userId)) {
-                throw new BusinessException(ErrorCode.BIKE_ACCESS_DENIED);
+                throw new BusinessException(BIKE_ACCESS_DENIED);
             }
 
             if (req.deletedAt() != null) {
@@ -191,12 +194,12 @@ public class BikeService {
 
     private void verifyUserExists(UUID userId) {
         userRepository.findByIdAndDeletedAtIsNull(userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
     }
 
     private void verifyBikeOwnership(BikeEntity bikeEntity, UUID userId) {
         if (!bikeEntity.isOwner(userId)) {
-            throw new BusinessException(ErrorCode.BIKE_ACCESS_DENIED);
+            throw new BusinessException(BIKE_ACCESS_DENIED);
         }
     }
 }

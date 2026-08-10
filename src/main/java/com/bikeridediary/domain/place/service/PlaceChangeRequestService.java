@@ -13,7 +13,7 @@ import com.bikeridediary.domain.user.entity.UserEntity;
 import com.bikeridediary.domain.user.entity.UserRole;
 import com.bikeridediary.domain.user.repository.UserRepository;
 import com.bikeridediary.global.exception.BusinessException;
-import com.bikeridediary.global.exception.ErrorCode;
+import static com.bikeridediary.global.exception.ErrorCode.*;
 import com.bikeridediary.global.response.PageResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -28,11 +28,10 @@ import java.util.UUID;
 
 import static com.bikeridediary.domain.place.entity.PlaceChangeRequestStatus.*;
 import static com.bikeridediary.domain.place.entity.PlaceChangeRequestType.*;
-import static com.bikeridediary.global.exception.ErrorCode.*;
+
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class PlaceChangeRequestService {
     // 요청자별 PENDING CREATE 요청 상한 (스팸 방어)
     private static final long MAX_PENDING_PER_USER = 20;
@@ -48,6 +47,7 @@ public class PlaceChangeRequestService {
     // ============================================================
 
     // 요청 생성
+    @Transactional
     public PlaceChangeRequestResponse create(UUID requesterId, PlaceChangeRequestCreateRequest request) {
         UserEntity requester = userRepository.findByIdAndDeletedAtIsNull(requesterId)
                 .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
@@ -117,6 +117,7 @@ public class PlaceChangeRequestService {
     }
 
     // 어드민 승인 - 트랜잭션 내에서 places 반영 후 status 변경
+    @Transactional
     public AdminPlaceChangeRequestResponse approve(UUID requestId, UUID reviewerId, AdminReviewRequest review) {
         PlaceChangeRequestEntity request = placeChangeRequestRepository.findById(requestId)
                 .orElseThrow(() -> new BusinessException(PLACE_REQUEST_NOT_FOUND));
@@ -132,6 +133,7 @@ public class PlaceChangeRequestService {
     }
 
     // 어드민 거절
+    @Transactional
     public AdminPlaceChangeRequestResponse reject(UUID requestId, UUID reviewerId, AdminReviewRequest review) {
         PlaceChangeRequestEntity request = placeChangeRequestRepository.findById(requestId)
                 .orElseThrow(() -> new BusinessException(PLACE_REQUEST_NOT_FOUND));

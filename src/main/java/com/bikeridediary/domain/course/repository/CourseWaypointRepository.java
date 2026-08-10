@@ -10,7 +10,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface CourseWaypointRepository extends JpaRepository<CourseWaypointEntity, UUID> {
-    List<CourseWaypointEntity> findByCourseEntityIdOrderBySeqAsc(UUID courseId);
     @Query("""
         SELECT w FROM CourseWaypointEntity w
         LEFT JOIN FETCH w.placeEntity p
@@ -22,4 +21,7 @@ public interface CourseWaypointRepository extends JpaRepository<CourseWaypointEn
 
     // no(자동 증가 조회 번호)로 특정 waypoint 조회 — DB 관리/디버깅용
     Optional<CourseWaypointEntity> findByNo(Long no);
+
+    // update 시 기존 waypoint 모두 삭제
+    void deleteByCourseEntityId(UUID courseId);
 }

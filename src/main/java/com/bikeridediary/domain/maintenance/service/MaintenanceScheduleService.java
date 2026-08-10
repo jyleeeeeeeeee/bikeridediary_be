@@ -12,7 +12,6 @@ import com.bikeridediary.domain.maintenance.entity.MaintenanceType;
 import com.bikeridediary.domain.maintenance.repository.MaintenanceRepository;
 import com.bikeridediary.domain.maintenance.repository.MaintenanceScheduleRepository;
 import com.bikeridediary.global.exception.BusinessException;
-import com.bikeridediary.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,10 +21,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+
+
 // 정비 주기 비즈니스 로직
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class MaintenanceScheduleService {
 
     private final MaintenanceScheduleRepository scheduleRepository;
@@ -34,6 +34,7 @@ public class MaintenanceScheduleService {
     private final com.bikeridediary.domain.user.repository.UserRepository userRepository;
 
     // 특정 바이크의 모든 정비 주기 조회 (정비 기록 기반으로 overdue 판단)
+    @Transactional(readOnly = true)
     public List<MaintenanceScheduleResponse> getSchedules(UUID bikeId, UUID userId) {
         BikeEntity bikeEntity = findBikeOrThrow(bikeId);
         verifyBikeOwnership(bikeEntity, userId);
@@ -46,6 +47,7 @@ public class MaintenanceScheduleService {
     }
 
     // 특정 정비 주기 조회
+    @Transactional(readOnly = true)
     public MaintenanceScheduleResponse getSchedule(UUID scheduleId, UUID userId) {
         MaintenanceScheduleEntity entity = findScheduleOrThrow(scheduleId);
         verifyScheduleOwnership(entity, userId);
@@ -63,7 +65,7 @@ public class MaintenanceScheduleService {
 
         if (scheduleRepository.existsByBikeEntityIdAndMaintenanceTypeAndDeletedAtIsNull(
                 request.bikeId(), request.maintenanceType())) {
-            throw new BusinessException(ErrorCode.MAINTENANCE_SCHEDULE_DUPLICATE);
+            throw new BusinessException(MAINTENANCE_SCHEDULE_DUPLICATE);
         }
 
         MaintenanceScheduleEntity entity = MaintenanceScheduleEntity.create(
@@ -120,35 +122,35 @@ public class MaintenanceScheduleService {
 
     private BikeEntity findBikeOrThrow(UUID bikeId) {
         return bikeRepository.findByIdAndDeletedAtIsNull(bikeId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.BIKE_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(BIKE_NOT_FOUND));
     }
 
     private MaintenanceScheduleEntity findScheduleOrThrow(UUID scheduleId) {
         return scheduleRepository.findByIdAndDeletedAtIsNull(scheduleId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.MAINTENANCE_SCHEDULE_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(MAINTENANCE_SCHEDULE_NOT_FOUND));
     }
 
     private void verifyBikeOwnership(BikeEntity bikeEntity, UUID userId) {
         if (!bikeEntity.isOwner(userId)) {
-            throw new BusinessException(ErrorCode.BIKE_ACCESS_DENIED);
+            throw new BusinessException(BIKE_ACCESS_DENIED);
         }
     }
 
     private void verifyScheduleOwnership(MaintenanceScheduleEntity entity, UUID userId) {
         if (!entity.isOwner(userId)) {
-            throw new BusinessException(ErrorCode.MAINTENANCE_SCHEDULE_ACCESS_DENIED);
+            throw new BusinessException(MAINTENANCE_SCHEDULE_ACCESS_DENIED);
         }
     }
 
     @Transactional
     public MaintenanceScheduleResponse sync(UUID userId, MaintenanceScheduleSyncRequest req) {
         userRepository.findByIdAndDeletedAtIsNull(userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
 
         BikeEntity bike = bikeRepository.findById(req.bikeId())
-                .orElseThrow(() -> new BusinessException(ErrorCode.BIKE_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(BIKE_NOT_FOUND));
         if (!bike.isOwner(userId)) {
-            throw new BusinessException(ErrorCode.MAINTENANCE_SCHEDULE_ACCESS_DENIED);
+            throw new BusinessException(MAINTENANCE_SCHEDULE_ACCESS_DENIED);
         }
 
         Optional<MaintenanceScheduleEntity> existingOpt =
@@ -158,7 +160,7 @@ public class MaintenanceScheduleService {
         if (existingOpt.isPresent()) {
             MaintenanceScheduleEntity existing = existingOpt.get();
             if (!existing.isOwner(userId)) {
-                throw new BusinessException(ErrorCode.MAINTENANCE_SCHEDULE_ACCESS_DENIED);
+                throw new BusinessException(MAINTENANCE_SCHEDULE_ACCESS_DENIED);
             }
             if (req.deletedAt() != null) {
                 if (!existing.isDeleted()) existing.delete();
@@ -182,6 +184,7 @@ public class MaintenanceScheduleService {
     }
 
     // 초기 pull용 — 유저의 모든 활성 스케줄
+    @Transactional(readOnly = true)
     public List<MaintenanceScheduleResponse> getMySchedules(UUID userId) {
         return scheduleRepository.findMySchedules(userId).stream()
                 .map(s -> buildResponse(

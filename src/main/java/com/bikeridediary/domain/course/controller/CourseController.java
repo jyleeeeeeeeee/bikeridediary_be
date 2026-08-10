@@ -1,17 +1,18 @@
 package com.bikeridediary.domain.course.controller;
 
-import com.bikeridediary.domain.course.dto.CourseDetailResponse;
-import com.bikeridediary.domain.course.dto.CourseSummaryResponse;
+import com.bikeridediary.domain.course.dto.*;
 import com.bikeridediary.domain.course.service.CourseService;
 import com.bikeridediary.global.auth.CustomUserDetails;
 import com.bikeridediary.global.response.ApiResponse;
 import com.bikeridediary.global.response.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -91,6 +92,29 @@ public class CourseController {
         return ResponseEntity.ok(ApiResponse.ok(courseService.removeFavorite(id, userDetails.getUserId())));
     }
 
+    @Operation(summary = "코스 생성 (Directions API 경로 계산 포함)")
+    @PostMapping
+    public ResponseEntity<ApiResponse<CourseDetailResponse>> createCourse(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody @Valid CourseCreateRequest request
+            ) {
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.ok(
+                        courseService.createCourse(userDetails.getUserId(), request)
+                ));
+    }
+
+    @Operation(summary = "코스 수정 (작성자만, regeneratePath=true 시 Directions 재호출)")
+    @PatchMapping("/{id}")
+    public ResponseEntity<ApiResponse<CourseDetailResponse>> updateCourse(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody @Valid CourseUpdateRequest request
+            ) {
+        return ResponseEntity.ok(ApiResponse.ok(courseService.updateCourse(id, userDetails.getUserId(), request)));
+    }
+
     @Operation(summary = "코스 삭제 (작성자만, hard delete)")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCourse(
@@ -99,5 +123,15 @@ public class CourseController {
     ) {
         courseService.deleteCourse(id, userDetails.getUserId());
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "경로 미리보기 (저장 없이 Directions 호출, path + distance + bbox 반환)")
+    @PostMapping("/preview")
+    public ResponseEntity<ApiResponse<CoursePreviewResponse>> previewCourse(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody @Valid CoursePreviewRequest request
+            ) {
+        // userDetails는 인증 강제용 (SecurityConfig가 permitAll 아님을 명시)
+        return ResponseEntity.ok(ApiResponse.ok(courseService.previewCourse(request)));
     }
 }

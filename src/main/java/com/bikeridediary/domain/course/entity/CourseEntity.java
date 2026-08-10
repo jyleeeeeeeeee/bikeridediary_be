@@ -57,6 +57,10 @@ public class CourseEntity extends BaseEntity {
     @Column(name = "source_course_id")
     private UUID sourceCourseId;
 
+    // 코스 설명
+    @Column(name = "description", columnDefinition = "TEXT")
+    private String description;
+
     // 이 코스가 특정 사용자에게 속하는지 확인 (권한 검증용)
     // 시드 코스(userEntity=null)는 그 누구의 소유도 아님
     public boolean isOwner(UUID userId) {
@@ -64,11 +68,29 @@ public class CourseEntity extends BaseEntity {
         return this.userEntity.getId().equals(userId);
     }
 
+    // 코스 기본 정보 업데이트 (JPA dirty checking — save() 호출 불필요)
+    public void update(String name, String description, boolean isPublic) {
+        if (name != null) this.name = name;
+        // description: null이면 변경 없음, 빈 문자열이면 null로 저장(제거)
+        if (description != null) {
+            this.description = description.isBlank() ? null : description;
+        }
+        this.isPublic = isPublic;
+    }
+
+    // Directions API 재호출 결과로 path/distance 업데이트 (dirty checking)
+    public void updatePath(String path, Integer distanceMeters) {
+        this.path = path;
+        this.distanceMeters = distanceMeters;
+    }
+
+
     // 코스 생성 팩토리
     public static CourseEntity createWithId(
         UUID id,
         UserEntity userEntity,
         String name,
+        String description,
         Integer distanceMeters,
         String path,
         boolean isPublic,
@@ -82,7 +104,7 @@ public class CourseEntity extends BaseEntity {
         courseEntity.path = path;
         courseEntity.isPublic = isPublic;
         courseEntity.sourceCourseId = sourceCourseId;
-
+        courseEntity.description = description;
         return courseEntity;
     }
 }

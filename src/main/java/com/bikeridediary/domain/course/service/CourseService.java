@@ -1,43 +1,52 @@
 package com.bikeridediary.domain.course.service;
 
-import com.bikeridediary.domain.course.dto.CourseDetailResponse;
-import com.bikeridediary.domain.course.dto.CourseSummaryResponse;
-import com.bikeridediary.domain.course.dto.CourseWaypointResponse;
+import com.bikeridediary.domain.course.dto.*;
 import com.bikeridediary.domain.course.entity.CourseEntity;
 import com.bikeridediary.domain.course.entity.CourseFavoriteEntity;
 import com.bikeridediary.domain.course.entity.CourseFavoriteId;
+import com.bikeridediary.domain.course.entity.CourseWaypointEntity;
 import com.bikeridediary.domain.course.repository.CourseFavoriteRepository;
 import com.bikeridediary.domain.course.repository.CourseRepository;
 import com.bikeridediary.domain.course.repository.CourseWaypointRepository;
+import com.bikeridediary.domain.place.entity.PlaceEntity;
+import com.bikeridediary.domain.place.repository.PlaceRepository;
+import com.bikeridediary.domain.user.entity.UserEntity;
 import com.bikeridediary.domain.user.repository.UserRepository;
 import com.bikeridediary.global.exception.BusinessException;
 import com.bikeridediary.global.response.PageResponse;
+import com.bikeridediary.infra.naver.maps.NaverMapsClient;
+import com.bikeridediary.infra.naver.maps.dto.NaverDirectionsResponse;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
 import static com.bikeridediary.global.exception.ErrorCode.*;
+import static com.bikeridediary.infra.naver.maps.NaverMapsClient.*;
+import static com.bikeridediary.infra.naver.maps.dto.NaverDirectionsResponse.*;
+
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class CourseService {
-    private final UserRepository userRepository;
     private final CourseRepository courseRepository;
     private final CourseFavoriteRepository courseFavoriteRepository;
     private final CourseWaypointRepository courseWaypointRepository;
+    private final PlaceRepository placeRepository;
+    private final NaverMapsClient naverMapsClient;
+    private final UserRepository userRepository;
+    private final ObjectMapper objectMapper;
+    private static final Set<String> WAYPOINT_ROLE = Set.of("START", "GOAL", "VIA");
 
     // 내가 만든 코스 (페이징) — 항상 isMineOnly=true 로 매핑되므로 isFavorited=false
     @Transactional(readOnly = true)
     public PageResponse<CourseSummaryResponse> getMyOwnedCourses(UUID userId, Pageable pageable) {
         return PageResponse.of(
                 courseRepository.findByUserEntityId(userId, pageable),
-                course -> CourseSummaryResponse.from(course, userId, false)
+                courseEntity -> CourseSummaryResponse.from(courseEntity, userId, false)
         );
     }
 
@@ -46,7 +55,7 @@ public class CourseService {
     public PageResponse<CourseSummaryResponse> getMyFavoriteCourses(UUID userId, Pageable pageable) {
         return PageResponse.ofSlice(
                 courseRepository.findFavoritedByOthers(userId, pageable),
-                course -> CourseSummaryResponse.from(course, userId, true)
+                courseEntity -> CourseSummaryResponse.from(courseEntity, userId, true)
         );
     }
 
@@ -65,33 +74,33 @@ public class CourseService {
 
         return PageResponse.ofSlice(
                 slice,
-                course -> CourseSummaryResponse.from(course, userId, favoritedIds.contains(course.getId()))
+                courseEntity -> CourseSummaryResponse.from(courseEntity, userId, favoritedIds.contains(courseEntity.getId()))
         );
     }
 
     @Transactional(readOnly = true)
     public CourseDetailResponse getDetail(UUID courseId, UUID userId) {
-        CourseEntity course = courseRepository.findByIdWithUser(courseId)
+        CourseEntity courseEntity = courseRepository.findByIdWithUser(courseId)
                 .orElseThrow(() -> new BusinessException(COURSE_NOT_FOUND));
 
-        validateDetailAccess(course, userId);
+        validateDetailAccess(courseEntity, userId);
 
         List<CourseWaypointResponse> waypoints = courseWaypointRepository
                 .findByCourseEntityIdWithPlaceOrderBySeqAsc(courseId)
                 .stream().map(CourseWaypointResponse::from).toList();
 
-        boolean isFavorited = !course.isOwner(userId)
+        boolean isFavorited = !courseEntity.isOwner(userId)
                 && courseFavoriteRepository.existsById(new CourseFavoriteId(courseId, userId));
-        return CourseDetailResponse.from(course, waypoints, userId, isFavorited);
+        return CourseDetailResponse.from(courseEntity, waypoints, userId, isFavorited);
     }
 
     @Transactional
     public boolean addFavorite(UUID courseId, UUID userId) {
-        CourseEntity course = courseRepository.findByIdWithUser(courseId)
+        CourseEntity courseEntity = courseRepository.findByIdWithUser(courseId)
                 .orElseThrow(() -> new BusinessException(COURSE_NOT_FOUND));
 
-        if (course.isOwner(userId)) throw new BusinessException(COURSE_FAVORITE_OWN_COURSE);
-        if (!course.isPublic())     throw new BusinessException(COURSE_ACCESS_DENIED);
+        if (courseEntity.isOwner(userId)) throw new BusinessException(COURSE_FAVORITE_OWN_COURSE);
+        if (!courseEntity.isPublic())     throw new BusinessException(COURSE_ACCESS_DENIED);
 
         CourseFavoriteId favId = new CourseFavoriteId(courseId, userId);
         if (courseFavoriteRepository.existsById(favId)) {
@@ -104,24 +113,25 @@ public class CourseService {
 
     @Transactional
     public boolean removeFavorite(UUID courseId, UUID userId) {
-        CourseFavoriteId favId = new CourseFavoriteId(courseId, userId);
-        if (!courseFavoriteRepository.existsById(favId)) {
+        CourseFavoriteId favoriteId = new CourseFavoriteId(courseId, userId);
+        if (!courseFavoriteRepository.existsById(favoriteId)) {
             throw new BusinessException(COURSE_FAVORITE_NOT_FOUND);
         }
-        courseFavoriteRepository.deleteById(favId);
+        courseFavoriteRepository.deleteById(favoriteId);
         return false;
     }
 
     // 코스 hard delete — 작성자 본인만 가능
     // CASCADE로 waypoints, favorites 자동 삭제
     // source_course_id ON DELETE SET NULL로 파생 코스는 유지 (source 참조만 NULL로)
+    @Transactional
     public void deleteCourse(UUID courseId, UUID userId) {
-        CourseEntity course = courseRepository.findByIdWithUser(courseId)
+        CourseEntity courseEntity = courseRepository.findByIdWithUser(courseId)
                 .orElseThrow(() -> new BusinessException(COURSE_NOT_FOUND));
-        if (!course.isOwner(userId)) {
+        if (!courseEntity.isOwner(userId)) {
             throw new BusinessException(COURSE_ACCESS_DENIED);
         }
-        courseRepository.delete(course);
+        courseRepository.delete(courseEntity);
     }
 
     private void validateDetailAccess(CourseEntity course, UUID userId) {
@@ -133,4 +143,175 @@ public class CourseService {
         throw new BusinessException(COURSE_ACCESS_DENIED);
     }
 
+    @Transactional
+    public CourseDetailResponse createCourse(UUID userId, CourseCreateRequest request) {
+        List<WaypointRequest> waypoints = request.waypoints();
+        validateWaypoints(waypoints);
+        UserEntity user = userRepository.findByIdAndDeletedAtIsNull(userId)
+                .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
+        CourseEntity saved = courseRepository.save(
+                CourseEntity.createWithId(
+                    UUID.randomUUID(),
+                    user,
+                    request.name(),
+                    request.description(),
+                    request.distanceMeters(),
+                    request.path(),
+                    request.isPublic(),
+                    request.sourceCourseId())
+        );
+        saveWaypoints(saved, waypoints);
+
+        return buildDetailResponse(saved.getId(), userId);
+
+    }
+
+    @Transactional
+    public CourseDetailResponse updateCourse(UUID courseId, UUID userId, CourseUpdateRequest request) {
+        CourseEntity courseEntity = courseRepository.findByIdWithUser(courseId)
+                .orElseThrow(() -> new BusinessException(COURSE_NOT_FOUND));
+
+        if (!courseEntity.isOwner(userId)) {
+            throw new BusinessException(COURSE_ACCESS_DENIED);
+        }
+
+        boolean isPublic = request.isPublic() != null ? request.isPublic() : courseEntity.isPublic();
+        courseEntity.update(request.name(), request.description(), isPublic);
+
+        List<WaypointRequest> waypoints = request.waypoints();
+        if (request.regeneratePath() && waypoints != null && !waypoints.isEmpty()) {
+            validateWaypoints(waypoints);
+
+            String path = request.path();
+            if (path == null || path.isBlank() || request.distanceMeters() == null) {
+                throw new BusinessException(COURSE_INVALID_WAYPOINTS);
+            }
+
+            sanityCheckPath(path, request.distanceMeters(), waypoints);
+            courseEntity.updatePath(path, request.distanceMeters());
+
+            // UNIQUE (course_id, seq) 충돌 방지 (delete -> insert)
+            courseWaypointRepository.deleteByCourseEntityId(courseId);
+            saveWaypoints(courseEntity, waypoints);
+        }
+
+        return buildDetailResponse(courseId, userId);
+    }
+
+    // preview는 Naver 호출만, DB 접근 없음 — 트랜잭션 어노테이션 생략
+    public CoursePreviewResponse previewCourse(CoursePreviewRequest request) {
+        List<WaypointRequest> waypoints = request.waypoints();
+        validateWaypoints(waypoints);
+        DirectionsResult result = callNaverDirections(waypoints);
+        return new CoursePreviewResponse(result.pathJson, result.distanceMeters, result.bbox);
+    }
+
+    private void validateWaypoints(List<WaypointRequest> waypoints) {
+        waypoints.stream()
+                .filter(w -> !WAYPOINT_ROLE.contains(w.role()))
+                .findAny()
+                .ifPresent(w -> {
+                    throw new BusinessException(INVALID_INPUT);
+                });
+
+        long startCount = waypoints.stream().filter(w -> "START".equals(w.role())).count();
+        long endCount   = waypoints.stream().filter(w -> "GOAL".equals(w.role())).count();
+        long viaCount   = waypoints.stream().filter(w -> "VIA".equals(w.role())).count();
+
+        if (startCount != 1 || endCount != 1) throw new BusinessException(COURSE_INVALID_WAYPOINTS);
+        if (viaCount > 15) throw new BusinessException(COURSE_DIRECTIONS_WAYPOINTS_LIMIT);
+
+        long count = waypoints.stream().mapToInt(WaypointRequest::seq).distinct().count();
+        if(count != waypoints.size()) throw new BusinessException(COURSE_INVALID_WAYPOINTS);
+    }
+
+    private DirectionsResult callNaverDirections(List<WaypointRequest> waypoints) {
+        WaypointRequest start = waypoints.stream().filter(w -> "START".equals(w.role())).findFirst().orElseThrow();
+        WaypointRequest goal = waypoints.stream().filter(w -> "GOAL".equals(w.role())).findFirst().orElseThrow();
+        List<Waypoint> vias = waypoints.stream()
+                .filter(w -> "VIA".equals(w.role()))
+                .sorted(Comparator.comparingInt(WaypointRequest::seq))
+                .map(w -> new Waypoint(w.latitude(), w.longitude()))
+                .toList();
+
+        NaverDirectionsResponse response = naverMapsClient.directions(
+                start.longitude(), start.latitude(),
+                goal.longitude(), goal.latitude(),
+                vias);
+        RoutePath routePath = response.route().traavoidcaronly().get(0);
+        String pathJson;
+        try {
+            pathJson = objectMapper.writeValueAsString(routePath.path());
+        } catch (JsonProcessingException e) {
+            throw new BusinessException(COURSE_DIRECTIONS_FAILED);
+        }
+
+        int distanceMeters = routePath.summary().distance();
+        List<List<Double>> bbox = routePath.summary().bbox();
+        return new DirectionsResult(pathJson, distanceMeters, bbox);
+    }
+    private void saveWaypoints(CourseEntity courseEntity, List<WaypointRequest> waypoints) {
+        for (WaypointRequest waypoint : waypoints) {
+            CourseWaypointEntity waypointEntity;
+
+            UUID placeId = waypoint.placeId();
+            if (placeId != null) {
+                PlaceEntity placeEntity = placeRepository.findById(placeId)
+                        .orElseThrow(() -> new BusinessException(PLACE_NOT_FOUND));
+                waypointEntity = CourseWaypointEntity.createWithPlace(courseEntity, placeEntity, waypoint.seq(), waypoint.role());
+            } else {
+                waypointEntity = CourseWaypointEntity.create(courseEntity, waypoint.seq(), waypoint.role(), waypoint.placeName(),
+                        waypoint.latitude(), waypoint.longitude());
+            }
+            courseWaypointRepository.save(waypointEntity);
+        }
+    }
+
+    private CourseDetailResponse buildDetailResponse(UUID courseId, UUID userId) {
+        CourseEntity courseEntity = courseRepository.findByIdWithUser(courseId).orElseThrow(() -> new BusinessException(COURSE_NOT_FOUND));
+
+        List<CourseWaypointResponse> waypointResponses = courseWaypointRepository.findByCourseEntityIdWithPlaceOrderBySeqAsc(courseId)
+                .stream().map(CourseWaypointResponse::from).toList();
+        boolean isFavorited = !courseEntity.isOwner(userId) && courseFavoriteRepository.existsById(new CourseFavoriteId(courseId, userId));
+        return CourseDetailResponse.from(courseEntity, waypointResponses, userId, isFavorited);
+    }
+
+    // 옵션 B sanity check: 앱이 전송한 path/distance가 waypoints와 대략 일치하는지 최소 검증
+// 사용자 본인 코스라 조작 인센티브 낮음 → 파싱 가능 + start/goal 좌표 근사 일치만 확인
+    private void sanityCheckPath(String pathJson, int distanceMeters, List<WaypointRequest> waypoints) {
+        if (distanceMeters <= 0) {
+            throw new BusinessException(COURSE_INVALID_WAYPOINTS);
+        }
+        List<List<Double>> path;
+        try {
+            path = objectMapper.readValue(pathJson, new TypeReference<>() {});
+        } catch (JsonProcessingException e) {
+            throw new BusinessException(COURSE_INVALID_WAYPOINTS);
+        }
+        if (path.isEmpty() || path.get(0).size() < 2 || path.get(path.size() - 1).size() < 2) {
+            throw new BusinessException(COURSE_INVALID_WAYPOINTS);
+        }
+
+        WaypointRequest start = waypoints.stream()
+                .filter(w -> "START".equals(w.role())).findFirst().orElseThrow();
+        WaypointRequest goal = waypoints.stream()
+                .filter(w -> "GOAL".equals(w.role())).findFirst().orElseThrow();
+
+        // path[0] = [lng, lat], path[last] = [lng, lat]
+        double pathStartLng = path.get(0).get(0);
+        double pathStartLat = path.get(0).get(1);
+        double pathGoalLng  = path.get(path.size() - 1).get(0);
+        double pathGoalLat  = path.get(path.size() - 1).get(1);
+
+        // 0.001도 ≈ 100m 이내 오차 허용 (Directions는 인접 도로로 스냅되므로 정확 일치 안 함)
+        if (Math.abs(pathStartLng - start.longitude().doubleValue()) > 0.001
+                || Math.abs(pathStartLat - start.latitude().doubleValue()) > 0.001
+                || Math.abs(pathGoalLng - goal.longitude().doubleValue()) > 0.001
+                || Math.abs(pathGoalLat - goal.latitude().doubleValue()) > 0.001) {
+            throw new BusinessException(COURSE_INVALID_WAYPOINTS);
+        }
+    }
+
+    // Directions 결과 내부 record (bbox는 앱 지도 fitBounds용, DB 저장 안 함)
+    private record DirectionsResult(String pathJson, int distanceMeters, List<List<Double>> bbox) {}
 }
