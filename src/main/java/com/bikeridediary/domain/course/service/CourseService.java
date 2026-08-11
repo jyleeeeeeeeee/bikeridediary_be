@@ -248,7 +248,9 @@ public class CourseService {
         long viaCount   = waypoints.stream().filter(w -> "VIA".equals(w.role())).count();
 
         if (startCount != 1 || endCount != 1) throw new BusinessException(COURSE_INVALID_WAYPOINTS);
-        if (viaCount > 15) throw new BusinessException(COURSE_DIRECTIONS_WAYPOINTS_LIMIT);
+        // 네이버 지도 앱 자동차 길찾기 URL scheme이 경유지 최대 5개 (v1~v5)라
+        // 서버도 Directions 5만 사용. 사용자가 저장한 코스를 앱 딥링크로 열 때 잘리지 않도록.
+        if (viaCount > 5) throw new BusinessException(COURSE_DIRECTIONS_WAYPOINTS_LIMIT);
 
         long count = waypoints.stream().mapToInt(WaypointRequest::seq).distinct().count();
         if(count != waypoints.size()) throw new BusinessException(COURSE_INVALID_WAYPOINTS);

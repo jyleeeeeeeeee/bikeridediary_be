@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -24,13 +25,16 @@ public class NaverSearchClient {
         HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
 
         // Naver 지역검색: display 최대 5 (스펙 상한), start는 1부터, 페이징 파라미터
-        String url = properties.url()
-                + "?query=" + query
-                + "&display=5"
-                + "&start=" + start;
-
         return restTemplate
-                .exchange(url, HttpMethod.GET, requestEntity, NaverLocalSearchResponse.class)
+                .exchange(
+                        UriComponentsBuilder.fromUriString(properties.url())
+                            .queryParam("query", query)
+                            .queryParam("display", 5)
+                            .queryParam("start", start)
+                            .toUriString(),
+                        HttpMethod.GET,
+                        requestEntity,
+                        NaverLocalSearchResponse.class)
                 .getBody();
     }
 }

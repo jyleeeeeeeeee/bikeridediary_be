@@ -54,8 +54,7 @@ public class NaverMapsClient {
      * @param longitude 경도 (WGS84)
      */
     public NaverReverseGeocodeResponse reverseGeocode(BigDecimal latitude, BigDecimal longitude) {
-        String url = UriComponentsBuilder
-                .fromHttpUrl(properties.reverseGeocodingUrl())
+        String url = UriComponentsBuilder.fromUriString(properties.reverseGeocodingUrl())
                 .queryParam("coords", longitude.toPlainString() + "," + latitude.toPlainString())
                 .queryParam("orders", "roadaddr,addr")
                 .queryParam("output", "json")
@@ -71,7 +70,7 @@ public class NaverMapsClient {
      * @param startLat  출발지 위도
      * @param goalLng   도착지 경도
      * @param goalLat   도착지 위도
-     * @param waypoints 경유지 목록 (최대 15개, START/GOAL 제외 VIA만). 비어있으면 waypoints 파라미터 생략.
+     * @param waypoints 경유지 목록 (최대 5개, START/GOAL 제외 VIA만). 비어있으면 waypoints 파라미터 생략.
      * @return 파싱된 응답 DTO
      * @throws BusinessException COURSE_DIRECTIONS_FAILED 또는 COURSE_DIRECTIONS_WAYPOINTS_LIMIT
      */
@@ -80,8 +79,9 @@ public class NaverMapsClient {
             BigDecimal goalLng, BigDecimal goalLat,
             List<Waypoint> waypoints) {
 
-        UriComponentsBuilder builder = UriComponentsBuilder
-                .fromHttpUrl(waypoints.size() <= 5 ? properties.directionUrl() : properties.direction15Url())
+        // Directions 5만 사용 (경유지 최대 5개). 네이버 지도 앱 URL scheme이 v1~v5까지만 지원해서
+        // 서버·앱 모두 통일. viaCount 초과는 Service 레이어에서 사전 차단.
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(properties.directionUrl())
                 .queryParam("start", startLng.toPlainString() + "," + startLat.toPlainString())
                 .queryParam("goal", goalLng.toPlainString() + "," + goalLat.toPlainString())
                 .queryParam("cartype", 1)
@@ -102,9 +102,9 @@ public class NaverMapsClient {
             throw new BusinessException(COURSE_DIRECTIONS_FAILED);
         }
 
-        if (response == null || response.code() != 0) {
-            int code = response == null ? -1 : response.code();
-            String msg = response == null ? "null response" : response.message();
+        if (response.code() != 0) {
+            int code = response.code();
+            String msg = response.message();
             log.error("[NaverDirections] code={}, message={}", code, msg);
             throw new BusinessException(COURSE_DIRECTIONS_FAILED);
         }

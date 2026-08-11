@@ -10,7 +10,7 @@ spring:
         format_sql: true
         default_batch_fetch_size: 100
         # UUID를 VARBINARY 대신 JDBC UUID 타입으로 바인딩
-        # (batch fetch 시 UUID[]가 byte[]로 캐스팅되며 터지는 문제 해결)
+        # Hibernate 6.6+에서 배치 로더의 UUID 배열 파라미터 문제(HHH-16416) fix 반영됨
         type:
           preferred_uuid_jdbc_type: UUID
 
