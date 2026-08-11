@@ -125,6 +125,16 @@ public class CourseController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "네이버 지도 길찾기 연동 카운트 +1 (앱 딥링크 트리거 시 호출)")
+    @PostMapping("/{id}/navigate")
+    public ResponseEntity<Void> incrementNavigateCount(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        courseService.incrementNavigateCount(id, userDetails.getUserId());
+        return ResponseEntity.noContent().build();
+    }
+
     @Operation(summary = "경로 미리보기 (저장 없이 Directions 호출, path + distance + bbox 반환)")
     @PostMapping("/preview")
     public ResponseEntity<ApiResponse<CoursePreviewResponse>> previewCourse(

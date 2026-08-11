@@ -78,12 +78,22 @@ public class CourseService {
         );
     }
 
-    @Transactional(readOnly = true)
+    // 상세 조회 — 비소유자 접근 시 view_count +1 (원자적 UPDATE)
+    // 카운트를 증가시키므로 readOnly 아님
+    @Transactional
     public CourseDetailResponse getDetail(UUID courseId, UUID userId) {
         CourseEntity courseEntity = courseRepository.findByIdWithUser(courseId)
                 .orElseThrow(() -> new BusinessException(COURSE_NOT_FOUND));
 
         validateDetailAccess(courseEntity, userId);
+
+        // 비소유자 조회만 view count 반영. 소유자 자신의 조회는 무시(수치 오염 방지).
+        if (!courseEntity.isOwner(userId)) {
+            courseRepository.incrementViewCount(courseId);
+            // 응답에도 반영되도록 로컬 필드 수동 +1 (재조회 회피)
+            courseEntity = courseRepository.findByIdWithUser(courseId)
+                    .orElseThrow(() -> new BusinessException(COURSE_NOT_FOUND));
+        }
 
         List<CourseWaypointResponse> waypoints = courseWaypointRepository
                 .findByCourseEntityIdWithPlaceOrderBySeqAsc(courseId)
@@ -108,6 +118,7 @@ public class CourseService {
         }
 
         courseFavoriteRepository.save(CourseFavoriteEntity.create(courseId, userId));
+        courseRepository.incrementLikeCount(courseId);
         return true;
     }
 
@@ -118,7 +129,18 @@ public class CourseService {
             throw new BusinessException(COURSE_FAVORITE_NOT_FOUND);
         }
         courseFavoriteRepository.deleteById(favoriteId);
+        courseRepository.decrementLikeCount(courseId);
         return false;
+    }
+
+    // 네이버 지도 길찾기 연동 카운트 +1 (추후 앱 딥링크 트리거 지점에서 호출)
+    // 소유자·비소유자 구분 없이 카운트 (실제 라이딩 시도 지표라 자기 코스도 포함이 자연스러움)
+    @Transactional
+    public void incrementNavigateCount(UUID courseId, UUID userId) {
+        CourseEntity courseEntity = courseRepository.findByIdWithUser(courseId)
+                .orElseThrow(() -> new BusinessException(COURSE_NOT_FOUND));
+        validateDetailAccess(courseEntity, userId);
+        courseRepository.incrementNavigateCount(courseId);
     }
 
     // 코스 hard delete — 작성자 본인만 가능
@@ -157,10 +179,17 @@ public class CourseService {
                     request.description(),
                     request.distanceMeters(),
                     request.path(),
+                    request.bbox(),
                     request.isPublic(),
                     request.sourceCourseId())
         );
         saveWaypoints(saved, waypoints);
+
+        // 복사 편집 — 원본 코스의 copy_count +1 (원본이 남아있을 때만)
+        if (request.sourceCourseId() != null) {
+            courseRepository.findById(request.sourceCourseId())
+                    .ifPresent(src -> courseRepository.incrementCopyCount(src.getId()));
+        }
 
         return buildDetailResponse(saved.getId(), userId);
 
@@ -188,7 +217,7 @@ public class CourseService {
             }
 
             sanityCheckPath(path, request.distanceMeters(), waypoints);
-            courseEntity.updatePath(path, request.distanceMeters());
+            courseEntity.updatePath(path, request.distanceMeters(), request.bbox());
 
             // UNIQUE (course_id, seq) 충돌 방지 (delete -> insert)
             courseWaypointRepository.deleteByCourseEntityId(courseId);

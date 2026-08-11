@@ -17,6 +17,7 @@ import org.springframework.http.HttpHeaders;
 import java.io.IOException;
 import java.nio.file.Files;
 
+import static com.bikeridediary.global.exception.ErrorCode.*;
 
 
 @RestController

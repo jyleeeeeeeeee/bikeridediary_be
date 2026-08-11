@@ -10,6 +10,7 @@ import com.bikeridediary.global.exception.BusinessException;
 import static com.bikeridediary.global.exception.ErrorCode.*;
 import com.bikeridediary.infra.naver.maps.NaverMapsClient;
 import com.bikeridediary.infra.naver.maps.dto.NaverGeocodeResponse;
+import com.bikeridediary.infra.naver.maps.dto.NaverReverseGeocodeResponse;
 import com.bikeridediary.infra.naver.search.NaverSearchClient;
 import com.bikeridediary.infra.naver.search.dto.NaverLocalItem;
 import com.bikeridediary.infra.naver.search.dto.NaverLocalSearchResponse;
@@ -71,6 +72,68 @@ public class PlaceService {
         return response.addresses().stream()
                 .map(GeocodeResultResponse::from)
                 .toList();
+    }
+
+    /**
+     * 좌표를 주소 문자열로 변환. 도로명 주소 우선, 없으면 지번 주소.
+     * 실패/결과 없음 시 빈 문자열 반환 (호출부에서 폴백 처리).
+     */
+    public String reverseGeocode(BigDecimal latitude, BigDecimal longitude) {
+        NaverReverseGeocodeResponse response = naverMapsClient.reverseGeocode(latitude, longitude);
+        if (response == null || response.results() == null || response.results().isEmpty()) {
+            return "";
+        }
+        // roadaddr 우선, 없으면 addr
+        NaverReverseGeocodeResponse.Result road = response.results().stream()
+                .filter(r -> "roadaddr".equals(r.name()))
+                .findFirst().orElse(null);
+        NaverReverseGeocodeResponse.Result target = road != null ? road : response.results().get(0);
+        return formatAddress(target);
+    }
+
+    private String formatAddress(NaverReverseGeocodeResponse.Result r) {
+        if (r == null) return "";
+        StringBuilder sb = new StringBuilder();
+        NaverReverseGeocodeResponse.Region region = r.region();
+        if (region != null) {
+            appendAreaName(sb, region.area1());
+            appendAreaName(sb, region.area2());
+            appendAreaName(sb, region.area3());
+            appendAreaName(sb, region.area4());
+        }
+        NaverReverseGeocodeResponse.Land land = r.land();
+        if (land != null) {
+            // 도로명: land.name = 도로명, number1(-number2) = 건물번호
+            // 지번:   number1(-number2) = 지번
+            if (land.name() != null && !land.name().isBlank()) {
+                sb.append(' ').append(land.name());
+            }
+            String num = joinNumbers(land.number1(), land.number2());
+            if (!num.isEmpty()) {
+                sb.append(' ').append(num);
+            }
+            // 건물명이 있으면 괄호로 부기
+            if (land.addition0() != null
+                    && land.addition0().value() != null
+                    && !land.addition0().value().isBlank()) {
+                sb.append(" (").append(land.addition0().value()).append(')');
+            }
+        }
+        return sb.toString().trim();
+    }
+
+    private void appendAreaName(StringBuilder sb, NaverReverseGeocodeResponse.Area area) {
+        if (area == null || area.name() == null || area.name().isBlank()) return;
+        if (sb.length() > 0) sb.append(' ');
+        sb.append(area.name());
+    }
+
+    private String joinNumbers(String n1, String n2) {
+        boolean has1 = n1 != null && !n1.isBlank() && !"0".equals(n1);
+        boolean has2 = n2 != null && !n2.isBlank() && !"0".equals(n2);
+        if (has1 && has2) return n1 + '-' + n2;
+        if (has1) return n1;
+        return "";
     }
 
 

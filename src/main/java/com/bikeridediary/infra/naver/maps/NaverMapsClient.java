@@ -4,6 +4,7 @@ import com.bikeridediary.global.exception.BusinessException;
 import static com.bikeridediary.global.exception.ErrorCode.*;
 import com.bikeridediary.infra.naver.maps.dto.NaverDirectionsResponse;
 import com.bikeridediary.infra.naver.maps.dto.NaverGeocodeResponse;
+import com.bikeridediary.infra.naver.maps.dto.NaverReverseGeocodeResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
@@ -43,6 +44,24 @@ public class NaverMapsClient {
     public NaverGeocodeResponse search(String query) {
         String url = properties.geocodingUrl() + "?query=" + query + "&count=15";
         return executeGetRequest(url, NaverGeocodeResponse.class);
+    }
+
+    /**
+     * NCP Reverse Geocoding API 호출 — 좌표를 주소로 변환.
+     * orders=roadaddr,addr 로 도로명+지번 모두 요청 (results 배열에 순서대로).
+     *
+     * @param latitude  위도 (WGS84)
+     * @param longitude 경도 (WGS84)
+     */
+    public NaverReverseGeocodeResponse reverseGeocode(BigDecimal latitude, BigDecimal longitude) {
+        String url = UriComponentsBuilder
+                .fromHttpUrl(properties.reverseGeocodingUrl())
+                .queryParam("coords", longitude.toPlainString() + "," + latitude.toPlainString())
+                .queryParam("orders", "roadaddr,addr")
+                .queryParam("output", "json")
+                .build(false)
+                .toUriString();
+        return executeGetRequest(url, NaverReverseGeocodeResponse.class);
     }
 
     /**

@@ -239,12 +239,19 @@ CREATE TABLE IF NOT EXISTS courses (
     name             VARCHAR(100)  NOT NULL,
     distance_meters  INTEGER       NOT NULL,
     path             TEXT          NOT NULL,
+    -- 경로 바운딩 박스 (JSON 문자열: [[minLng,minLat],[maxLng,maxLat]]). fitBounds용.
+    bbox             TEXT,
     is_public        BOOLEAN       NOT NULL DEFAULT TRUE,
     -- 원본 코스 참조 — 원본 hard delete 시 SET NULL로 참조만 끊고 파생 코스는 유지
     source_course_id UUID          REFERENCES courses(id) ON DELETE SET NULL,
     created_at       TIMESTAMP     NOT NULL DEFAULT now(),
     updated_at       TIMESTAMP,
-    description TEXT
+    description      TEXT,
+    -- 카운트 (view: 비소유자 조회, like: favorite, copy: 파생, navigate: 지도 딥링크)
+    view_count       BIGINT        NOT NULL DEFAULT 0,
+    like_count       BIGINT        NOT NULL DEFAULT 0,
+    copy_count       BIGINT        NOT NULL DEFAULT 0,
+    navigate_count   BIGINT        NOT NULL DEFAULT 0
     -- deleted_at 없음: courses는 hard delete 정책 (waypoints/favorites CASCADE 자동 삭제)
     );
 
@@ -380,9 +387,12 @@ ALTER TABLE bike_models DROP COLUMN IF EXISTS created_at;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(20) NOT NULL DEFAULT 'USER';
 ALTER TABLE users DROP CONSTRAINT IF EXISTS chk_users_role;
 ALTER TABLE users ADD CONSTRAINT chk_users_role CHECK (role IN ('USER', 'ADMIN'));
--- 기존 CHECK 제약 삭제 후 재생성
+-- 2026-08-04: course_waypoints role END→GOAL 마이그레이션
+-- CREATE TABLE 정의 시 명시적 이름은 chk_waypoint_role. 예전 자동생성 이름(course_waypoints_role_check)도 방어적으로 drop.
+UPDATE course_waypoints SET role = 'GOAL' WHERE role = 'END';
 ALTER TABLE course_waypoints DROP CONSTRAINT IF EXISTS course_waypoints_role_check;
-ALTER TABLE course_waypoints ADD CONSTRAINT course_waypoints_role_check
+ALTER TABLE course_waypoints DROP CONSTRAINT IF EXISTS chk_waypoint_role;
+ALTER TABLE course_waypoints ADD CONSTRAINT chk_waypoint_role
     CHECK (role IN ('START','VIA','GOAL'));
 
 -- ============================================================
@@ -422,6 +432,13 @@ ALTER TABLE course_favorites       ADD COLUMN IF NOT EXISTS no BIGINT;
 ALTER TABLE place_change_requests  ADD COLUMN IF NOT EXISTS no BIGINT;
 ALTER TABLE course_waypoints       ADD COLUMN IF NOT EXISTS no BIGINT;
 ALTER TABLE courses                ADD COLUMN IF NOT EXISTS description TEXT;
+-- 2026-08-11: courses 카운트 4종 추가 (view/like/copy/navigate)
+ALTER TABLE courses ADD COLUMN IF NOT EXISTS view_count     BIGINT NOT NULL DEFAULT 0;
+ALTER TABLE courses ADD COLUMN IF NOT EXISTS like_count     BIGINT NOT NULL DEFAULT 0;
+ALTER TABLE courses ADD COLUMN IF NOT EXISTS copy_count     BIGINT NOT NULL DEFAULT 0;
+ALTER TABLE courses ADD COLUMN IF NOT EXISTS navigate_count BIGINT NOT NULL DEFAULT 0;
+-- 2026-08-11: courses.bbox 컬럼 (경로 바운딩 박스 JSON, fitBounds용)
+ALTER TABLE courses ADD COLUMN IF NOT EXISTS bbox TEXT;
 
 
 -- DEFAULT nextval 세팅 (idempotent — 같은 시퀀스 반복 지정 무해)

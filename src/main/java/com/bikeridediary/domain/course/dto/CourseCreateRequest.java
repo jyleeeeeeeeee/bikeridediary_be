@@ -23,5 +23,7 @@ public record CourseCreateRequest(
         // 옵션 B: preview에서 받은 경로 JSON 문자열 [[lng,lat],...] — 앱이 로컬 보관 후 저장 시 재전송
         @NotBlank String path,
         // 옵션 B: preview에서 받은 총 거리 (미터)
-        @NotNull Integer distanceMeters
+        @NotNull Integer distanceMeters,
+        // 옵션 B: preview에서 받은 bbox JSON 문자열 [[minLng,minLat],[maxLng,maxLat]] (선택, 없으면 null)
+        String bbox
 ) {}

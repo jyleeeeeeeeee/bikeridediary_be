@@ -30,7 +30,7 @@ public class CourseFavoriteEntity {
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     public static CourseFavoriteEntity create(UUID courseId, UUID userId) {
         CourseFavoriteEntity e = new CourseFavoriteEntity();

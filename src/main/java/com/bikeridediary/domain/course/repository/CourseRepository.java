@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -59,4 +60,27 @@ public interface CourseRepository extends JpaRepository<CourseEntity, UUID> {
 
     // no(자동 증가 조회 번호)로 특정 course 조회 — DB 관리/디버깅용
     Optional<CourseEntity> findByNo(Long no);
+
+    // ── 카운트 원자적 증감 (UPDATE ... SET x = x ± 1) ─────────────────────────
+    // dirty checking 대신 @Query 사용해 race condition 방어 + 1회 UPDATE로 처리
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE CourseEntity c SET c.viewCount = c.viewCount + 1 WHERE c.id = :courseId")
+    void incrementViewCount(@Param("courseId") UUID courseId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE CourseEntity c SET c.likeCount = c.likeCount + 1 WHERE c.id = :courseId")
+    void incrementLikeCount(@Param("courseId") UUID courseId);
+
+    // 0 미만으로 내려가지 않도록 GREATEST 계열 대신 WHERE 조건으로 방어 (Postgres 안전)
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE CourseEntity c SET c.likeCount = c.likeCount - 1 WHERE c.id = :courseId AND c.likeCount > 0")
+    void decrementLikeCount(@Param("courseId") UUID courseId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE CourseEntity c SET c.copyCount = c.copyCount + 1 WHERE c.id = :courseId")
+    void incrementCopyCount(@Param("courseId") UUID courseId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE CourseEntity c SET c.navigateCount = c.navigateCount + 1 WHERE c.id = :courseId")
+    void incrementNavigateCount(@Param("courseId") UUID courseId);
 }

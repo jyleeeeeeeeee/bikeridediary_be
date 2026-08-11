@@ -19,5 +19,7 @@ public record CourseUpdateRequest(
         // 옵션 B: regeneratePath=true 시 앱이 preview로 받은 신규 path (regeneratePath=false면 무시)
         String path,
         // 옵션 B: regeneratePath=true 시 앱이 preview로 받은 신규 총 거리 (regeneratePath=false면 무시)
-        Integer distanceMeters
+        Integer distanceMeters,
+        // 옵션 B: regeneratePath=true 시 앱이 preview로 받은 bbox JSON 문자열 (선택)
+        String bbox
 ) {}

@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static com.bikeridediary.global.exception.ErrorCode.*;
 
 
 // 정비 주기 비즈니스 로직

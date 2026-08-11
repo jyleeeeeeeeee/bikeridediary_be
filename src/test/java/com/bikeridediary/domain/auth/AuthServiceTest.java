@@ -12,7 +12,8 @@ import com.bikeridediary.global.auth.jwt.JwtTokenProvider;
 import com.bikeridediary.global.auth.oauth2.*;
 import com.bikeridediary.global.auth.token.RefreshTokenRepository;
 import com.bikeridediary.global.exception.BusinessException;
-import static com.bikeridediary.global.exception.ErrorCode.*;
+
+import com.bikeridediary.global.exception.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,6 +29,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.util.Optional;
 import java.util.UUID;
 
+import static com.bikeridediary.global.exception.ErrorCode.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -276,7 +278,7 @@ class AuthServiceTest {
 
         assertThatThrownBy(() -> authService.login("invalid_provider", code, null))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.AUTH_UNSUPPORTED_PROVIDER);
+                .hasFieldOrPropertyWithValue("errorCode", AUTH_UNSUPPORTED_PROVIDER);
     }
 
     @Test
@@ -313,7 +315,7 @@ class AuthServiceTest {
 
         assertThatThrownBy(() -> authService.refresh(refreshToken))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.AUTH_INVALID_REFRESH_TOKEN);
+                .hasFieldOrPropertyWithValue("errorCode", AUTH_INVALID_REFRESH_TOKEN);
     }
 
     @Test
@@ -324,7 +326,7 @@ class AuthServiceTest {
 
         assertThatThrownBy(() -> authService.refresh(refreshToken))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.AUTH_INVALID_REFRESH_TOKEN);
+                .hasFieldOrPropertyWithValue("errorCode", AUTH_INVALID_REFRESH_TOKEN);
     }
 
     @Test
@@ -384,7 +386,7 @@ class AuthServiceTest {
 
         assertThatThrownBy(() -> authService.signup(request))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.AUTH_USER_ALREADY_EXISTS);
+                .hasFieldOrPropertyWithValue("errorCode", AUTH_USER_ALREADY_EXISTS);
 
         verify(userRepository, never()).save(any(UserEntity.class));
     }
@@ -404,7 +406,7 @@ class AuthServiceTest {
 
         assertThatThrownBy(() -> authService.signup(request))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.AUTH_EMAIL_INVALID_FORMAT);
+                .hasFieldOrPropertyWithValue("errorCode", AUTH_EMAIL_INVALID_FORMAT);
 
         verify(userRepository, never()).save(any(UserEntity.class));
     }
@@ -424,7 +426,7 @@ class AuthServiceTest {
 
         assertThatThrownBy(() -> authService.signup(request))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.AUTH_PASSWORD_TOO_WEAK);
+                .hasFieldOrPropertyWithValue("errorCode", AUTH_PASSWORD_TOO_WEAK);
 
         verify(userRepository, never()).save(any(UserEntity.class));
     }
@@ -443,7 +445,7 @@ class AuthServiceTest {
 
         assertThatThrownBy(() -> authService.signup(request))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.AUTH_PASSWORD_TOO_WEAK);
+                .hasFieldOrPropertyWithValue("errorCode", AUTH_PASSWORD_TOO_WEAK);
 
         verify(userRepository, never()).save(any(UserEntity.class));
     }
@@ -462,7 +464,7 @@ class AuthServiceTest {
 
         assertThatThrownBy(() -> authService.signup(request))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.AUTH_PASSWORD_TOO_WEAK);
+                .hasFieldOrPropertyWithValue("errorCode", AUTH_PASSWORD_TOO_WEAK);
 
         verify(userRepository, never()).save(any(UserEntity.class));
     }
@@ -508,7 +510,7 @@ class AuthServiceTest {
 
         assertThatThrownBy(() -> authService.loginWithEmail(request))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.AUTH_INVALID_CREDENTIALS);
+                .hasFieldOrPropertyWithValue("errorCode", AUTH_INVALID_CREDENTIALS);
     }
 
 
@@ -527,7 +529,7 @@ class AuthServiceTest {
 
         assertThatThrownBy(() -> authService.loginWithEmail(request))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.AUTH_INVALID_CREDENTIALS);
+                .hasFieldOrPropertyWithValue("errorCode", AUTH_INVALID_CREDENTIALS);
 
         verify(refreshTokenRepository, never()).save(any(UUID.class), anyString());
     }

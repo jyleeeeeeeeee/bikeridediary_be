@@ -16,6 +16,11 @@ public record CourseSummaryResponse(
         boolean isPublic,
         boolean ownedByMe,
         boolean isFavorited,
+        // 카운트 4종
+        long viewCount,
+        long likeCount,
+        long copyCount,
+        long navigateCount,
         LocalDateTime createdAt
 ) {
     public static CourseSummaryResponse from(CourseEntity entity, UUID requestUserId, boolean isFavorited) {
@@ -28,6 +33,10 @@ public record CourseSummaryResponse(
                 entity.isPublic(),
                 requestUserId != null && author != null && author.getId().equals(requestUserId),
                 isFavorited,
+                entity.getViewCount(),
+                entity.getLikeCount(),
+                entity.getCopyCount(),
+                entity.getNavigateCount(),
                 entity.getCreatedAt()
         );
     }

@@ -47,6 +47,15 @@ public class PlaceController {
         return ResponseEntity.ok(ApiResponse.ok(placeService.geocode(query)));
     }
 
+    @Operation(summary = "좌표 → 주소 변환 (NCP Reverse Geocoding)")
+    @GetMapping("/reverse-geocode")
+    public ResponseEntity<ApiResponse<String>> reverseGeocode(
+            @RequestParam("lat") java.math.BigDecimal lat,
+            @RequestParam("lng") java.math.BigDecimal lng
+    ) {
+        return ResponseEntity.ok(ApiResponse.ok(placeService.reverseGeocode(lat, lng)));
+    }
+
     @Operation(summary = "장소 등록 순위 (유저별 등록 건수 내림차순)")
     @GetMapping("/rankings")
     public ResponseEntity<ApiResponse<List<PlaceRankingResponse>>> rankings() {
