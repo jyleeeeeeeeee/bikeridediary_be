@@ -171,24 +171,32 @@ public class CourseService {
         validateWaypoints(waypoints);
         UserEntity user = userRepository.findByIdAndDeletedAtIsNull(userId)
                 .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
+
+        String path = request.path();
+        Integer distanceMeters = request.distanceMeters();
+        sanityCheckPath(path, distanceMeters, waypoints);
+
+        UUID sourceCourseId = request.sourceCourseId();
         CourseEntity saved = courseRepository.save(
                 CourseEntity.createWithId(
                     UUID.randomUUID(),
                     user,
                     request.name(),
                     request.description(),
-                    request.distanceMeters(),
-                    request.path(),
+                    distanceMeters,
+                    path,
                     request.bbox(),
                     request.isPublic(),
-                    request.sourceCourseId())
+                        sourceCourseId)
         );
         saveWaypoints(saved, waypoints);
 
         // 복사 편집 — 원본 코스의 copy_count +1 (원본이 남아있을 때만)
-        if (request.sourceCourseId() != null) {
-            courseRepository.findById(request.sourceCourseId())
-                    .ifPresent(src -> courseRepository.incrementCopyCount(src.getId()));
+        if (sourceCourseId != null) {
+            CourseEntity source = courseRepository.findByIdWithUser(sourceCourseId).orElseThrow(() -> new BusinessException(COURSE_NOT_FOUND));
+            validateDetailAccess(source, userId);
+
+            courseRepository.incrementCopyCount(source.getId());
         }
 
         return buildDetailResponse(saved.getId(), userId);
@@ -199,7 +207,6 @@ public class CourseService {
     public CourseDetailResponse updateCourse(UUID courseId, UUID userId, CourseUpdateRequest request) {
         CourseEntity courseEntity = courseRepository.findByIdWithUser(courseId)
                 .orElseThrow(() -> new BusinessException(COURSE_NOT_FOUND));
-
         if (!courseEntity.isOwner(userId)) {
             throw new BusinessException(COURSE_ACCESS_DENIED);
         }
@@ -212,12 +219,13 @@ public class CourseService {
             validateWaypoints(waypoints);
 
             String path = request.path();
-            if (path == null || path.isBlank() || request.distanceMeters() == null) {
+            Integer distanceMeters = request.distanceMeters();
+            if (path == null || path.isBlank() || distanceMeters == null) {
                 throw new BusinessException(COURSE_INVALID_WAYPOINTS);
             }
 
-            sanityCheckPath(path, request.distanceMeters(), waypoints);
-            courseEntity.updatePath(path, request.distanceMeters(), request.bbox());
+            sanityCheckPath(path, distanceMeters, waypoints);
+            courseEntity.updatePath(path, distanceMeters, request.bbox());
 
             // UNIQUE (course_id, seq) 충돌 방지 (delete -> insert)
             courseWaypointRepository.deleteByCourseEntityId(courseId);

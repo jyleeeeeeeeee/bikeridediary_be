@@ -12,7 +12,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -37,16 +36,12 @@ public class SecurityConfig {
         "/swagger-ui/**",
         "/api-docs/**",
         "/logos/**",
-        // /fuelings, /maintenances, /maintenance-schedules는 인증 필수.
-        // permitAll에 두면 controller가 @AuthenticationPrincipal에서 null 받아 NPE.
     };
 
     private final String[] GET_PERMIT_ALL_ENDPOINTS = {
             "/api/v1/courses",
             "/api/v1/bike-models/**",
             "/api/v1/places/**",
-//            "/api/v1/places/search-externa`l",
-//            "/api/v1/places/geocode",`
     };
 
     private final String[] AUTHENTICATED_ENDPOINTS = {
