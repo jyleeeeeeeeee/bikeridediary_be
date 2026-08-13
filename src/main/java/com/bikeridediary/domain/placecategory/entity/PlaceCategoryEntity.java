@@ -1,4 +1,4 @@
-package com.bikeridediary.domain.place_category.entity;
+package com.bikeridediary.domain.placecategory.entity;
 
 import com.bikeridediary.domain.common.entity.BaseEntity;
 import jakarta.persistence.*;

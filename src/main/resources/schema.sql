@@ -31,6 +31,7 @@ CREATE SEQUENCE IF NOT EXISTS courses_no_seq;
 CREATE SEQUENCE IF NOT EXISTS course_favorites_no_seq;
 CREATE SEQUENCE IF NOT EXISTS place_change_requests_no_seq;
 CREATE SEQUENCE IF NOT EXISTS course_waypoints_no_seq;
+CREATE SEQUENCE IF NOT EXISTS api_call_logs_no_seq;
 
 -- ============================================================
 -- 1. users (사용자)
@@ -330,6 +331,21 @@ CREATE INDEX IF NOT EXISTS idx_course_waypoints_place_id
     ON course_waypoints (place_id)
     WHERE place_id IS NOT NULL;
 
+-- api_call_logs: API별 최신 호출 조회 (관리자 API ?apiName=X + 최신순 정렬)
+CREATE INDEX IF NOT EXISTS idx_api_logs_api_name_called_at
+    ON api_call_logs (api_name, called_at DESC);
+
+-- api_call_logs: 유저별 사용량 조회 (?userId=X 필터). partial — 익명(null) 제외해 인덱스 크기 절약
+CREATE INDEX IF NOT EXISTS idx_api_logs_user_id_called_at
+    ON api_call_logs (user_id, called_at DESC)
+    WHERE user_id IS NOT NULL;
+
+-- api_call_logs: 기간 조회 + 스케줄러 DELETE WHERE called_at < ?
+-- 참고: 90일 미만 행이 전체의 100%인 시점(초기)엔 seq scan이 더 빠를 수 있음.
+-- 데이터 누적 후(수십만 건) DELETE 배치가 느려지면 이 인덱스가 효과를 냄.
+CREATE INDEX IF NOT EXISTS idx_api_logs_called_at
+    ON api_call_logs (called_at);
+
 -- bikes: findByUserEntityIdAndDeletedAtIsNullOrderByIsRepresentativeDescCreatedAtDesc
 CREATE INDEX IF NOT EXISTS idx_bikes_user_id_deleted_at ON bikes (user_id, deleted_at);
 -- bikes: findByUserEntityIdAndIsRepresentativeTrueAndDeletedAtIsNull
@@ -455,7 +471,8 @@ ALTER TABLE courses                ALTER COLUMN no SET DEFAULT nextval('courses_
 ALTER TABLE course_favorites       ALTER COLUMN no SET DEFAULT nextval('course_favorites_no_seq');
 ALTER TABLE place_change_requests  ALTER COLUMN no SET DEFAULT nextval('place_change_requests_no_seq');
 ALTER TABLE course_waypoints       ALTER COLUMN no SET DEFAULT nextval('course_waypoints_no_seq');
-
+ALTER TABLE api_call_logs ADD COLUMN IF NOT EXISTS no BIGINT;
+ALTER TABLE api_call_logs ALTER COLUMN no SET DEFAULT nextval('api_call_logs_no_seq');
 
 -- 참고: UNIQUE 제약 및 seq→no RENAME 마이그레이션은 Spring ScriptUtils가 DO $$ 블록을
 -- 지원하지 않아 여기서 실행 못 함. 신규 CREATE TABLE 정의에 UNIQUE가 이미 있고,
@@ -509,4 +526,35 @@ CREATE TABLE IF NOT EXISTS place_change_requests (
 (type = 'CREATE' AND target_place_id IS NULL) OR
 (type IN ('UPDATE_COORDINATES', 'UPDATE_INFO') AND target_place_id IS NOT NULL)
     )
+    );
+
+-- ============================================================
+-- 16. api_call_logs (외부 API 호출 로그)
+-- 목적: 사용량 모니터링 / 이상 탐지 / 유저별 차단 근거
+-- 보관 정책: 90일 후 스케줄러가 DELETE (D6=B 결정)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS api_call_logs (
+    no               BIGINT        UNIQUE DEFAULT nextval('api_call_logs_no_seq'),
+    id               UUID          DEFAULT gen_random_uuid() PRIMARY KEY,
+    -- 호출 유저 (인증 없이 호출된 경우 null — 게스트 요청, 시스템 배치 등)
+    -- ON DELETE SET NULL: 유저 탈퇴 시 로그 자체는 유지 (사용량 집계 무결성)
+    user_id          UUID          REFERENCES users(id) ON DELETE SET NULL,
+    -- API 식별자 (NAVER_DIRECTIONS, NAVER_GEOCODING, NAVER_REVERSE_GEOCODING,
+    --                NAVER_SEARCH, KAKAO_LOCAL, OPINET, OPENWEATHER)
+    api_name         VARCHAR(50)   NOT NULL,
+    -- 실제 호출 URL path (쿼리스트링 제외)
+    endpoint         VARCHAR(200)  NOT NULL,
+    -- HTTP 메서드
+    http_method      VARCHAR(10)   NOT NULL,
+    -- 응답 HTTP 상태 코드 (네트워크 예외 시 null)
+    status_code      INTEGER,
+    -- 호출~응답 소요 시간 (밀리초)
+    response_time_ms INTEGER       NOT NULL,
+    -- 마스킹된 요청 파라미터 (apiKey/clientSecret/clientId 자동 제거 후 저장)
+    -- GIN 인덱스 없음 — JSON 내부 필드 검색 현재 불필요
+    request_params   JSONB,
+    -- 실패 시 예외 메시지 (성공이면 null)
+    error_message    TEXT,
+    -- 호출 시각
+    called_at        TIMESTAMP     NOT NULL DEFAULT now()
     );

@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import static com.bikeridediary.global.exception.ErrorCode.*;
@@ -62,7 +63,7 @@ public class CourseService {
     // 탐색탭 — 공개 코스 (Slice). userId 있으면 페이지 단위 favorite 여부 batch 조회.
     @Transactional(readOnly = true)
     public PageResponse<CourseSummaryResponse> getPublicList(UUID userId, String keyword, Pageable pageable) {
-        var slice = (keyword == null || keyword.isBlank())
+        Slice<CourseEntity> slice = (keyword == null || keyword.isBlank())
                 ? courseRepository.findByIsPublicTrue(pageable)
                 : courseRepository.searchPublicByName(keyword, pageable);
 

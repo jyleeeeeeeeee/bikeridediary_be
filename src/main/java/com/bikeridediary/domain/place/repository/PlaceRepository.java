@@ -47,5 +47,6 @@ public interface PlaceRepository extends JpaRepository<PlaceEntity, UUID> {
               """)
     List<PlaceRegistrationCount> countRegistrationsByUser();
 
+    Optional<PlaceEntity> findByIdAndDeletedAtIsNull(UUID id);
 
 }

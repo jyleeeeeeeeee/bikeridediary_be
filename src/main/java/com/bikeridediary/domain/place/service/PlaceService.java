@@ -4,6 +4,7 @@ import com.bikeridediary.domain.place.dto.*;
 import com.bikeridediary.domain.place.entity.PlaceEntity;
 import com.bikeridediary.domain.place.repository.PlaceRegistrationCount;
 import com.bikeridediary.domain.place.repository.PlaceRepository;
+import com.bikeridediary.domain.place.repository.PlaceWishRepository;
 import com.bikeridediary.domain.user.entity.UserEntity;
 import com.bikeridediary.domain.user.repository.UserRepository;
 import com.bikeridediary.global.exception.BusinessException;
@@ -21,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -34,6 +36,7 @@ public class PlaceService {
     private static final BigDecimal LAT_DELTA_100M = new BigDecimal("0.0009"); // 100m ≈ 0.0009° 위도
 
     private final PlaceRepository placeRepository;
+    private final PlaceWishRepository placeWishRepository;
     private final UserRepository userRepository;
     private final NaverSearchClient naverSearchClient;
     private final NaverMapsClient naverMapsClient;
@@ -42,12 +45,18 @@ public class PlaceService {
     private static final BigDecimal COORD_SCALE = BigDecimal.valueOf(10_000_000);
 
     @Transactional(readOnly = true)
-    public List<PlaceResponse> list(String categoryCode) {
-        return (
-                (categoryCode == null || categoryCode.isBlank()) ?
-                    placeRepository.findByDeletedAtIsNullOrderByPlaceCategoryEntity_DisplayOrderAsc() :
-                    placeRepository.findByPlaceCategoryEntity_CategoryCodeAndDeletedAtIsNull(categoryCode))
-                .stream().map(PlaceResponse::from).toList();
+    public List<PlaceResponse> list(String categoryCode, UUID userId) {
+        List<PlaceEntity> placeEntities = (categoryCode == null || categoryCode.isBlank()) ?
+                placeRepository.findByDeletedAtIsNullOrderByPlaceCategoryEntity_DisplayOrderAsc() :
+                placeRepository.findByPlaceCategoryEntity_CategoryCodeAndDeletedAtIsNull(categoryCode);
+
+        if(placeEntities.isEmpty()) return List.of();
+
+
+        Set<UUID> wishIds = (userId == null) ? Set.of() : Set.copyOf(placeWishRepository.findPlaceIdsByUserId(userId));
+        return placeEntities.stream()
+                .map(p -> PlaceResponse.from(p, wishIds.contains(p.getId())))
+                .toList();
     }
 
     // Naver 지역검색 API는 display 최대 5 상한이라 페이지 크기 고정.

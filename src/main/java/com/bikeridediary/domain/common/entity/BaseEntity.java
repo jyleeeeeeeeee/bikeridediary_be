@@ -18,7 +18,7 @@ public abstract class BaseEntity {
     // 등록 일시
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     // 수정 일시
     @LastModifiedDate

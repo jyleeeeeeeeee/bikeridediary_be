@@ -7,8 +7,8 @@ import com.bikeridediary.domain.place.entity.PlaceChangeRequestType;
 import com.bikeridediary.domain.place.entity.PlaceEntity;
 import com.bikeridediary.domain.place.repository.PlaceChangeRequestRepository;
 import com.bikeridediary.domain.place.repository.PlaceRepository;
-import com.bikeridediary.domain.place_category.entity.PlaceCategoryEntity;
-import com.bikeridediary.domain.place_category.repository.PlaceCategoryRepository;
+import com.bikeridediary.domain.placecategory.entity.PlaceCategoryEntity;
+import com.bikeridediary.domain.placecategory.repository.PlaceCategoryRepository;
 import com.bikeridediary.domain.user.entity.UserEntity;
 import com.bikeridediary.domain.user.entity.UserRole;
 import com.bikeridediary.domain.user.repository.UserRepository;
@@ -22,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 

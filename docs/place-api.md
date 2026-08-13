@@ -23,7 +23,7 @@ com.bikeridediary.domain.place
 │   └── PlaceWishResponse.java
 └── (없음, category는 별도 도메인)
 
-com.bikeridediary.domain.place_category
+com.bikeridediary.domain.placecategory
 ├── controller/PlaceCategoryController.java  (선택, 카테고리 목록 조회용)
 ├── service/PlaceCategoryService.java
 ├── repository/PlaceCategoryRepository.java

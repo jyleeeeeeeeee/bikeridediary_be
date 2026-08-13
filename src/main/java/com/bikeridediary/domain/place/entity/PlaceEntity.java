@@ -1,7 +1,7 @@
 package com.bikeridediary.domain.place.entity;
 
 import com.bikeridediary.domain.common.entity.BaseEntity;
-import com.bikeridediary.domain.place_category.entity.PlaceCategoryEntity;
+import com.bikeridediary.domain.placecategory.entity.PlaceCategoryEntity;
 import com.bikeridediary.domain.user.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;

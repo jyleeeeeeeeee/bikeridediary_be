@@ -1,4 +1,4 @@
-package com.bikeridediary.domain.station.service;
+package com.bikeridediary.infra.opinet;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

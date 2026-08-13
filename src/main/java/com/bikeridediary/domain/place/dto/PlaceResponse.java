@@ -18,9 +18,10 @@ public record PlaceResponse(
         String photoUrl,
         String phone,
         String kakaoPlaceId,
-        String naverPlaceId
+        String naverPlaceId,
+        boolean isWished // 현재 로그인 유저의 찜 여부. 미인증/미조회 시 false.
 ) {
-    public static PlaceResponse from(PlaceEntity entity) {
+    public static PlaceResponse from(PlaceEntity entity, boolean isWished) {
         return new PlaceResponse(
                 entity.getId(),
                 entity.getUserEntity() == null ? null : entity.getUserEntity().getId(),
@@ -34,7 +35,8 @@ public record PlaceResponse(
                 entity.getPhotoUrl(),
                 entity.getPhone(),
                 entity.getKakaoPlaceId(),
-                entity.getNaverPlaceId()
+                entity.getNaverPlaceId(),
+                isWished
         );
     }
 }

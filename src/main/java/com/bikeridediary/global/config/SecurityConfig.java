@@ -29,6 +29,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final String[] PERMIT_ALL_ENDPOINTS = {
+            "/test/**",
         "/api/v1/weathers/**",
         "/api/v1/auth/**",
         "/api/v1/stations/**",
@@ -41,7 +42,7 @@ public class SecurityConfig {
     private final String[] GET_PERMIT_ALL_ENDPOINTS = {
             "/api/v1/courses",
             "/api/v1/bike-models/**",
-            "/api/v1/places/**",
+            "/api/v1/places/**",   // ← 이것 때문에 GET /places/wishes/me도 permitAll로 통과
     };
 
     private final String[] AUTHENTICATED_ENDPOINTS = {
@@ -82,6 +83,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // 공개 엔드포인트
                         .requestMatchers(PERMIT_ALL_ENDPOINTS).permitAll()
+                        // 인증 필수 매칭을 GET permitAll보다 앞에 배치 (더 구체적인 매칭이 우선)
+                        .requestMatchers(HttpMethod.GET, "/api/v1/places/wishes/**").authenticated()
                         .requestMatchers(HttpMethod.GET, GET_PERMIT_ALL_ENDPOINTS).permitAll()
                         // 나머지는 모두 인증 필요
                         .requestMatchers(AUTHENTICATED_ENDPOINTS).authenticated()

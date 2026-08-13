@@ -4,6 +4,7 @@ import com.bikeridediary.domain.station.dto.AvgOil;
 import com.bikeridediary.domain.station.dto.StationOil;
 import com.bikeridediary.domain.station.dto.OpinetResponse;
 import com.bikeridediary.infra.coordinates.CoordinateConverter;
+import com.bikeridediary.infra.opinet.OpinetProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;

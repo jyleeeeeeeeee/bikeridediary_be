@@ -1,6 +1,6 @@
-package com.bikeridediary.domain.place_category.repository;
+package com.bikeridediary.domain.placecategory.repository;
 
-import com.bikeridediary.domain.place_category.entity.PlaceCategoryEntity;
+import com.bikeridediary.domain.placecategory.entity.PlaceCategoryEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

@@ -1,5 +1,7 @@
 package com.bikeridediary.domain.weather.service;
 
+import com.bikeridediary.global.logging.ApiNames;
+import com.bikeridediary.global.logging.LogExternalApi;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpMethod;
@@ -14,6 +16,7 @@ public class WeatherService {
     private final OpenWeatherProperties properties;
     private final RestTemplate restTemplate;
 
+    @LogExternalApi(apiName = ApiNames.OPENWEATHER)
     public Object getCurrentConditions(double lat, double lng) {
         try {
             String url = properties.baseUrl() + "/weather"

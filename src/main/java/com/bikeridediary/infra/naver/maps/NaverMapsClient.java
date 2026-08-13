@@ -2,6 +2,9 @@ package com.bikeridediary.infra.naver.maps;
 
 import com.bikeridediary.global.exception.BusinessException;
 import static com.bikeridediary.global.exception.ErrorCode.*;
+
+import com.bikeridediary.global.logging.ApiNames;
+import com.bikeridediary.global.logging.LogExternalApi;
 import com.bikeridediary.infra.naver.maps.dto.NaverDirectionsResponse;
 import com.bikeridediary.infra.naver.maps.dto.NaverGeocodeResponse;
 import com.bikeridediary.infra.naver.maps.dto.NaverReverseGeocodeResponse;
@@ -41,9 +44,13 @@ public class NaverMapsClient {
      * @return status, addresses(도로명/지번/x=경도/y=위도), meta_totalCount 등
      *         결과 없으면 addresses가 빈 배열. 최대 15건 (count=15 고정).
      */
+
+    @LogExternalApi(apiName = ApiNames.NAVER_GEOCODING)
     public NaverGeocodeResponse search(String query) {
-        String url = properties.geocodingUrl() + "?query=" + query + "&count=15";
-        return executeGetRequest(url, NaverGeocodeResponse.class);
+        String uri = properties.geocodingUrl()
+                + "?query=" + query
+                + "&count=" + 15;
+        return executeGetRequest(uri, NaverGeocodeResponse.class);
     }
 
     /**
@@ -53,14 +60,13 @@ public class NaverMapsClient {
      * @param latitude  위도 (WGS84)
      * @param longitude 경도 (WGS84)
      */
+    @LogExternalApi(apiName = ApiNames.NAVER_REVERSE_GEOCODING)
     public NaverReverseGeocodeResponse reverseGeocode(BigDecimal latitude, BigDecimal longitude) {
-        String url = UriComponentsBuilder.fromUriString(properties.reverseGeocodingUrl())
-                .queryParam("coords", longitude.toPlainString() + "," + latitude.toPlainString())
-                .queryParam("orders", "roadaddr,addr")
-                .queryParam("output", "json")
-                .build(false)
-                .toUriString();
-        return executeGetRequest(url, NaverReverseGeocodeResponse.class);
+        String uri = properties.reverseGeocodingUrl()
+                + "?coords=" + longitude.toPlainString() + "," + latitude.toPlainString()
+                + "&orders=" + "roadaddr,addr"
+                + "&output=" + "json";
+        return executeGetRequest(uri, NaverReverseGeocodeResponse.class);
     }
 
     /**
@@ -74,6 +80,7 @@ public class NaverMapsClient {
      * @return 파싱된 응답 DTO
      * @throws BusinessException COURSE_DIRECTIONS_FAILED 또는 COURSE_DIRECTIONS_WAYPOINTS_LIMIT
      */
+    @LogExternalApi(apiName = ApiNames.NAVER_DIRECTIONS)
     public NaverDirectionsResponse directions(
             BigDecimal startLng, BigDecimal startLat,
             BigDecimal goalLng, BigDecimal goalLat,
@@ -81,22 +88,21 @@ public class NaverMapsClient {
 
         // Directions 5만 사용 (경유지 최대 5개). 네이버 지도 앱 URL scheme이 v1~v5까지만 지원해서
         // 서버·앱 모두 통일. viaCount 초과는 Service 레이어에서 사전 차단.
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(properties.directionUrl())
-                .queryParam("start", startLng.toPlainString() + "," + startLat.toPlainString())
-                .queryParam("goal", goalLng.toPlainString() + "," + goalLat.toPlainString())
-                .queryParam("cartype", 1)
-                .queryParam("option", "traavoidcaronly");
+        String uri = properties.directionUrl()
+                + "?start=" + startLng.toPlainString() + "," + startLat.toPlainString()
+                + "&goal=" + goalLng.toPlainString() + "," + goalLat.toPlainString()
+                + "&cartype=" + 1
+                + "&option=" + "traavoidcaronly";
 
         if(!waypoints.isEmpty()) {
             String waypointStr = waypoints.stream()
                     .map(w -> w.longitude.toPlainString() + "," + w.latitude.toPlainString())
                     .collect(Collectors.joining("|"));
-            builder.queryParam("waypoints", waypointStr);
+            uri += "&waypoints=" + waypointStr;
         }
-        String url = builder.build(false).toUriString();
         NaverDirectionsResponse response;
         try {
-            response = executeGetRequest(url, NaverDirectionsResponse.class);
+            response = executeGetRequest(uri, NaverDirectionsResponse.class);
         } catch (RestClientException e) {
             log.error("[NaverDirections] HTTP 호출 실패: {}", e.getMessage());
             throw new BusinessException(COURSE_DIRECTIONS_FAILED);
