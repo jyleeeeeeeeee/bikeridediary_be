@@ -39,15 +39,4 @@ public class ApiResponse<T> {
         response.error = new ErrorDetail(code, message);
         return response;
     }
-
-    @Getter
-    public static class ErrorDetail {
-        private final String code;
-        private final String message;
-
-        public ErrorDetail(String code, String message) {
-            this.code = code;
-            this.message = message;
-        }
-    }
 }

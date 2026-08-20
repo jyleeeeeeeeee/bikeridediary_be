@@ -29,11 +29,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final String[] PERMIT_ALL_ENDPOINTS = {
-            "/test/**",
         "/api/v1/weathers/**",
         "/api/v1/auth/**",
         "/api/v1/stations/**",
-        //            "/api/v1/places/**",
         "/swagger-ui/**",
         "/api-docs/**",
         "/logos/**",
@@ -46,7 +44,7 @@ public class SecurityConfig {
     };
 
     private final String[] AUTHENTICATED_ENDPOINTS = {
-            "/files/**"
+            "/files/**",
     };
 
     private final JwtTokenProvider jwtTokenProvider;

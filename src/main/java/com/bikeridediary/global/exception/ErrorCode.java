@@ -84,7 +84,10 @@ public enum ErrorCode {
     PLACE_REQUEST_NOT_FOUND(HttpStatus.NOT_FOUND, "PLACE_REQUEST_NOT_FOUND", "요청을 찾을 수 없습니다"),
     PLACE_REQUEST_ALREADY_PENDING(HttpStatus.CONFLICT, "PLACE_REQUEST_ALREADY_PENDING", "해당 장소에 대한 대기 중인 요청이 이미 존재합니다"),
     PLACE_REQUEST_ALREADY_REVIEWED(HttpStatus.CONFLICT, "PLACE_REQUEST_ALREADY_REVIEWED", "이미 처리된 요청입니다"),
-    PLACE_REQUEST_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "PLACE_REQUEST_LIMIT_EXCEEDED", "대기 중인 요청 수가 상한을 초과했습니다");
+    PLACE_REQUEST_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "PLACE_REQUEST_LIMIT_EXCEEDED", "대기 중인 요청 수가 상한을 초과했습니다"),
+
+    REPORT_ALREADY_REVIEWED(HttpStatus.CONFLICT, "REPORT_ALREADY_REVIEWED", "이미 처리된 제보입니다."),
+    REPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "REPORT_NOT_FOUND", "제보를 찾을 수 없습니다.");
 
 
     private final HttpStatus httpStatus;
