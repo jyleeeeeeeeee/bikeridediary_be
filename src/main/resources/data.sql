@@ -48,8 +48,7 @@ values ('Honda', '혼다', true, 1, 'honda.png', '일본', 1),
        ('QJMotor', 'QJ모터', true, 45, null, '중국', 44),
        ('Derbi', '데르비', true, 46, null, '스페인', 45),
        ('Ural', '우랄', true, 47, null, '러시아', 46),
-       ('TM', 'TM', true, 48, null, '이탈리아', 47)
-ON CONFLICT (manufacturer_name) DO NOTHING;
+       ('TM', 'TM', true, 48, null, '이탈리아', 47) ON CONFLICT (manufacturer_name) DO NOTHING;
 
 -- ============================================================
 -- 2. 바이크 모델 초기 데이터 (API-Ninjas 조회, 4개 제조사 120개 모델)
@@ -681,7 +680,7 @@ values ('01', '서울'),
        ('2037', '신안군') ON CONFLICT (area_cd, area_nm) DO NOTHING;
 
 insert into place_categories (category_code, category_name, display_order, deleted_at, updated_at, created_at,
-                                     no)
+                              no)
 values ('RESTAURANT', '식당', 3, null, null, now(), 1),
        ('SERVICE', '센터', 4, null, null, now(), 2),
        ('OTHER', '기타', 9999, null, null, now(), 3),
@@ -689,8 +688,8 @@ values ('RESTAURANT', '식당', 3, null, null, now(), 1),
        ('FAMOUS', '명소', 2, null, null, now(), 5) ON CONFLICT (category_code) DO NOTHING;
 
 insert into places (id, place_name, user_id, star_point, wished_count, category_code, latitude, longitude,
-                           address, road_address, description, photo_url, phone, kakao_place_id, naver_place_id,
-                           created_at, updated_at, deleted_at, no)
+                    address, road_address, description, photo_url, phone, kakao_place_id, naver_place_id,
+                    created_at, updated_at, deleted_at, no)
 values ('f928d365-3d3d-4002-ac82-8839bf764be6', '썬', null, null, 0, 'CAFE', 37.5405569, 127.2575696, null, null, null,
         null, null, null, null, '2026-07-13 08:37:12.977968', null, null, 33),
        ('4a4bf100-e005-44c4-88e6-88fc9bafac90', '월미도', null, null, 0, 'FAMOUS',
@@ -1249,7 +1248,7 @@ values ('f928d365-3d3d-4002-ac82-8839bf764be6', '썬', null, null, 0, 'CAFE', 37
         305),
        ('90e1dc47-a720-497e-ad30-008712ceddcf', '화수헌', null, null, 0, 'CAFE', 36.6390174, 128.2561483,
         '경상북도 문경시 산양면 현리 321', null, null, null, null, null, null, '2026-07-15 00:10:52.521244', null, null, 307),
-       ('d9540282-76ee-4725-a36e-251e55db72ce', 'J.roaster', 'ce76c444-d67c-4a66-8713-86327cb2da89', null, 1, 'CAFE',
+       ('d9540282-76ee-4725-a36e-251e55db72ce', 'J.roaster', null, null, 1, 'CAFE',
         37.5615444, 127.0064243, '서울특별시 중구 장충동1가 54-1 1층 103호', '서울특별시 중구 장충단로 188 1층 103호', null, null, null, null,
         null, '2026-07-23 17:45:28.218605', '2026-08-13 16:24:48.772779', null, 294),
        ('7985b620-0e16-468e-9299-93b9cdc7fbad', '할리우드카페', null, null, 0, 'CAFE', 36.8124889, 127.1785664,
@@ -1278,7 +1277,7 @@ values ('f928d365-3d3d-4002-ac82-8839bf764be6', '썬', null, null, 0, 'CAFE', 37
         348) ON CONFLICT (id) DO NOTHING;
 
 insert into users (created_at, deleted_at, updated_at, id, provider, nickname, email, fcm_token, password,
-                          profile_image_url, provider_id, role, no)
+                   profile_image_url, provider_id, role, no)
 values ('2026-07-22 14:32:28.472079', null, '2026-07-22 14:32:28.472079', 'ce76c444-d67c-4a66-8713-86327cb2da89',
         'email', 'admin', 'admin@admin.com',
         null, '$2a$10$iUekjQdOGHFK7XR4BwcaeuPf5G7Uq7qdcSgjsoO9Ac4q4PcIAqUI.', null,
