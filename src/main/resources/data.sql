@@ -432,7 +432,7 @@ VALUES ('Honda', 'ADV150', 2022, 'Scooter', '149.0 ccm (9.09 cubic inches)', 'Si
         '202.0 kg (445.3 pounds)', '825 mm (32.5 inches) If adjustable, lowest setting.',
         '16.00 litres (4.23 US gallons)') ON CONFLICT (manufacturer_name, name, year) DO NOTHING;
 
-insert into public.areas (area_cd, area_nm)
+insert into areas (area_cd, area_nm)
 values ('01', '서울'),
        ('02', '경기'),
        ('03', '강원'),
@@ -680,7 +680,7 @@ values ('01', '서울'),
        ('2035', '완도군'),
        ('2037', '신안군') ON CONFLICT (area_cd, area_nm) DO NOTHING;
 
-insert into public.place_categories (category_code, category_name, display_order, deleted_at, updated_at, created_at,
+insert into place_categories (category_code, category_name, display_order, deleted_at, updated_at, created_at,
                                      no)
 values ('RESTAURANT', '식당', 3, null, null, null, 1),
        ('SERVICE', '센터', 4, null, null, null, 2),
@@ -688,7 +688,7 @@ values ('RESTAURANT', '식당', 3, null, null, null, 1),
        ('CAFE', '카페', 1, null, null, null, 4),
        ('FAMOUS', '명소', 2, null, null, null, 5) ON CONFLICT (category_code, category_name) DO NOTHING;
 
-insert into public.places (id, place_name, user_id, star_point, wished_count, category_code, latitude, longitude,
+insert into places (id, place_name, user_id, star_point, wished_count, category_code, latitude, longitude,
                            address, road_address, description, photo_url, phone, kakao_place_id, naver_place_id,
                            created_at, updated_at, deleted_at, no)
 values ('f928d365-3d3d-4002-ac82-8839bf764be6', '썬', null, null, 0, 'CAFE', 37.5405569, 127.2575696, null, null, null,
@@ -1277,7 +1277,7 @@ values ('f928d365-3d3d-4002-ac82-8839bf764be6', '썬', null, null, 0, 'CAFE', 37
         '경기도 양주시 광적면 효촌리', null, null, null, null, null, null, '2026-07-15 00:10:52.521244', null, null,
         348) ON CONFLICT (place_name) DO NOTHING;
 
-insert into public.users (created_at, deleted_at, updated_at, id, provider, nickname, email, fcm_token, password,
+insert into users (created_at, deleted_at, updated_at, id, provider, nickname, email, fcm_token, password,
                           profile_image_url, provider_id, role, no)
 values ('2026-07-22 14:32:28.472079', null, '2026-07-22 14:32:28.472079', 'ce76c444-d67c-4a66-8713-86327cb2da89',
         'email', 'admin', 'admin@admin.com',
