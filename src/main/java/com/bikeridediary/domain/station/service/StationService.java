@@ -5,6 +5,8 @@ import com.bikeridediary.domain.station.dto.StationOil;
 import com.bikeridediary.domain.station.dto.OpinetResponse;
 import com.bikeridediary.infra.coordinates.CoordinateConverter;
 import com.bikeridediary.infra.opinet.OpinetProperties;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
@@ -22,17 +24,14 @@ public class StationService {
     private final OpinetProperties properties;
     private final CoordinateConverter converter;
     private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
 
     public List<AvgOil> getAvgAllPrice() {
         try {
             String url = properties.baseUrl() + "/avgAllPrice.do?out=json&code=" + properties.apiKey();
-            OpinetResponse<AvgOil> response = restTemplate.exchange(
-                    url, HttpMethod.GET, null,
-                    new ParameterizedTypeReference<OpinetResponse<AvgOil>>() {
-                    }
-            ).getBody();
+            String raw = restTemplate.exchange(url, HttpMethod.GET, null, String.class).getBody();
 
-            if (response == null) return List.of();
+            OpinetResponse<AvgOil> response = objectMapper.readValue(raw, new TypeReference<>() {});
             return response.getResult().getOils().stream()
                     .filter(oil -> oil.getProdnm().contains("휘발유")).toList();
         } catch (Exception e) {

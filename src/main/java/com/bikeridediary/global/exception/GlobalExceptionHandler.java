@@ -21,7 +21,11 @@ public class GlobalExceptionHandler {
     // 비즈니스 로직 예외
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ApiResponse<Void>> handleBusinessException(BusinessException e) {
-        log.warn("Business exception: {}", e.getMessage());
+        if (ErrorCode.AUTH_EXPIRED_TOKEN == e.getErrorCode()) {
+            log.info("Business exception: {}", e.getMessage());
+        } else {
+            log.warn("Business exception: {}", e.getMessage());
+        }
         return ResponseEntity
                 .status(e.getHttpStatus())
                 .body(ApiResponse.fail(e.getErrorCode().getCode(), e.getMessage()));
