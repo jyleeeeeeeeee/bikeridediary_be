@@ -682,11 +682,11 @@ values ('01', '서울'),
 
 insert into place_categories (category_code, category_name, display_order, deleted_at, updated_at, created_at,
                                      no)
-values ('RESTAURANT', '식당', 3, null, null, null, 1),
-       ('SERVICE', '센터', 4, null, null, null, 2),
-       ('OTHER', '기타', 9999, null, null, '2026-07-15 07:18:09.831278', 3),
-       ('CAFE', '카페', 1, null, null, null, 4),
-       ('FAMOUS', '명소', 2, null, null, null, 5) ON CONFLICT (category_code) DO NOTHING;
+values ('RESTAURANT', '식당', 3, null, null, now(), 1),
+       ('SERVICE', '센터', 4, null, null, now(), 2),
+       ('OTHER', '기타', 9999, null, null, now(), 3),
+       ('CAFE', '카페', 1, null, null, now(), 4),
+       ('FAMOUS', '명소', 2, null, null, now(), 5) ON CONFLICT (category_code) DO NOTHING;
 
 insert into places (id, place_name, user_id, star_point, wished_count, category_code, latitude, longitude,
                            address, road_address, description, photo_url, phone, kakao_place_id, naver_place_id,
