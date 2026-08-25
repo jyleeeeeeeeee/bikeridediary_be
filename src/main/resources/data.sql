@@ -686,7 +686,7 @@ values ('RESTAURANT', '식당', 3, null, null, null, 1),
        ('SERVICE', '센터', 4, null, null, null, 2),
        ('OTHER', '기타', 9999, null, null, '2026-07-15 07:18:09.831278', 3),
        ('CAFE', '카페', 1, null, null, null, 4),
-       ('FAMOUS', '명소', 2, null, null, null, 5) ON CONFLICT (category_code, category_name) DO NOTHING;
+       ('FAMOUS', '명소', 2, null, null, null, 5) ON CONFLICT (category_code) DO NOTHING;
 
 insert into places (id, place_name, user_id, star_point, wished_count, category_code, latitude, longitude,
                            address, road_address, description, photo_url, phone, kakao_place_id, naver_place_id,
@@ -1275,7 +1275,7 @@ values ('f928d365-3d3d-4002-ac82-8839bf764be6', '썬', null, null, 0, 'CAFE', 37
         '경기도 시흥시 오이도로 229-1 헤이오', null, null, null, null, null, null, '2026-07-15 00:10:52.521244', null, null, 343),
        ('161e3726-53ac-4d90-a0ba-abce96f37b1b', '효촌저수지', null, null, 0, 'FAMOUS', 37.8754990, 126.9630500,
         '경기도 양주시 광적면 효촌리', null, null, null, null, null, null, '2026-07-15 00:10:52.521244', null, null,
-        348) ON CONFLICT (place_name) DO NOTHING;
+        348) ON CONFLICT (id) DO NOTHING;
 
 insert into users (created_at, deleted_at, updated_at, id, provider, nickname, email, fcm_token, password,
                           profile_image_url, provider_id, role, no)
