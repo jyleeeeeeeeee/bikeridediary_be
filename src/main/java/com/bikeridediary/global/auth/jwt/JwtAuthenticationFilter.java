@@ -2,6 +2,10 @@ package com.bikeridediary.global.auth.jwt;
 
 import com.bikeridediary.domain.user.entity.UserRole;
 import com.bikeridediary.global.auth.CustomUserDetails;
+import com.bikeridediary.global.exception.BusinessException;
+import com.bikeridediary.global.exception.ErrorCode;
+import com.bikeridediary.global.response.ApiResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,8 +14,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -25,23 +27,36 @@ import java.util.UUID;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final ObjectMapper objectMapper;
 
     @Override
-    protected void doFilterInternal(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain
-    ) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String token = extractToken(request);
 
-        if (StringUtils.hasText(token) && jwtTokenProvider.isValid(token)) {
-            UUID userId = jwtTokenProvider.extractUserId(token);
-            UserRole role = jwtTokenProvider.extractUserRole(token);
-            CustomUserDetails userDetails = new CustomUserDetails(userId, role);
+        if (StringUtils.hasText(token)) {
+            try {
+                if (jwtTokenProvider.isValid(token)) {
+                    UUID userId = jwtTokenProvider.extractUserId(token);
+                    UserRole role = jwtTokenProvider.extractUserRole(token);
+                    CustomUserDetails userDetails = new CustomUserDetails(userId, role);
 
-            UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
+            } catch (BusinessException e) {
+                if (ErrorCode.AUTH_EXPIRED_TOKEN == e.getErrorCode()) {
+                    log.info("Business exception: {}", e.getMessage());
+                } else {
+                    log.warn("Business exception: {}", e.getMessage());
+                }
+
+                response.setStatus(e.getHttpStatus().value());
+                response.setContentType("application/json;charset=UTF-8");
+                ApiResponse<Void> body = ApiResponse.fail(e.getErrorCode().getCode(), e.getMessage());
+                response.getWriter().write(objectMapper.writeValueAsString(body));
+                return;
+            }
         }
 
         filterChain.doFilter(request, response);
