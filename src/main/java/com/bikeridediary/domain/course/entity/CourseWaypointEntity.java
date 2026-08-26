@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.generator.EventType;
 import org.hibernate.type.SqlTypes;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -34,7 +36,8 @@ public class CourseWaypointEntity {
 
     // 소속 코스 (FK, 코스 삭제 시 CASCADE)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "course_id", nullable = false)
+    @JoinColumn(name = "course_id", nullable = false, foreignKey = @ForeignKey(name = "fk_waypoint_course"))
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private CourseEntity courseEntity;
 
     // 등록된 place 참조 (옵셔널) — 임의 지점은 null
