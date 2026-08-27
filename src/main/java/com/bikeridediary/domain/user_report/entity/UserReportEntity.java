@@ -9,6 +9,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.generator.EventType;
 import org.hibernate.type.SqlTypes;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -59,7 +61,11 @@ public class UserReportEntity extends BaseEntity {
     // 대상 place (report_type=PLACE_DELETE 등에서 사용, 그 외 null)
     // ON DELETE SET NULL: place 삭제돼도 제보 히스토리 유지
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "target_place_id")
+    @JoinColumn(
+            name = "target_place_id",
+            foreignKey = @ForeignKey(name = "fk_report_place")
+    )
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     private PlaceEntity targetPlace;
 
     // 처리 상태 : REPORTED(default), PROCEEDING, DONE, REJECT
@@ -73,7 +79,11 @@ public class UserReportEntity extends BaseEntity {
 
     // 제보자
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(
+            name = "user_id",
+            foreignKey = @ForeignKey(name = "fk_report_user")
+    )
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     private UserEntity userEntity;
 
     @Column(name = "ended_at")
@@ -81,7 +91,11 @@ public class UserReportEntity extends BaseEntity {
 
     // 검토한 어드민
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "reviewed_by")
+    @JoinColumn(
+            name = "reviewed_by",
+            foreignKey = @ForeignKey(name = "fk_report_reviewer")
+    )
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     private UserEntity reviewer;
 
     // 검토 시각

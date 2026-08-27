@@ -9,6 +9,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.generator.EventType;
 import org.hibernate.type.SqlTypes;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -40,9 +42,13 @@ public class PlaceEntity extends BaseEntity {
     @Column(name = "place_name", nullable = false, length = 100)
     private String placeName;
 
-    // 등록한 사용자 (FK, nullable - 큐레이션 장소는 관리자 시드라 null 허용)
+    // 등록자 (유저 탈퇴 시 SET NULL)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(
+            name = "user_id",
+            foreignKey = @ForeignKey(name = "fk_place_user")
+    )
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     private UserEntity userEntity;
 
     // 별점 (0.0 ~ 5.0, 소수점 1자리 표시. 정확도 요구 낮아 Float 사용)
@@ -53,9 +59,13 @@ public class PlaceEntity extends BaseEntity {
     @Column(name = "wished_count", nullable = false)
     private int wishedCount = 0;
 
-    // 카테고리 (FK, PlaceCategoryEntity.category_code)
+    // 카테고리 (실수 방지 위해 NO_ACTION 유지)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_code", nullable = false)
+    @JoinColumn(
+            name = "category_code",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "fk_place_category")
+    )
     private PlaceCategoryEntity placeCategoryEntity;
 
     // 위도

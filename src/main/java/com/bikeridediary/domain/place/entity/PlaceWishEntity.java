@@ -1,13 +1,13 @@
 package com.bikeridediary.domain.place.entity;
 
-import com.bikeridediary.domain.course.entity.CourseFavoriteEntity;
-import com.bikeridediary.domain.course.entity.CourseFavoriteId;
 import com.bikeridediary.domain.user.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.generator.EventType;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -26,7 +26,6 @@ import java.util.UUID;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PlaceWishEntity {
 
-
     // 조회용 친숙 번호 (자동 증가, DB DEFAULT nextval)
     @Column(name = "no", insertable = false, updatable = false)
     @Generated(event = EventType.INSERT)
@@ -36,8 +35,24 @@ public class PlaceWishEntity {
     private PlaceWishId id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "place_id", insertable = false, updatable = false)
+    @JoinColumn(
+            name = "place_id",
+            insertable = false,
+            updatable = false,
+            foreignKey = @ForeignKey(name = "fk_wish_place")
+    )
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private PlaceEntity placeEntity;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "user_id",
+            insertable = false,
+            updatable = false,
+            foreignKey = @ForeignKey(name = "fk_wish_user")
+    )
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private UserEntity user;
 
     @CreatedDate
     @Column(name = "created_at", insertable = false, updatable = false)

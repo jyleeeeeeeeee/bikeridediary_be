@@ -24,9 +24,12 @@ public class BikeModelEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 제조사 (FK → manufacturers.manufacturer_name)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "manufacturer_name", nullable = false)
+    @JoinColumn(
+            name = "manufacturer_name",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "fk_bike_model_manufacturer")
+    )
     private ManufacturerEntity manufacturer;
 
     // 모델명 (예: "CBR650R", "Monster 821")

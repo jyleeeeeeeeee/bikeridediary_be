@@ -8,6 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.generator.EventType;
 import org.hibernate.type.SqlTypes;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -32,9 +34,12 @@ public class CourseEntity extends BaseEntity {
     @JdbcTypeCode(SqlTypes.UUID)
     private UUID id;
 
-    // 코스 작성자 (FK, nullable — 시드/큐레이션 코스는 작성자 없음)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = true)
+    @JoinColumn(
+            name = "user_id",
+            foreignKey = @ForeignKey(name = "fk_course_user")
+    )
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     private UserEntity userEntity;
 
     // 코스 이름
@@ -58,9 +63,20 @@ public class CourseEntity extends BaseEntity {
     @Column(name = "is_public", nullable = false)
     private boolean isPublic = false;
 
-    // 원본 코스 ID (남의 코스를 복제해서 저장할 때 참조, 자기참조 FK)
     @Column(name = "source_course_id")
+    @JdbcTypeCode(SqlTypes.UUID)
     private UUID sourceCourseId;
+
+    // FK 정의 + @OnDelete 반영 담당. 쓰기는 위의 sourceCourseId 사용.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "source_course_id",
+            insertable = false,
+            updatable = false,
+            foreignKey = @ForeignKey(name = "fk_course_source")
+    )
+    @OnDelete(action = OnDeleteAction.SET_NULL)
+    private CourseEntity sourceCourse;
 
     // 코스 설명
     @Column(name = "description", columnDefinition = "TEXT")

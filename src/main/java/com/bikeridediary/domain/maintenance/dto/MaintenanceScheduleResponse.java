@@ -41,7 +41,7 @@ public record MaintenanceScheduleResponse(
                 currentMileage, LocalDate.now(), lastMaintenanceMileage, lastMaintenanceDate);
         return new MaintenanceScheduleResponse(
                 entity.getId(),
-                entity.getBikeEntity().getId(),
+                entity.getBike().getId(),
                 entity.getMaintenanceType(),
                 entity.getIntervalKm(),
                 entity.getIntervalMonths(),

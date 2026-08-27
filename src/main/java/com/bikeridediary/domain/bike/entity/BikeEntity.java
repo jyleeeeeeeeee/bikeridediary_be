@@ -9,6 +9,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.generator.EventType;
 import org.hibernate.type.SqlTypes;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -40,8 +42,12 @@ public class BikeEntity extends BaseEntity {
 
     // 소유 사용자 (FK)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    @JsonBackReference
+    @JoinColumn(
+            name = "user_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "fk_bike_user")
+    )
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private UserEntity userEntity;
 
     // 제조사명 (MVP: 텍스트 직접 입력, 2차: bike_trims FK 연동 예정)

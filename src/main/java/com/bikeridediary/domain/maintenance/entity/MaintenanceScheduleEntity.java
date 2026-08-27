@@ -2,13 +2,14 @@ package com.bikeridediary.domain.maintenance.entity;
 
 import com.bikeridediary.domain.bike.entity.BikeEntity;
 import com.bikeridediary.domain.common.entity.BaseEntity;
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.generator.EventType;
 import org.hibernate.type.SqlTypes;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -35,11 +36,14 @@ public class MaintenanceScheduleEntity extends BaseEntity {
     @JdbcTypeCode(SqlTypes.UUID)
     private UUID id;
 
-    // 소유 바이크 (FK)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "bike_id", nullable = false)
-    @JsonBackReference
-    private BikeEntity bikeEntity;
+    @JoinColumn(
+            name = "bike_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "fk_schedule_bike")
+    )
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private BikeEntity bike;
 
     // 정비 종류 (엔진오일, 체인, 타이어, 브레이크 등)
     @Enumerated(EnumType.STRING)
@@ -74,7 +78,7 @@ public class MaintenanceScheduleEntity extends BaseEntity {
     ) {
         MaintenanceScheduleEntity entity = new MaintenanceScheduleEntity();
         entity.id = id;
-        entity.bikeEntity = bikeEntity;
+        entity.bike = bikeEntity;
         entity.maintenanceType = maintenanceType;
         entity.intervalKm = intervalKm;
         entity.intervalMonths = intervalMonths;
@@ -112,7 +116,7 @@ public class MaintenanceScheduleEntity extends BaseEntity {
 
     // 이 정비 주기가 특정 사용자의 바이크에 속하는지 권한 검증
     public boolean isOwner(UUID userId) {
-        return this.bikeEntity.isOwner(userId);
+        return this.bike.isOwner(userId);
     }
 
 }

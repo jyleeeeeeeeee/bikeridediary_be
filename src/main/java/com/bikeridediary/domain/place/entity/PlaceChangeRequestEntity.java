@@ -3,12 +3,12 @@ package com.bikeridediary.domain.place.entity;
 
 import com.bikeridediary.domain.user.entity.UserEntity;
 import jakarta.persistence.*;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.*;
 import org.hibernate.generator.EventType;
 import org.hibernate.type.SqlTypes;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -40,14 +40,21 @@ public class PlaceChangeRequestEntity {
     @Column(name = "type", nullable = false, length = 30)
     private PlaceChangeRequestType type;
 
-    // 수정 대상 Place (create -> null)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "target_place_id")
+    @JoinColumn(
+            name = "target_place_id",
+            foreignKey = @ForeignKey(name = "fk_change_req_place")
+    )
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private PlaceEntity targetPlace;
 
-    // 요청자
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "requester_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)   // optional = false 제거
+    @JoinColumn(
+            name = "requester_id",
+            nullable = true,   // false → true
+            foreignKey = @ForeignKey(name = "fk_change_req_requester")
+    )
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     private UserEntity requester;
 
     // type별 payload (JSONB)
@@ -64,9 +71,12 @@ public class PlaceChangeRequestEntity {
     @Column(name = "review_note", columnDefinition = "TEXT")
     private String reviewNote;
 
-    // 검토한 어드민
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "reviewed_by")
+    @JoinColumn(
+            name = "reviewed_by",
+            foreignKey = @ForeignKey(name = "fk_change_req_reviewer")
+    )
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     private UserEntity reviewer;
 
     // 검토 시각

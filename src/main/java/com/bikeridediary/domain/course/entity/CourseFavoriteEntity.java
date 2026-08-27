@@ -1,10 +1,13 @@
 package com.bikeridediary.domain.course.entity;
 
+import com.bikeridediary.domain.user.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.generator.EventType;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -27,6 +30,24 @@ public class CourseFavoriteEntity {
 
     @EmbeddedId
     private CourseFavoriteId id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("courseId")
+    @JoinColumn(
+            name = "course_id",
+            foreignKey = @ForeignKey(name = "fk_favorite_course")
+    )
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private CourseEntity course;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("userId")
+    @JoinColumn(
+            name = "user_id",
+            foreignKey = @ForeignKey(name = "fk_favorite_user")
+    )
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private UserEntity user;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)

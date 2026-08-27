@@ -12,17 +12,13 @@ import java.util.UUID;
 public interface MaintenanceScheduleRepository extends JpaRepository<MaintenanceScheduleEntity, UUID> {
 
     // 특정 바이크의 모든 활성 정비 주기 조회
-    List<MaintenanceScheduleEntity> findByBikeEntityIdAndDeletedAtIsNull(UUID bikeId);
+    List<MaintenanceScheduleEntity> findByBikeIdAndDeletedAtIsNull(UUID bikeId);
 
     // 특정 활성 정비 주기 조회
     Optional<MaintenanceScheduleEntity> findByIdAndDeletedAtIsNull(UUID id);
 
-    // 특정 바이크의 특정 정비 종류 주기 조회
-    Optional<MaintenanceScheduleEntity> findByBikeEntityIdAndMaintenanceTypeAndDeletedAtIsNull(
-            UUID bikeId, MaintenanceType maintenanceType);
-
     // 특정 바이크에 동일한 정비 종류의 주기가 존재하는지 확인
-    boolean existsByBikeEntityIdAndMaintenanceTypeAndDeletedAtIsNull(UUID bikeId, MaintenanceType maintenanceType);
+    boolean existsByBikeIdAndMaintenanceTypeAndDeletedAtIsNull(UUID bikeId, MaintenanceType maintenanceType);
 
     // no(자동 증가 조회 번호)로 특정 schedule 조회 — DB 관리/디버깅용
     Optional<MaintenanceScheduleEntity> findByNo(Long no);
@@ -30,7 +26,7 @@ public interface MaintenanceScheduleRepository extends JpaRepository<Maintenance
     // 초기 pull용 — 유저의 모든 활성 정비 스케줄
     @org.springframework.data.jpa.repository.Query(
             "SELECT s FROM MaintenanceScheduleEntity s " +
-            "JOIN FETCH s.bikeEntity b " +
+            "JOIN FETCH s.bike b " +
             "WHERE b.userEntity.id = :userId AND s.deletedAt IS NULL " +
             "ORDER BY s.createdAt DESC")
     List<MaintenanceScheduleEntity> findMySchedules(UUID userId);

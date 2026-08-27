@@ -9,6 +9,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.generator.EventType;
 import org.hibernate.type.SqlTypes;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -34,10 +36,13 @@ public class MaintenanceEntity extends BaseEntity {
     @JdbcTypeCode(SqlTypes.UUID)
     private UUID id;
 
-    // 소유 바이크 (FK)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "bike_id", nullable = false)
-    @JsonBackReference
+    @JoinColumn(
+            name = "bike_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "fk_maintenance_bike")
+    )
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private BikeEntity bike;
 
     // 정비 종류 (엔진오일, 체인, 타이어, 브레이크 등)

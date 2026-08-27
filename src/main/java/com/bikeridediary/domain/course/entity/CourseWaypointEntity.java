@@ -40,10 +40,12 @@ public class CourseWaypointEntity {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private CourseEntity courseEntity;
 
-    // 등록된 place 참조 (옵셔널) — 임의 지점은 null
-    // ON DELETE SET NULL: place 삭제되어도 좌표 스냅샷으로 코스는 유효
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "place_id", nullable = true)
+    @JoinColumn(
+            name = "place_id",
+            foreignKey = @ForeignKey(name = "fk_waypoint_place")
+    )
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     private PlaceEntity placeEntity;
 
     // 순서 인덱스 (0-based, 정렬용)

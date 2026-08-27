@@ -41,7 +41,7 @@ public class MaintenanceScheduleService {
         verifyBikeOwnership(bikeEntity, userId);
 
         Long currentMileage = bikeEntity.getTotalMileageKm();
-        return scheduleRepository.findByBikeEntityIdAndDeletedAtIsNull(bikeId)
+        return scheduleRepository.findByBikeIdAndDeletedAtIsNull(bikeId)
                 .stream()
                 .map(schedule -> buildResponse(schedule, bikeId, currentMileage))
                 .toList();
@@ -53,8 +53,8 @@ public class MaintenanceScheduleService {
         MaintenanceScheduleEntity entity = findScheduleOrThrow(scheduleId);
         verifyScheduleOwnership(entity, userId);
 
-        UUID bikeId = entity.getBikeEntity().getId();
-        Long currentMileage = entity.getBikeEntity().getTotalMileageKm();
+        UUID bikeId = entity.getBike().getId();
+        Long currentMileage = entity.getBike().getTotalMileageKm();
         return buildResponse(entity, bikeId, currentMileage);
     }
 
@@ -64,7 +64,7 @@ public class MaintenanceScheduleService {
         BikeEntity bikeEntity = findBikeOrThrow(request.bikeId());
         verifyBikeOwnership(bikeEntity, userId);
 
-        if (scheduleRepository.existsByBikeEntityIdAndMaintenanceTypeAndDeletedAtIsNull(
+        if (scheduleRepository.existsByBikeIdAndMaintenanceTypeAndDeletedAtIsNull(
                 request.bikeId(), request.maintenanceType())) {
             throw new BusinessException(MAINTENANCE_SCHEDULE_DUPLICATE);
         }
@@ -88,8 +88,8 @@ public class MaintenanceScheduleService {
 
         entity.update(request.intervalKm(), request.intervalMonths());
 
-        UUID bikeId = entity.getBikeEntity().getId();
-        Long currentMileage = entity.getBikeEntity().getTotalMileageKm();
+        UUID bikeId = entity.getBike().getId();
+        Long currentMileage = entity.getBike().getTotalMileageKm();
         return buildResponse(entity, bikeId, currentMileage);
     }
 
@@ -190,8 +190,8 @@ public class MaintenanceScheduleService {
         return scheduleRepository.findMySchedules(userId).stream()
                 .map(s -> buildResponse(
                         s,
-                        s.getBikeEntity().getId(),
-                        s.getBikeEntity().getTotalMileageKm()))
+                        s.getBike().getId(),
+                        s.getBike().getTotalMileageKm()))
                 .toList();
     }
 }

@@ -2,20 +2,20 @@ package com.bikeridediary.domain.fueling.entity;
 
 import com.bikeridediary.domain.bike.entity.BikeEntity;
 import com.bikeridediary.domain.common.entity.BaseEntity;
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.generator.EventType;
 import org.hibernate.type.SqlTypes;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -35,8 +35,12 @@ public class FuelingEntity extends BaseEntity {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "bike_id", nullable = false)
-    @JsonBackReference
+    @JoinColumn(
+            name = "bike_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "fk_fueling_bike")
+    )
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private BikeEntity bikeEntity;
 
     @Column(name = "fueling_date", nullable = false)
