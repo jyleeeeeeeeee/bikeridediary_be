@@ -165,6 +165,7 @@ public class BikeModelService {
         List<ManufacturerEntity> manufacturers = manufacturerRepository.findByIsActiveTrueOrderByDisplayOrderAsc();
         for (ManufacturerEntity manufacturer : manufacturers) {
             String manufacturerName = manufacturer.getManufacturerName();
+            if(!manufacturerName.equals("TM")) continue;
             String modelsUrl = "https://api.api-ninjas.com/v1/motorcyclemodels?make=" + manufacturerName;
             ResponseEntity<String> modelsResponse = callApi(modelsUrl);
             try {

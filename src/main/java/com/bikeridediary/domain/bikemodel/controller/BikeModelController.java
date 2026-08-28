@@ -53,24 +53,18 @@ public class BikeModelController {
         return ResponseEntity.ok(ApiResponse.ok(Map.of("syncedCount", count)));
     }
 
-    @Operation(summary = "특정 제조사 모델 동기화", description = "API-Ninjas에서 특정 제조사의 모델 데이터를 동기화")
-    @PostMapping("/sync/{manufacturerName}")
-    public ResponseEntity<ApiResponse<Map<String, Integer>>> syncManufacturer(
-            @PathVariable String manufacturerName) {
-        int count = bikeModelService.syncManufacturerModels(manufacturerName);
-        return ResponseEntity.ok(ApiResponse.ok(Map.of("syncedCount", count)));
-    }
-
-    @Operation(summary = "전체 제조사 모델 동기화", description = "API-Ninjas에서 모든 활성 제조사의 모델 데이터를 동기화 (시간 소요)")
-    @PostMapping("/sync")
-    public ResponseEntity<ApiResponse<Map<String, Integer>>> syncAll() {
-        int count = bikeModelService.syncAllManufacturers();
-        return ResponseEntity.ok(ApiResponse.ok(Map.of("syncedCount", count)));
-    }
-
-    @GetMapping("/all")
-    public ResponseEntity<ApiResponse<Void>> saveAll() {
-        bikeModelService.all();
-        return ResponseEntity.ok(ApiResponse.ok());
-    }
+//    @Operation(summary = "특정 제조사 모델 동기화", description = "API-Ninjas에서 특정 제조사의 모델 데이터를 동기화")
+//    @PostMapping("/sync/{manufacturerName}")
+//    public ResponseEntity<ApiResponse<Map<String, Integer>>> syncManufacturer(
+//            @PathVariable String manufacturerName) {
+//        int count = bikeModelService.syncManufacturerModels(manufacturerName);
+//        return ResponseEntity.ok(ApiResponse.ok(Map.of("syncedCount", count)));
+//    }
+//
+//    @Operation(summary = "전체 제조사 모델 동기화", description = "API-Ninjas에서 모든 활성 제조사의 모델 데이터를 동기화 (시간 소요)")
+//    @PostMapping("/sync")
+//    public ResponseEntity<ApiResponse<Map<String, Integer>>> syncAll() {
+//        int count = bikeModelService.syncAllManufacturers();
+//        return ResponseEntity.ok(ApiResponse.ok(Map.of("syncedCount", count)));
+//    }
 }
