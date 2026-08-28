@@ -18,40 +18,47 @@ public class BikeModelInsertService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void saveBikeModelEntity(ManufacturerEntity manufacturer, JsonNode node) {
-        String displacement = node.path("displacement").asText(null);
-        displacement = displacement == null ? null : displacement.substring(0, displacement.indexOf("ccm") + 2);
+        String modelName = "";
+        try {
+            String displacement = node.path("displacement").asText(null);
+            displacement = displacement == null ? null : displacement.substring(0, displacement.indexOf("ccm") + 2);
 
-        String engine = node.path("engine").asText(null);
-        engine = engine == null ? null : translateEngine(engine);
+            String engine = node.path("engine").asText(null);
+            engine = engine == null ? null : translateEngine(engine);
 
-        String fuelCapacity = node.path("fuel_capacity").asText(null);
-        fuelCapacity = fuelCapacity == null ? null : fuelCapacity.substring(0, fuelCapacity.indexOf(" lit"));
+            String fuelCapacity = node.path("fuel_capacity").asText(null);
+            fuelCapacity = fuelCapacity == null ? null : fuelCapacity.substring(0, fuelCapacity.indexOf(" lit"));
 
 
-        String power = node.path("power").asText(null);
-        power = power == null ? null : power.substring(0, power.indexOf("HP")) + "마력";
+            String power = node.path("power").asText(null);
+            power = power == null ? null : power.substring(0, power.indexOf("HP")) + "마력";
 
-        String torque = node.path("torque").asText(null);
+            String torque = node.path("torque").asText(null);
 
-        String totalWeight = node.path("total_weight").asText(null);
-        totalWeight = totalWeight == null ? null : totalWeight.substring(0, totalWeight.indexOf("kg") + 2);
+            String totalWeight = node.path("total_weight").asText(null);
+            totalWeight = totalWeight == null ? null : totalWeight.substring(0, totalWeight.indexOf("kg") + 2);
 
-        String seatHeight = node.path("seat_height").asText(null);
-        seatHeight = seatHeight == null ? null : seatHeight.substring(0, seatHeight.indexOf("mm") + 2);
+            String seatHeight = node.path("seat_height").asText(null);
+            seatHeight = seatHeight == null ? null : seatHeight.substring(0, seatHeight.indexOf("mm") + 2);
 
-        bikeModelRepository.save(BikeModelEntity.create(
-                manufacturer,
-                node.path("model").asText(null),
-                null,
-                node.path("type").asText(null),
-                displacement,
-                engine,
-                power,
-                torque,
-                totalWeight,
-                seatHeight,
-                fuelCapacity
-        ));
+            modelName = node.path("model").asText(null);
+            bikeModelRepository.save(BikeModelEntity.create(
+                    manufacturer,
+                    modelName,
+                    null,
+                    node.path("type").asText(null),
+                    displacement,
+                    engine,
+                    power,
+                    torque,
+                    totalWeight,
+                    seatHeight,
+                    fuelCapacity
+            ));
+        } catch (Exception e) {
+            log.error("[{}] [] ERROR : {}", manufacturer.getManufacturerName(), modelName, e);
+        }
+
     }
 
     private String translateEngine(String engine) {
