@@ -19,6 +19,7 @@ public class BikeModelInsertService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void saveBikeModelEntity(ManufacturerEntity manufacturer, JsonNode node) {
         String displacement = node.path("displacement").asText(null);
+        displacement = displacement == null ? null : displacement.substring(0, displacement.indexOf("ccm") + 2);
 
         String engine = node.path("engine").asText(null);
         engine = engine == null ? null : translateEngine(engine);
@@ -43,7 +44,7 @@ public class BikeModelInsertService {
                 node.path("model").asText(null),
                 null,
                 node.path("type").asText(null),
-                displacement.substring(0, displacement.indexOf("ccm") + 2),
+                displacement,
                 engine,
                 power,
                 torque,
