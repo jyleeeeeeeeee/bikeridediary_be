@@ -47,7 +47,7 @@ values ('Honda', '혼다', true, 1, 'honda.png', '일본', 1),
        ('Mash', '매쉬', true, 44, null, '프랑스', 43),
        ('QJMotor', 'QJ모터', true, 45, null, '중국', 44),
        ('Derbi', '데르비', true, 46, null, '스페인', 45),
-       ('Ural', '우랄', true, 47, null, '러시아', 46);
+       ('Ural', '우랄', true, 47, null, '러시아', 46) ON CONFLICT (manufacturer_name) DO NOTHING;
 
 -- ============================================================
 -- 2. 바이크 모델 초기 데이터 (API-Ninjas 조회, 4개 제조사 120개 모델)
