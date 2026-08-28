@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.core.annotation.Order;
@@ -28,6 +29,7 @@ import java.util.UUID;
 public class ExternalApiLoggingAspect {
     private final ApiCallLogService apiCallLogService;
 
+    @Around("@annotation(logExternalApi)")
     public Object logApiCall(ProceedingJoinPoint joinPoint, LogExternalApi logExternalApi) throws Throwable {
         long start = System.currentTimeMillis();
         UUID userId = getUserId();
@@ -62,7 +64,6 @@ public class ExternalApiLoggingAspect {
             HttpServletRequest request = attributes.getRequest();
             // HTTP Method 추출 ("GET", "POST", "PUT", "DELETE" 등)
             String httpMethod = request.getMethod();
-
 
             apiCallLogService.saveLog(
                     userId, logExternalApi.apiName(),

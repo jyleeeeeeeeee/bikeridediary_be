@@ -24,6 +24,8 @@ repositories {
 }
 
 dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
+
     implementation 'org.locationtech.proj4j:proj4j:1.3.0'
     implementation 'org.locationtech.proj4j:proj4j-epsg:1.3.0'
 
