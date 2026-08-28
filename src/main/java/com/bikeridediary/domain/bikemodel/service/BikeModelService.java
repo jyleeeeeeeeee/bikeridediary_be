@@ -32,6 +32,7 @@ public class BikeModelService {
     private final BikeModelRepository bikeModelRepository;
     private final ObjectMapper objectMapper;
     private final ApiNinjasProperties apiNinjasProperties;
+    private final BikeModelInsertService bikeModelInsertService;
 
     private static final String API_NINJA_BASE_URL = "https://api.api-ninjas.com/v1/motorcycles";
 
@@ -159,6 +160,7 @@ public class BikeModelService {
         return str.replace(" ", "%20");
     }
 
+    @Transactional
     public void all() {
         List<ManufacturerEntity> manufacturers = manufacturerRepository.findByIsActiveTrueOrderByDisplayOrderAsc();
         for (ManufacturerEntity manufacturer : manufacturers) {
@@ -169,27 +171,17 @@ public class BikeModelService {
                 JsonNode models = objectMapper.readTree(modelsResponse.getBody());
                 for (JsonNode model : models) {
                     String modelName = model.asText().trim();
-                    if (bikeModelRepository.existsByManufacturerManufacturerNameAndName(manufacturerName, modelName)) continue;
+                    if (bikeModelRepository.existsByManufacturerManufacturerNameAndName(manufacturerName, modelName)) {
+                        log.info("[{}] {} exist.", manufacturerName, modelName);
+                        continue;
+                    }
 
                     String detailUrl = API_NINJA_BASE_URL + "?make=" + manufacturerName + "&model=" + modelName;
                     ResponseEntity<String> detailsResponse = callApi(detailUrl);
                     JsonNode detailModels = objectMapper.readTree(detailsResponse.getBody());
 
-                    BikeModelEntity entity = BikeModelEntity.create(
-                            manufacturer,
-                            detailModels.get(0).path("model").asText(null),
-                            null,
-                            detailModels.get(0).path("type").asText(null),
-                            null,
-                            null,
-                            null,
-                            null,
-                            null,
-                            null,
-                            null
-                    );
-                    bikeModelRepository.save(entity);
-                    log.info("[{}] {}", manufacturerName, modelName);
+                    bikeModelInsertService.saveBikeModelEntity(manufacturer, detailModels.get(0));
+                    log.info("[{}] {} saved.", manufacturerName, modelName);
                 }
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
