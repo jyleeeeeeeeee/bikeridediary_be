@@ -126,6 +126,11 @@ public class UserEntity extends BaseEntity {
         this.profileImageUrl = profileImageUrl;
     }
 
+    // 프로필 정보 수정 (닉네임, 프로필 이미지)
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
     // Firebase FCM 푸시 알림 토큰 갱신
     public void updateFcmToken(String fcmToken) {
         this.fcmToken = fcmToken;

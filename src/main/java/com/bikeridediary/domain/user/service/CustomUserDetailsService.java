@@ -31,5 +31,18 @@ public class CustomUserDetailsService implements UserDetailsService {
         return new CustomUserDetails(userEntity.getId(), userEntity.getRole());
     }
 
+    @Transactional(readOnly = true)
+    public UserEntity getMyInfo(UUID userId) {
+        return userRepository.findByIdAndDeletedAtIsNull(userId)
+                .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
+    }
+
+    @Transactional
+    public UserEntity updateNickname(UUID userId, String nickname) {
+        UserEntity userEntity = userRepository.findByIdAndDeletedAtIsNull(userId)
+                .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
+        userEntity.updateNickname(nickname);
+        return userEntity;
+    }
 
 }

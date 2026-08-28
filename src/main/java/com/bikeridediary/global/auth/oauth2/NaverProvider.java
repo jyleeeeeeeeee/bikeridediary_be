@@ -21,9 +21,7 @@ public class NaverProvider implements OAuth2Provider{
     private final ObjectMapper objectMapper;
 
     // 네이버 OAuth2 API 엔드포인트
-    private static final String TOKEN_URI = "https://nid.naver.com/oauth2.0/token";
     private static final String USER_INFO_URI = "https://openapi.naver.com/v1/nid/me";
-    private static final String GRANT_TYPE = "authorization_code";
 
     @Override
     public OAuth2UserInfo getUserInfo(String credential) {
