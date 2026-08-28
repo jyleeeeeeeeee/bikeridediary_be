@@ -67,4 +67,10 @@ public class BikeModelController {
         int count = bikeModelService.syncAllManufacturers();
         return ResponseEntity.ok(ApiResponse.ok(Map.of("syncedCount", count)));
     }
+
+    @GetMapping("/all")
+    public ResponseEntity<ApiResponse<Void>> saveAll() {
+        bikeModelService.all();
+        return ResponseEntity.ok(ApiResponse.ok());
+    }
 }

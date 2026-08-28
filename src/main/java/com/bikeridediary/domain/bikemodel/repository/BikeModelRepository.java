@@ -15,9 +15,7 @@ public interface BikeModelRepository extends JpaRepository<BikeModelEntity, Long
     // no(자동 증가 조회 번호)로 특정 bike_model 조회 — DB 관리/디버깅용
     Optional<BikeModelEntity> findByNo(Long no);
 
-    List<BikeModelEntity> findByManufacturerManufacturerNameOrderByNameAsc(String manufacturerName);
-
-    boolean existsByManufacturerManufacturerName(String manufacturerName);
+    boolean existsByManufacturerManufacturerNameAndName(String manufacturerName, String modelName);
 
     @Query("SELECT new com.bikeridediary.domain.bikemodel.dto.BikeModelNameResponse(b.name, b.type) " +
            "FROM BikeModelEntity b WHERE b.manufacturer.manufacturerName = :manufacturerName " +

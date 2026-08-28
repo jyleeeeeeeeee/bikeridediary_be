@@ -7,6 +7,7 @@ import com.bikeridediary.domain.bikemodel.entity.BikeModelEntity;
 import com.bikeridediary.domain.bikemodel.entity.ManufacturerEntity;
 import com.bikeridediary.domain.bikemodel.repository.BikeModelRepository;
 import com.bikeridediary.domain.bikemodel.repository.ManufacturerRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -118,8 +119,8 @@ public class BikeModelService {
 
                 if (name == null || name.isBlank()) continue;
                 name = name.trim();
-                if (bikeModelRepository.existsByManufacturerManufacturerName(
-                        manufacturer.getManufacturerName())) continue;
+                if (bikeModelRepository.existsByManufacturerManufacturerNameAndName(
+                        manufacturer.getManufacturerName(), modelName)) continue;
 
                 BikeModelEntity entity = BikeModelEntity.create(
                         manufacturer,
@@ -156,5 +157,51 @@ public class BikeModelService {
 
     private String replaceSpace(String str) {
         return str.replace(" ", "%20");
+    }
+
+    public void all() {
+        List<ManufacturerEntity> manufacturers = manufacturerRepository.findByIsActiveTrueOrderByDisplayOrderAsc();
+        for (ManufacturerEntity manufacturer : manufacturers) {
+            String manufacturerName = manufacturer.getManufacturerName();
+            String modelsUrl = "https://api.api-ninjas.com/v1/motorcyclemodels?make=" + manufacturerName;
+            ResponseEntity<String> modelsResponse = callApi(modelsUrl);
+            try {
+                JsonNode models = objectMapper.readTree(modelsResponse.getBody());
+                for (JsonNode model : models) {
+                    String modelName = model.asText().trim();
+                    if (bikeModelRepository.existsByManufacturerManufacturerNameAndName(manufacturerName, modelName)) continue;
+
+                    String detailUrl = API_NINJA_BASE_URL + "?make=" + manufacturerName + "&model=" + modelName;
+                    ResponseEntity<String> detailsResponse = callApi(detailUrl);
+                    JsonNode detailModels = objectMapper.readTree(detailsResponse.getBody());
+
+                    BikeModelEntity entity = BikeModelEntity.create(
+                            manufacturer,
+                            detailModels.get(0).path("model").asText(null),
+                            null,
+                            detailModels.get(0).path("type").asText(null),
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null
+                    );
+                    bikeModelRepository.save(entity);
+                }
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    public ResponseEntity<String> callApi(String url) {
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("x-api-key", apiNinjasProperties.apiKey());
+        HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+
+        return restTemplate.exchange(url, HttpMethod.GET, requestEntity, String.class);
     }
 }
