@@ -55,9 +55,6 @@ openweather:
   api-key: ${OPENWEATHER_API_KEY:dummy}
 
 naver:
-  oauth2:
-    client-id: dummy
-    client-secret: dummy
   search:
     client-id: ${NAVER_API_HUB_CLIENT_ID:dummy}
     client-secret: ${NAVER_API_HUB_CLIENT_SECRET:dummy}
