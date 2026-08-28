@@ -189,6 +189,7 @@ public class BikeModelService {
                             null
                     );
                     bikeModelRepository.save(entity);
+                    log.info("[{}] {}", manufacturerName, modelName);
                 }
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
