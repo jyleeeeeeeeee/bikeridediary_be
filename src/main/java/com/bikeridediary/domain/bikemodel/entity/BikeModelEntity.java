@@ -9,7 +9,10 @@ import org.hibernate.generator.EventType;
 // 바이크 모델 마스터 데이터 — API-Ninjas로부터 동기화
 @Entity
 @Table(name = "bike_models",
-       uniqueConstraints = @UniqueConstraint(columnNames = {"manufacturer_name", "name", "year"}))
+        uniqueConstraints = @UniqueConstraint(
+                name = "uq_bike_models_mfr_name_year",
+                columnNames = {"manufacturer_name", "name", "year"}))
+
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class BikeModelEntity {
